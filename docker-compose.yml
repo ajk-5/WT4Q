@@ -1,0 +1,30 @@
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: {POSTGRES_USER}
+      POSTGRES_PASSWORD: {POSTGRES_PASSWORD}
+      POSTGRES_DB: {DATABASE_NAME}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+
+  webapi:
+    build: ./Northeast
+    restart: always
+    user: "1654:1654"
+    volumes:
+      - ./Northeast:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5000:8080"
+    command: ["dotnet", "Northeast.dll"]
