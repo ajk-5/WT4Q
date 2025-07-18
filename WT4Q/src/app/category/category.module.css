@@ -1,15 +1,21 @@
 .container {
   font-family: 'Times New Roman', serif;
+  padding: 1rem;
 }
 
 .title {
   text-transform: capitalize;
   margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: bold;
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 

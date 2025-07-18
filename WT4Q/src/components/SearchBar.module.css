@@ -1,12 +1,14 @@
 .form {
   display: flex;
-  border: 1px solid #ccc;
+  border: 2px solid var(--wt4q-blue);
+  border-radius: 999px;
   height: 1.75rem;
+  overflow: hidden;
 }
 
 .input {
   flex: 1;
-  padding: 0 0.5rem;
+  padding: 0 0.75rem;
   font-size: 0.875rem;
   border: none;
   outline: none;
@@ -14,8 +16,8 @@
 
 .button {
   padding: 0 0.75rem;
-  background: #000;
-  color: #fff;
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
   border: none;
   cursor: pointer;
 }

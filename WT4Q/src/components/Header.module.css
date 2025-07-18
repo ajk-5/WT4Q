@@ -1,8 +1,9 @@
 .header {
-  background: #fafafa;
-  border-bottom: 2px solid #e5e5e5;
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
   padding: 0.5rem 1rem;
   font-family: 'Times New Roman', serif;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .inner {
@@ -19,6 +20,15 @@
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoImage {
+  width: 40px;
+  height: auto;
+  border-radius: 50%;
 }
 
 .nav {

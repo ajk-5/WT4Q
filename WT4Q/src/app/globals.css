@@ -48,14 +48,36 @@ a {
 }
 /* Admin Login theme */
 :root {
-  --wt4q-yellow: #E6C200;
-  --wt4q-red: #C5281B;
-  --wt4q-blue: #005D9E;
-  --wt4q-green: #3A7D24;
+  --wt4q-yellow: #ffea00;
+  --wt4q-red: #ff3b30;
+  --wt4q-blue: #4db5ff;
+  --wt4q-green: #7ed957;
   --metal-base: #D1D1D3;
   --metal-reflect: #FFFFFF;
   --metal-shadow: rgba(0,0,0,0.4);
   --text-default: #212121;
   --text-light: #555555;
   --error-red: #D32F2F;
+  --metal-gradient: linear-gradient(
+    45deg,
+    var(--wt4q-yellow) 0%,
+    var(--wt4q-red) 33%,
+    var(--wt4q-blue) 66%,
+    var(--wt4q-green) 100%
+  );
+}
+
+.metallicBg {
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
+}
+
+.rounded {
+  border-radius: 1rem;
+}
+
+.shinyText {
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
