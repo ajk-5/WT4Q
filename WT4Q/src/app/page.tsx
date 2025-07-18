@@ -1,4 +1,5 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
+import Hero from '@/components/Hero';
 import { API_ROUTES } from '@/lib/api';
 import styles from './page.module.css';
 
@@ -15,10 +16,13 @@ async function fetchArticles(): Promise<Article[]> {
 export default async function Home() {
   const articles = await fetchArticles();
   return (
-    <div className={styles.container}>
-      {articles.map((a) => (
-        <ArticleCard key={a.id} article={a} />
-      ))}
-    </div>
+    <>
+      <Hero />
+      <div className={styles.container}>
+        {articles.map((a) => (
+          <ArticleCard key={a.id} article={a} />
+        ))}
+      </div>
+    </>
   );
 }
