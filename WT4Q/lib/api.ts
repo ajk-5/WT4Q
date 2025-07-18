@@ -19,6 +19,8 @@ export const API_ROUTES = {
   ARTICLE: {
     CREATE: `${API_BASE_URL}/api/Article`,
     GET_ALL: `${API_BASE_URL}/api/Article`,
+    SEARCH: (query: string) =>
+      `${API_BASE_URL}/api/Article/search/${encodeURIComponent(query)}`,
     UPDATE: `${API_BASE_URL}/api/Article`,
     DELETE: `${API_BASE_URL}/api/Article`,
     LIKE: `${API_BASE_URL}/api/Article/Like`,
