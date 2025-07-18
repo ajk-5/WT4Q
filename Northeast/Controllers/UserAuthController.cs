@@ -63,7 +63,7 @@ namespace Northeast.Controllers
                 };
 
                 Response.Cookies.Append("JwtToken", token, cookieOptions);
-                return Ok(new {message= "logged in sucessfully" });
+                return Ok(new {message= "logged in successfully" });
             }
             return Unauthorized(new { message = "opps! unable to log in " });
         }

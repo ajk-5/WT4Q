@@ -178,7 +178,7 @@ namespace Northeast.Controllers
                 }
                 await _userReg.ChangePassword(user, Password);
                 await _oTPservices.DeleteOTP(otp);
-                return Ok(new { message = "password changed sucessfully" });
+                return Ok(new { message = "password changed successfully" });
             }
             catch (Exception ex)
             {

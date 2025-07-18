@@ -135,7 +135,7 @@ namespace Northeast.Controllers
             }
             await articleUpload.addComment(ArticleId, Comment);
 
-            return Ok(new { message = "comment added sucessfully" });
+            return Ok(new { message = "comment added successfully" });
 
         }
         [Authorize]
@@ -155,7 +155,7 @@ namespace Northeast.Controllers
             }
             await articleUpload.ModifyComment(CommentId, Comment);
 
-            return Ok(new { message = "comment added sucessfully" });
+            return Ok(new { message = "comment added successfully" });
 
         }
 
