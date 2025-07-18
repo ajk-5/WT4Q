@@ -15,9 +15,12 @@ async function fetchArticles(cat: string): Promise<Article[]> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function CategoryPage({ params }: { params: any }) {
-  const { category } = params as { category: string };
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}) {
+  const { category } = await params;
   const articles = await fetchArticles(category);
   return (
     <div className={styles.container}>
