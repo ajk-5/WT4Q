@@ -58,9 +58,29 @@ namespace Northeast.Services
             return await _articleRepository.GetAll();
         }
 
-        public async Task<Article> GetArticleByID(Guid Id) { 
+        public async Task<Article> GetArticleByID(Guid Id) {
             var Article = await _articleRepository.GetByGUId(Id);
             return Article;
+        }
+
+        public async Task<IEnumerable<Article>> Search(string query)
+        {
+            return await _articleRepository.Search(query);
+        }
+
+        public async Task<IEnumerable<Article>> Search(string? title, string? keyword, DateTime? date, ArticleType? type, Category? category)
+        {
+            return await _articleRepository.Search(title, keyword, date, type, category);
+        }
+
+        public async Task<IEnumerable<Article>> SearchByArticleType(ArticleType type)
+        {
+            return await _articleRepository.SearchByArticleType(type);
+        }
+
+        public async Task<IEnumerable<Article>> SearchByAuthor(Guid authorId)
+        {
+            return await _articleRepository.SearchByAuthor(authorId);
         }
         public async Task<LikeEntity> GetLikeByUserAndArticle(Guid ArticleId)
         {
