@@ -1,0 +1,13 @@
+.footer {
+  border-top: 2px solid #e5e5e5;
+  background: #fafafa;
+  padding: 1rem;
+  font-family: 'Times New Roman', serif;
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.875rem;
+}
