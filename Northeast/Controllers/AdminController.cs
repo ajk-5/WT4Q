@@ -42,7 +42,7 @@ namespace Northeast.Controllers
             {
                 HttpOnly = true, // Prevents JavaScript access
                 Secure = true,   // Ensures the cookie is sent only over HTTPS
-                SameSite = SameSiteMode.None, // Prevents CSRF attacks if used ""Strict"
+                SameSite = SameSiteMode.None, // allows cross-site cookies; use Strict/Lax to mitigate CSRF
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
 
