@@ -11,6 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .logo {
@@ -29,4 +30,15 @@
   color: inherit;
   text-decoration: none;
   font-weight: 500;
+}
+
+.categories {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.search {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
 }

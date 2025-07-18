@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import CategoryNavbar from './CategoryNavbar';
+import SearchBar from './SearchBar';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -10,8 +12,13 @@ export default function Header() {
         </Link>
         <nav className={styles.nav}>
           <Link href="/" className={styles.navLink}>Home</Link>
-          <Link href="/search" className={styles.navLink}>Search</Link>
         </nav>
+        <div className={styles.search}>
+          <SearchBar />
+        </div>
+      </div>
+      <div className={styles.categories}>
+        <CategoryNavbar />
       </div>
     </header>
   );
