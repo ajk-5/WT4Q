@@ -8,6 +8,7 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.logo}>
+          <img src="/images/wt4q-logo.png" alt="WT4Q logo" className={styles.logoImage} />
           WT4Q News
         </Link>
         <nav className={styles.nav}>

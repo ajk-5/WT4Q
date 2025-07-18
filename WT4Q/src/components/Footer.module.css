@@ -1,13 +1,13 @@
 .footer {
-  border-top: 2px solid #e5e5e5;
-  background: #fafafa;
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
   padding: 1rem;
   font-family: 'Times New Roman', serif;
+  text-align: center;
 }
 
 .inner {
   max-width: 960px;
   margin: 0 auto;
-  text-align: center;
   font-size: 0.875rem;
 }
