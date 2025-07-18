@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Northeast.Data;
 using Northeast.Models;
+using System.Linq;
 
 namespace Northeast.Repository
 {
@@ -83,6 +84,102 @@ namespace Northeast.Repository
             return await _context.Articles.AsNoTracking()
                 .Where(a => a.AuthorId == authorId)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Article>> GetRecommendedArticles(Guid articleId, int count = 5)
+        {
+            var source = await _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == articleId);
+            if (source == null)
+            {
+                return new List<Article>();
+            }
+
+            var candidates = await _context.Articles.AsNoTracking()
+                .Where(a => a.Id != articleId)
+                .ToListAsync();
+
+            var scored = candidates
+                .Select(a => new
+                {
+                    Article = a,
+                    Score = CalculateSimilarity(source, a)
+                })
+                .OrderByDescending(x => x.Score)
+                .Take(count)
+                .Select(x => x.Article)
+                .ToList();
+
+            return scored;
+        }
+
+        private static double CalculateSimilarity(Article a, Article b)
+        {
+            double score = 0;
+
+            if (a.Category == b.Category)
+            {
+                score += 1.0;
+            }
+
+            if (a.ArticleType == b.ArticleType)
+            {
+                score += 0.5;
+            }
+
+            var tokensA = CollectTokens(a);
+            var tokensB = CollectTokens(b);
+
+            var intersection = tokensA.Intersect(tokensB).Count();
+            var union = tokensA.Union(tokensB).Count();
+
+            if (union > 0)
+            {
+                score += (double)intersection / union;
+            }
+
+            return score;
+        }
+
+        private static HashSet<string> CollectTokens(Article article)
+        {
+            var tokens = new HashSet<string>();
+
+            if (!string.IsNullOrWhiteSpace(article.Title))
+            {
+                foreach (var t in Tokenize(article.Title))
+                {
+                    tokens.Add(t);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(article.Description))
+            {
+                foreach (var t in Tokenize(article.Description))
+                {
+                    tokens.Add(t);
+                }
+            }
+
+            if (article.Keywords != null)
+            {
+                foreach (var k in article.Keywords)
+                {
+                    var t = k.ToLower();
+                    if (!string.IsNullOrWhiteSpace(t))
+                    {
+                        tokens.Add(t);
+                    }
+                }
+            }
+
+            return tokens;
+        }
+
+        private static IEnumerable<string> Tokenize(string text)
+        {
+            return text
+                .ToLower()
+                .Split(new[] { ' ', '\t', '\n', '\r', ',', '.', ';', ':', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
 
