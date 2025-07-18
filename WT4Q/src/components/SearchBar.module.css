@@ -1,9 +1,11 @@
 .form {
   display: flex;
-  border: 2px solid var(--wt4q-blue);
   border-radius: 999px;
-  height: 1.75rem;
+  height: 2rem;
   overflow: hidden;
+  padding: 0;
+  border: 2px solid transparent;
+  border-image: var(--metal-gradient) 1;
 }
 
 .input {
@@ -16,8 +18,16 @@
 
 .button {
   padding: 0 0.75rem;
-  background: var(--metal-gradient);
-  color: var(--metal-reflect);
+  background: var(--metal-base);
+  color: var(--foreground);
   border: none;
   cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  border-left: 2px solid transparent;
+  border-image: var(--metal-gradient) 1;
+}
+
+.button:hover {
+  background: var(--metal-reflect);
+  transform: translateY(-1px);
 }
