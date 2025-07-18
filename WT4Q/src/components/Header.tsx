@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
 import SearchBar from './SearchBar';
 import styles from './Header.module.css';
@@ -9,14 +8,7 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.logo}>
-          <Image
-            src="/images/wt4q-logo.png"
-            alt="WT4Q logo"
-            width={40}
-            height={40}
-            className={styles.logoImage}
-            priority
-          />
+          <span className={`${styles.logoText} shinyText`}>WT4Q</span>
         </Link>
         <nav className={styles.nav}>
           <Link href="/" className={styles.navLink}>Home</Link>

@@ -4,9 +4,12 @@
   overflow-x: auto;
   padding: 0.5rem 1rem;
   font-family: 'Times New Roman', serif;
-  background: var(--metal-gradient);
+  background: var(--background);
   border-radius: 0 0 0.75rem 0.75rem;
-  color: var(--metal-reflect);
+  color: var(--foreground);
+  border-bottom: 4px solid transparent;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .link {
@@ -14,6 +17,12 @@
   color: inherit;
   white-space: nowrap;
   font-size: 0.875rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 999px;
+  transition: background 0.3s;
+}
+
+.link:hover {
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
 }

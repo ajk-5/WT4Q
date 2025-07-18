@@ -1,29 +1,46 @@
 .container {
   font-family: 'Times New Roman', serif;
   padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .form {
   display: flex;
   margin-bottom: 1rem;
   gap: 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
+  overflow: hidden;
 }
 
 .input {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   font-size: 1rem;
-  border: 1px solid var(--wt4q-blue);
-  border-radius: 0.5rem;
+  border: none;
+  outline: none;
+  background: transparent;
 }
 
 .button {
   padding: 0.5rem 1rem;
+  background: none;
+  color: var(--wt4q-blue);
+  border: none;
+  border-radius: inherit;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.button:hover {
   background: var(--metal-gradient);
   color: var(--metal-reflect);
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
+  transform: scale(1.05);
 }
 
 .results {

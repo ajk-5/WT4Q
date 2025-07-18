@@ -1,9 +1,11 @@
 .form {
   display: flex;
-  border: 2px solid var(--wt4q-blue);
+  border: 2px solid transparent;
   border-radius: 999px;
-  height: 1.75rem;
+  height: 2rem;
   overflow: hidden;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .input {
@@ -15,9 +17,17 @@
 }
 
 .button {
-  padding: 0 0.75rem;
-  background: var(--metal-gradient);
-  color: var(--metal-reflect);
+  padding: 0 1rem;
+  background: none;
+  color: var(--wt4q-blue);
   border: none;
   cursor: pointer;
+  border-radius: inherit;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.button:hover {
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
+  transform: scale(1.1);
 }

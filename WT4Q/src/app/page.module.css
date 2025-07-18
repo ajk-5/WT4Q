@@ -5,6 +5,10 @@
   font-family: 'Times New Roman', serif;
   padding: 2rem 1rem;
   margin-top: 2rem;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 @media (max-width: 700px) {

@@ -1,6 +1,10 @@
 .container {
   font-family: 'Times New Roman', serif;
   padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .title {

@@ -6,6 +6,9 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s, box-shadow 0.3s;
   transform-style: preserve-3d;
+  border: 2px solid transparent;
+  background: linear-gradient(var(--metal-base), var(--metal-base)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .card:hover {
@@ -30,6 +33,19 @@
 
 .readMore {
   font-size: 0.875rem;
-  color: #0070f3;
-  text-decoration: underline;
+  color: var(--wt4q-blue);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: linear-gradient(var(--metal-base), var(--metal-base)) padding-box,
+    var(--metal-gradient) border-box;
+  display: inline-block;
+  transition: background 0.3s, color 0.3s, transform 0.3s;
+}
+
+.readMore:hover {
+  background: var(--metal-gradient);
+  color: var(--metal-reflect);
+  transform: translateY(-2px);
 }

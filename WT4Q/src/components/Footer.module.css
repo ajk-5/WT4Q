@@ -1,9 +1,12 @@
 .footer {
-  background: var(--metal-gradient);
-  color: var(--metal-reflect);
+  background: var(--background);
+  color: var(--foreground);
   padding: 1rem;
   font-family: 'Times New Roman', serif;
   text-align: center;
+  border-top: 4px solid transparent;
+  background: linear-gradient(var(--background), var(--background)) padding-box,
+    var(--metal-gradient) border-box;
 }
 
 .inner {
