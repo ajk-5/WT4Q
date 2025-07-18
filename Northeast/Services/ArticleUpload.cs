@@ -136,7 +136,7 @@ namespace Northeast.Services
 
             var userId = u.Id;
 
-            if (userId != Guid.Empty)
+            if (userId == Guid.Empty)
             {
                 return;
             }
@@ -167,7 +167,7 @@ namespace Northeast.Services
 
             var userId = u.Id;
 
-            if (userId != Guid.Empty)
+            if (userId == Guid.Empty)
             {
                 return;
             }
@@ -209,19 +209,20 @@ namespace Northeast.Services
         /*****************************************COMMENTS----------------------------------------------------*/
         public async Task addComment(Guid ArticleId, string CommentContent) {
 
-            if (ArticleId != Guid.Empty || CommentContent=="")
+            if (ArticleId == Guid.Empty || string.IsNullOrWhiteSpace(CommentContent))
             {
                 return;
             }
 
-            var article =await _articleRepository.GetByGUId(ArticleId);
-            if (article != null)
+            var article = await _articleRepository.GetByGUId(ArticleId);
+            if (article == null)
             {
                 return;
             }
             var UserId = _connectedUser.Id;
 
-            if (UserId != Guid.Empty) {
+            if (UserId == Guid.Empty)
+            {
                 return;
 
             }
@@ -231,13 +232,14 @@ namespace Northeast.Services
                 return;
             }
 
-            Comment comment = new Comment { 
-              Content = CommentContent,
-              Id = new Guid(),
-              Article = article,
-              ArticleId = ArticleId,
-              Writer = user,
-              CreatedAt = DateTime.UtcNow
+            Comment comment = new Comment
+            {
+                Content = CommentContent,
+                Id = Guid.NewGuid(),
+                Article = article,
+                ArticleId = ArticleId,
+                Writer = user,
+                CreatedAt = DateTime.UtcNow
             };
 
             await _commentRepository.Add(comment);
@@ -248,13 +250,13 @@ namespace Northeast.Services
         {
 
             var comment = await _commentRepository.GetByGUId(CommentId);
-            if (comment != null)
+            if (comment == null)
             {
                 return;
             }
             var UserId = _connectedUser.Id;
 
-            if (UserId != Guid.Empty)
+            if (UserId == Guid.Empty)
             {
 
                 return;
