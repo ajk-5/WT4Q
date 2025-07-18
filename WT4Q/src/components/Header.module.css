@@ -15,19 +15,15 @@
   gap: 1rem;
 }
 
+
 .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .logoImage {
   width: 40px;
-  height: auto;
+  height: 40px;
   border-radius: 50%;
 }
 

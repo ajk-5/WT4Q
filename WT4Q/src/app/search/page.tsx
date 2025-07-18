@@ -1,31 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import styles from './search.module.css';
 
-export default function SearchPage() {
+function SearchContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    setQuery(q);
+    if (!q) {
+      setResults([]);
+      return;
+    }
+
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(API_ROUTES.ARTICLE.SEARCH(q));
+        if (res.ok) {
+          const data: Article[] = await res.json();
+          setResults(data);
+        } else {
+          setResults([]);
+        }
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [searchParams]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch(API_ROUTES.ARTICLE.SEARCH(query));
-      if (res.ok) {
-        const data: Article[] = await res.json();
-        setResults(data);
-      } else {
-        setResults([]);
-      }
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    const trimmed = query.trim();
+    router.replace(`/search${trimmed ? `?q=${encodeURIComponent(trimmed)}` : ''}`);
   };
 
   return (
@@ -48,5 +68,13 @@ export default function SearchPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchContent />
+    </Suspense>
   );
 }
