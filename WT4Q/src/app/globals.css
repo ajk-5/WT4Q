@@ -46,3 +46,16 @@ a {
     color-scheme: dark;
   }
 }
+/* Admin Login theme */
+:root {
+  --wt4q-yellow: #E6C200;
+  --wt4q-red: #C5281B;
+  --wt4q-blue: #005D9E;
+  --wt4q-green: #3A7D24;
+  --metal-base: #D1D1D3;
+  --metal-reflect: #FFFFFF;
+  --metal-shadow: rgba(0,0,0,0.4);
+  --text-default: #212121;
+  --text-light: #555555;
+  --error-red: #D32F2F;
+}

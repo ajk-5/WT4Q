@@ -1,28 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap');
 
-:root {
-  /* WT4Q brand metallic hues */
-  --wt4q-yellow: #E6C200;
-  --wt4q-red:    #C5281B;
-  --wt4q-blue:   #005D9E;
-  --wt4q-green:  #3A7D24;
-
-  /* Metallic base tones */
-  --metal-base:      #D1D1D3;
-  --metal-reflect:   #FFFFFF;
-  --metal-shadow:    rgba(0,0,0,0.4);
-
-  --text-default:    #212121;
-  --text-light:      #555555;
-  --error-red:       #D32F2F;
-}
-
-body, html {
-  margin: 0;
-  padding: 0;
-  font-family: 'Roboto Slab', serif;
-}
-
 /* Container: metal background + WT4Q logo watermark */
 .container {
   min-height: 100vh;
