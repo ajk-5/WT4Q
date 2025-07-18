@@ -46,7 +46,7 @@ namespace Northeast.Controllers
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
 
-            Response.Cookies.Append("JwtToken", token, cookieOptions);
+            Response.Cookies.Append("AdminToken", token, cookieOptions);
 
             return Ok(new { response = token });
 
