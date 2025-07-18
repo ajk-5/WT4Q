@@ -2,6 +2,12 @@ import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import styles from '../category.module.css';
 
+interface CategoryPageProps {
+  params: {
+    category: string;
+  };
+}
+
 async function fetchArticles(cat: string): Promise<Article[]> {
   try {
     const res = await fetch(
@@ -15,8 +21,7 @@ async function fetchArticles(cat: string): Promise<Article[]> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function CategoryPage({ params }: any) {
+export default async function CategoryPage({ params }: CategoryPageProps) {
   const articles = await fetchArticles(params.category);
   return (
     <div className={styles.container}>
