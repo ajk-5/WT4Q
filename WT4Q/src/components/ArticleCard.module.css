@@ -1,4 +1,5 @@
 .card {
+  display: block;
   padding: 1rem;
   border-radius: 0.75rem;
   background: var(--metal-base);
@@ -8,6 +9,8 @@
   border: 2px solid transparent;
   border-image: var(--metal-gradient) 1;
   transform-style: preserve-3d;
+  text-decoration: none;
+  color: inherit;
 }
 
 .card:hover {
