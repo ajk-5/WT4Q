@@ -1,4 +1,6 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
+import CommentsSection, { Comment } from '@/components/CommentsSection';
+import LikeButton from '@/components/LikeButton';
 import { API_ROUTES } from '@/lib/api';
 import styles from '../article.module.css';
 
@@ -7,6 +9,9 @@ interface ArticleDetails {
   title: string;
   description: string;
   createdDate: string;
+  author?: { adminName?: string };
+  comments?: Comment[];
+  like?: { id: number }[];
 }
 
 async function fetchArticle(id: string): Promise<ArticleDetails | null> {
@@ -45,8 +50,13 @@ export default async function ArticlePage({
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>{article.title}</h1>
-      <p className={styles.meta}>{new Date(article.createdDate).toLocaleDateString()}</p>
+      <p className={styles.meta}>
+        {new Date(article.createdDate).toLocaleDateString()}
+        {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
+      </p>
       <p className={styles.content}>{article.description}</p>
+      <LikeButton articleId={id} initialCount={article.like?.length || 0} />
+      <CommentsSection articleId={id} initialComments={article.comments || []} />
       {related.length > 0 && (
         <section>
           <h2 className={styles.relatedHeading}>Related Articles</h2>
