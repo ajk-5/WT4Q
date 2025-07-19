@@ -83,6 +83,13 @@ namespace Northeast.Services
             return await _articleRepository.SearchByAuthor(authorId);
         }
 
+        public async Task<IEnumerable<Article>> FilterArticles(Guid? id, string? title, string? description,
+            DateTime? date, ArticleType? type, Category? category, Guid? authorId,
+            string? countryName, string? countryCode, string? keyword)
+        {
+            return await _articleRepository.Filter(id, title, description, date, type, category, authorId, countryName, countryCode, keyword);
+        }
+
         public async Task<IEnumerable<Article>> GetRelatedArticles(Guid articleId, int count = 5)
         {
             return await _articleRepository.GetRecommendedArticles(articleId, count);
