@@ -60,7 +60,7 @@ const AdminLogin: FC = () => {
         }
 
         // Securely set cookie
-        document.cookie = `adminToken=${data.token}; path=/; Secure; SameSite=Strict`;
+        document.cookie = `AdminToken=${data.token}; path=/; Secure; SameSite=Strict`;
 
         router.replace('/admin/dashboard');
       } catch (err) {
