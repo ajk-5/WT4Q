@@ -9,11 +9,15 @@ export const API_ROUTES = {
   AUTH: {
     LOGIN: `${API_BASE_URL}/api/UserAuth/login`,
     REGISTER: `${API_BASE_URL}/api/UserRegistration`,
+    LOGOUT: `${API_BASE_URL}/api/UserAuth/logout`,
   },
 
   USERS: {
     GET_ALL: `${API_BASE_URL}/User`,
     GET_BY_EMAIL: (email: string) => `${API_BASE_URL}/User/${email}`,
+    ME: `${API_BASE_URL}/User/me`,
+    UPDATE: `${API_BASE_URL}/User`,
+    DELETE: `${API_BASE_URL}/User`,
   },
 
   ARTICLE: {

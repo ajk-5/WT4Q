@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -25,12 +27,14 @@ namespace Northeast.Controllers
         private readonly UserAuthentification _userAuth;
         private readonly IConfiguration _configuration;
         private readonly UserRepository _userRepository ;
+        private readonly AppDbContext _db;
 
-        public UserAuthController(IConfiguration configuration,UserRepository userRepository, UserAuthentification userAuth)
+        public UserAuthController(IConfiguration configuration,UserRepository userRepository, UserAuthentification userAuth, AppDbContext db)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _userAuth = userAuth;
+            _db = db;
         }
 
         [HttpPost("login")]
@@ -66,6 +70,24 @@ namespace Northeast.Controllers
                 return Ok(new {message= "logged in successfully" });
             }
             return Unauthorized(new { message = "opps! unable to log in " });
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var token = Request.Cookies["JwtToken"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                var stored = await _db.IdTokens.FirstOrDefaultAsync(t => t.Token == token);
+                if (stored != null)
+                {
+                    stored.IsRevoked = true;
+                    await _db.SaveChangesAsync();
+                }
+            }
+            Response.Cookies.Delete("JwtToken");
+            return Ok(new { message = "Logged out" });
         }
 
    
