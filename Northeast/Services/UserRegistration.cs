@@ -4,7 +4,7 @@ using BCrypt;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Xml.Linq;
-using Northast.Services;
+using Northeast.Services;
 using Northeast.Repository;
 
 namespace Northeast.Services

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
-using Northast.Services;
+using Northeast.Services;
 using Northeast.Data;
 using Northeast.Interface;
 using Northeast.Middlewares;

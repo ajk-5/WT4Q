@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Northeast.Models;
 
-namespace Northast.Services
+namespace Northeast.Services
 {
     public class SendEmail
     {

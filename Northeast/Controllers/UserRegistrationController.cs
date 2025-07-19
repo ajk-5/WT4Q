@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Northast.Services;
+using Northeast.Services;
 using Northeast.Data;
 using Northeast.DTOs;
 using Northeast.Models;
