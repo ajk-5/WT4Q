@@ -18,6 +18,9 @@ npm install
 npm run dev
 ```
 
+This project uses `cross-env` to set the `HTTPS` environment variable so the
+development server runs correctly on all platforms, including Windows.
+
 This starts the Next.js development server on https://localhost:3000.
 
 Authentication cookies from the API are issued with the `Secure` and
