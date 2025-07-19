@@ -1,0 +1,45 @@
+.container {
+  font-family: 'Times New Roman', serif;
+  padding: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.meta {
+  color: #666;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.content {
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.relatedHeading {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
