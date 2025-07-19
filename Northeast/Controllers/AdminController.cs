@@ -52,5 +52,21 @@ namespace Northeast.Controllers
 
         }
 
+        [HttpPost("Adminlogout")]
+        public IActionResult AdminLogout()
+        {
+            if (Request.Cookies.ContainsKey("AdminToken"))
+            {
+                Response.Cookies.Delete("AdminToken", new CookieOptions
+                {
+                    Secure = true,
+                    SameSite = SameSiteMode.None
+                });
+            }
+
+            return Ok(new { message = "logged out successfully" });
+
+        }
+
     }
 }

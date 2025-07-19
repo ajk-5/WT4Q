@@ -79,6 +79,38 @@
   cursor: not-allowed;
 }
 
+.logoutButton {
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  align-self: flex-end;
+  background: linear-gradient(145deg, var(--error-red), #9b0000);
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  box-shadow:
+    inset 3px 3px 6px var(--metal-shadow),
+    inset -3px -3px 6px var(--metal-reflect),
+    0 6px 15px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.logoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 3px 3px 6px var(--metal-shadow),
+    inset -3px -3px 6px var(--metal-reflect),
+    0 12px 25px rgba(0, 0, 0, 0.45);
+}
+
+.logoutButton:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 2px 2px 4px var(--metal-shadow),
+    inset -2px -2px 4px var(--metal-reflect),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
 .error {
   color: var(--error-red);
   font-weight: bold;
