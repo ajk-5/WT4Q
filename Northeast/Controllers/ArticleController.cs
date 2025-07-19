@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Northeast.DTOs;
 using Northeast.Models;
 using Northeast.Services;
-using System.Linq;
 
 
 namespace Northeast.Controllers
@@ -22,7 +20,8 @@ namespace Northeast.Controllers
 
         [Authorize(Policy = "AdminOnly")]
         [HttpPost]
-        public async Task<IActionResult> Publish([FromBody] ArticleDto article) {
+        public async Task<IActionResult> Publish([FromBody] ArticleDto article)
+        {
             try
             {
                 await articleUpload.Publish(article);
@@ -35,12 +34,14 @@ namespace Northeast.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() {
+        public async Task<IActionResult> GetAll()
+        {
 
-            
-            var articles= await articleUpload.getAllArticle();
-            if (articles==null) {
-                return NotFound(new { message="Sorry, there is no Articles to show"});
+
+            var articles = await articleUpload.getAllArticle();
+            if (articles == null)
+            {
+                return NotFound(new { message = "Sorry, there is no Articles to show" });
             }
             return Ok(articles);
 
@@ -81,18 +82,19 @@ namespace Northeast.Controllers
         }
         [Authorize(Policy = "AdminOnly")]
         [HttpPut]
-        public async Task<IActionResult> EditArticle(Guid Id,ArticleDto Article)
+        public async Task<IActionResult> EditArticle(Guid Id, ArticleDto Article)
         {
             if (Id == Guid.Empty)
             {
                 return BadRequest(new { message = "Please enter an Id" });
             }
 
-            if (Article == null ) { 
+            if (Article == null)
+            {
                 return BadRequest(new { message = "Sorry, there is no ID" });
             }
             var article = await articleUpload.GetArticleByID(Id);
-            if (article==null) 
+            if (article == null)
             {
                 return NotFound(new { message = "Sorry, there is no Articles with this ID" });
             }
@@ -107,19 +109,20 @@ namespace Northeast.Controllers
             var article = await articleUpload.GetArticleByID(Id);
 
 
-            if (article==null)
+            if (article == null)
             {
                 return BadRequest(new { message = "Sorry, no article found with this ID" });
             }
 
             await articleUpload.DeleteArticle(Id);
 
-            return Ok(new { message="The article has been deleted"});
+            return Ok(new { message = "The article has been deleted" });
         }
         [Authorize]
         [HttpPut("Like")]
 
-        public async Task<IActionResult> Like(Guid Id, LikeEntity like) {
+        public async Task<IActionResult> Like(Guid Id, LikeEntity like)
+        {
             if (Id == Guid.Empty)
             {
                 return BadRequest(new { message = "Please enter an Id" });
@@ -141,8 +144,9 @@ namespace Northeast.Controllers
                 await articleUpload.DeleteLike(Like.Id);
                 return Ok(new { message = "unliked" });
             }
-            if (await articleUpload.hasLiked(Id) && like.Type != Like.Type) { 
-         Like.Type=like.Type;
+            if (await articleUpload.hasLiked(Id) && like.Type != Like.Type)
+            {
+                Like.Type = like.Type;
 
                 await articleUpload.ModifyLike(Id, like);
                 return Ok(new { message = "Like changed" });
@@ -152,17 +156,18 @@ namespace Northeast.Controllers
             return Ok(new { message = "Liked" });
 
 
-            }
+        }
 
         [Authorize]
         [HttpPost("Comment")]
-        public async Task<IActionResult> AddComment(Guid ArticleId, string  Comment)
+        public async Task<IActionResult> AddComment(Guid ArticleId, string Comment)
         {
 
-            if (ArticleId == Guid.Empty || Comment == null) {
+            if (ArticleId == Guid.Empty || Comment == null)
+            {
                 return BadRequest(new { message = " Error Occoured while performing task" });
             }
-            var article= await articleUpload.GetArticleByID(ArticleId);
+            var article = await articleUpload.GetArticleByID(ArticleId);
 
             if (article == null)
             {
