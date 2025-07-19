@@ -23,6 +23,15 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
+  const handleLogout = async () => {
+    await fetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    document.cookie = 'AdminToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    router.replace('/admin-login');
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -64,6 +73,9 @@ export default function AdminDashboard() {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Admin Dashboard</h1>
+      <button onClick={handleLogout} className={styles.logoutButton}>
+        Logout
+      </button>
       {error && <p className={styles.error}>{error}</p>}
       <form onSubmit={handleSubmit} className={styles.form}>
         <input

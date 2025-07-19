@@ -4,6 +4,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhos
 export const API_ROUTES = {
   ADMIN_AUTH: {
     LOGIN: `${API_BASE_URL}/api/Admin/Adminlogin`,
+    LOGOUT: `${API_BASE_URL}/api/Admin/Adminlogout`,
   },
 
   AUTH: {
