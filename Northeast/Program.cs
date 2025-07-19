@@ -148,9 +148,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = builder.Environment.IsDevelopment()
-        ? CookieSecurePolicy.None
-        : CookieSecurePolicy.Always
+    Secure = CookieSecurePolicy.Always
 });
 
 app.UseHttpsRedirection();
