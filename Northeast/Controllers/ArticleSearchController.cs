@@ -51,7 +51,7 @@ namespace Northeast.Controllers
             return Ok(results);
         }
 
-        [HttpGet("by-type")]        
+        [HttpGet("by-type")]
         public async Task<IActionResult> SearchByType([FromQuery] ArticleType type)
         {
             var results = await _articleServices.SearchByArticleType(type);
