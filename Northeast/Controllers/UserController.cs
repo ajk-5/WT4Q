@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Northeast.Data;
 using Northeast.DTOs;
 using Northeast.Models;
+using Northeast.Utilities;
 
 namespace Northeast.Controllers
 {
@@ -11,10 +13,12 @@ namespace Northeast.Controllers
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _appDbContext;
+        private readonly GetConnectedUser _connectedUser;
 
-
-        public UserController(AppDbContext appDbContext) { 
-        _appDbContext = appDbContext;
+        public UserController(AppDbContext appDbContext, GetConnectedUser connectedUser)
+        {
+            _appDbContext = appDbContext;
+            _connectedUser = connectedUser;
         }
         
         [HttpGet]
@@ -39,6 +43,77 @@ namespace Northeast.Controllers
 
             return Ok(user);
 
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<ActionResult<User>> GetCurrentUser()
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var user = await _appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPut]
+        public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateDTO dto)
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var user = await _appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            if (dto.UserName != null) user.UserName = dto.UserName;
+            if (dto.PhoneNumber != null) user.Phone = dto.PhoneNumber;
+            if (dto.DOB != null) user.DOB = dto.DOB;
+
+            await _appDbContext.SaveChangesAsync();
+            return Ok(new { message = "Profile updated" });
+        }
+
+        [Authorize]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteCurrentUser([FromBody] DeleteAccountDTO dto)
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var user = await _appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+            {
+                return BadRequest(new { message = "Invalid password" });
+            }
+
+            var tokens = _appDbContext.IdTokens.Where(t => t.UserId == userId);
+            _appDbContext.IdTokens.RemoveRange(tokens);
+            _appDbContext.Users.Remove(user);
+            await _appDbContext.SaveChangesAsync();
+            Response.Cookies.Delete("JwtToken");
+            return Ok(new { message = "Account deleted" });
         }
 
         

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
 import SearchBar from './SearchBar';
+import UserMenu from './UserMenu';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -24,6 +25,7 @@ export default function Header() {
         <div className={styles.search}>
           <SearchBar />
         </div>
+        <UserMenu />
       </div>
       <div className={styles.categories}>
         <CategoryNavbar />
