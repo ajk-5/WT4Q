@@ -47,10 +47,11 @@ builder.Services.AddScoped<VisitorsRepository>();
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>
 {
-    // Default to Cookies, but Challenge with Google
+    // Default to JWT for API requests and use cookies to persist tokens.
+    // Avoid redirecting API calls to Google when not authenticated.
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
