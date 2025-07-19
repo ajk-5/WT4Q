@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Northeast.DTOs;
 using Northeast.Models;
 using Northeast.Services;
+using System.Linq;
 
 
 namespace Northeast.Controllers
@@ -33,8 +34,8 @@ namespace Northeast.Controllers
             }
         }
 
-        [HttpGet] 
-        public async Task<IActionResult> GetAll() { 
+        [HttpGet]
+        public async Task<IActionResult> GetAll() {
 
             
             var articles= await articleUpload.getAllArticle();
@@ -42,7 +43,41 @@ namespace Northeast.Controllers
                 return NotFound(new { message="Sorry, there is no Articles to show"});
             }
             return Ok(articles);
-        
+
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new { message = "Please enter an Id" });
+            }
+
+            var article = await articleUpload.GetArticleByID(id);
+            if (article == null)
+            {
+                return NotFound(new { message = "Sorry, no article found with this ID" });
+            }
+
+            return Ok(article);
+        }
+
+        [HttpGet("{id}/recommendations")]
+        public async Task<IActionResult> GetRecommendations(Guid id, [FromQuery] int count = 5)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new { message = "Please enter an Id" });
+            }
+
+            var recommendations = await articleUpload.GetRelatedArticles(id, count);
+            if (!recommendations.Any())
+            {
+                return NotFound(new { message = "No related articles found" });
+            }
+
+            return Ok(recommendations);
         }
         [Authorize(Policy = "AdminOnly")]
         [HttpPut]
