@@ -51,6 +51,7 @@ const AdminLogin: FC = () => {
         const response = await fetch(API_ROUTES.ADMIN_AUTH.LOGIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ email, password } as LoginRequest),
         });
         const data: { token?: string; message?: string } = await response.json();
@@ -58,9 +59,6 @@ const AdminLogin: FC = () => {
         if (!response.ok ) {
           throw new Error(data.message || 'Login failed');
         }
-
-        // Securely set cookie
-        document.cookie = `AdminToken=${data.token}; path=/; Secure; SameSite=Strict`;
 
         router.replace('/admin/dashboard');
       } catch (err) {
