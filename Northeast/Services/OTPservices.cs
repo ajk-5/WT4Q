@@ -1,5 +1,5 @@
 ﻿using NavXpert.Utilities;
-using Northast.Services;
+using Northeast.Services;
 using Northeast.Models;
 using Northeast.Repository;
 
