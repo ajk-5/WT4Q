@@ -57,7 +57,8 @@ builder.Services.AddAuthentication(options =>
 {
     // Important for external OAuth flows: allow cross-site cookies
     options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ?
+        CookieSecurePolicy.None : CookieSecurePolicy.Always;
 })
 .AddJwtBearer(options =>
 {
@@ -147,7 +148,9 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = CookieSecurePolicy.Always
+    Secure = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.None
+        : CookieSecurePolicy.Always
 });
 
 app.UseHttpsRedirection();

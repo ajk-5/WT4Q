@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using Northeast.DTOs;
 using Northeast.Services;
 
@@ -12,12 +13,13 @@ namespace Northeast.Controllers
       
         private readonly AdminAuthentification _auth;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
-        public AdminController(AdminAuthentification auth, IConfiguration configuration)
+        public AdminController(AdminAuthentification auth, IConfiguration configuration, IWebHostEnvironment env)
         {
-
             _auth = auth;
             _configuration = configuration;
+            _env = env;
         }
         [HttpPost("Adminlogin")]
         public async Task<IActionResult> AdminLogin([FromBody] AdminLoginDTO costumer)
@@ -41,7 +43,7 @@ namespace Northeast.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true, // Prevents JavaScript access
-                Secure = true,   // Ensures the cookie is sent only over HTTPS
+                Secure = !_env.IsDevelopment(),   // Use secure cookies only in production
                 SameSite = SameSiteMode.None, // allows cross-site cookies; use Strict/Lax to mitigate CSRF
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
@@ -59,7 +61,7 @@ namespace Northeast.Controllers
             {
                 Response.Cookies.Delete("AdminToken", new CookieOptions
                 {
-                    Secure = true,
+                    Secure = !_env.IsDevelopment(),
                     SameSite = SameSiteMode.None
                 });
             }
