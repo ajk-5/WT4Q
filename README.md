@@ -22,11 +22,11 @@ This starts the Next.js development server on https://localhost:3000.
 
 Authentication cookies from the API are issued with the `Secure` and
 `SameSite=None` attributes (see
-`Northeast/Controllers/AdminController.cs`). Browsers will not send
-these cookies from an insecure (HTTP) page. If you start the front end
-over plain HTTP, the authentication cookies will be rejected and you'll
-be redirected back to the login page. Always run the development server
-over HTTPS to avoid this issue.
+`Northeast/Controllers/AdminController.cs`). Browsers require the
+`Secure` flag whenever `SameSite=None` is used, so the front end **must**
+be served over HTTPS. If you start the front end over plain HTTP, these
+cookies will be rejected and you'll be redirected back to the login
+page. Always run the development server over HTTPS to avoid this issue.
 
 If your environment requires it, generate a local certificate and set
 the `SSL_CERT_FILE` and `SSL_KEY_FILE` environment variables as
