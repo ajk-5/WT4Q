@@ -86,6 +86,71 @@ namespace Northeast.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Article>> Filter(Guid? id, string? title, string? description,
+            DateTime? date, ArticleType? type, Category? category, Guid? authorId,
+            string? countryName, string? countryCode, string? keyword)
+        {
+            var queryable = _context.Articles.AsNoTracking().AsQueryable();
+
+            if (id.HasValue)
+            {
+                queryable = queryable.Where(a => a.Id == id.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var lower = title.ToLower();
+                queryable = queryable.Where(a => a.Title.ToLower().Contains(lower));
+            }
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                var lower = description.ToLower();
+                queryable = queryable.Where(a => a.Description.ToLower().Contains(lower));
+            }
+
+            if (date.HasValue)
+            {
+                var d = date.Value.Date;
+                queryable = queryable.Where(a => a.CreatedDate.Date == d);
+            }
+
+            if (type.HasValue)
+            {
+                queryable = queryable.Where(a => a.ArticleType == type.Value);
+            }
+
+            if (category.HasValue)
+            {
+                queryable = queryable.Where(a => a.Category == category.Value);
+            }
+
+            if (authorId.HasValue)
+            {
+                queryable = queryable.Where(a => a.AuthorId == authorId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(countryName))
+            {
+                var lower = countryName.ToLower();
+                queryable = queryable.Where(a => a.CountryName != null && a.CountryName.ToLower().Contains(lower));
+            }
+
+            if (!string.IsNullOrWhiteSpace(countryCode))
+            {
+                var lower = countryCode.ToLower();
+                queryable = queryable.Where(a => a.CountryCode != null && a.CountryCode.ToLower().Contains(lower));
+            }
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var lower = keyword.ToLower();
+                queryable = queryable.Where(a => a.Keywords != null && a.Keywords.Any(k => k.ToLower().Contains(lower)));
+            }
+
+            return await queryable.ToListAsync();
+        }
+
         public async Task<IEnumerable<Article>> GetRecommendedArticles(Guid articleId, int count = 5)
         {
             var source = await _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == articleId);
