@@ -14,6 +14,9 @@ pnpm dev
 bun dev
 ```
 
+`npm run dev` relies on `cross-env` to set the `HTTPS` environment variable so
+the development server works on Windows and Unix-based systems alike.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
