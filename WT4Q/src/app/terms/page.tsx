@@ -7,22 +7,25 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <div className={styles.container}>
-      <h1>Terms and Conditions &amp; Cookie Policy</h1>
+      <h1 className={styles.title}>Terms and Conditions &amp; Cookie Policy</h1>
       <p>
-        This page summarizes how WT4Q handles cookies and outlines the basic
-        terms of use. Cookies are used in accordance with EU Regulation RSPD.
+        By using WT4Q you agree to the following terms. These summaries are
+        provided for convenience and do not replace the full policy.
       </p>
-      <h2>Terms of Use</h2>
+      <h2 className={styles.heading}>Terms of Use</h2>
       <ul>
-        <li>Content is provided for informational purposes only.</li>
-        <li>Do not use the service for unlawful activities.</li>
+        <li>Content is for informational purposes only and may change.</li>
+        <li>You agree not to use the service for unlawful activities.</li>
         <li>WT4Q may modify or discontinue the service without notice.</li>
-        <li>Use the service at your own risk.</li>
+        <li>The service is provided &quot;as is&quot; without warranties.</li>
       </ul>
-      <h2>Cookie Policy</h2>
+      <h2 className={styles.heading}>Cookie Policy</h2>
       <p>
-        WT4Q stores essential and analytics cookies to operate and improve the
-        site. You may manage your cookie preferences in your browser settings.
+        WT4Q uses essential cookies for basic functionality and optional
+        analytics cookies to improve the site. On your first visit you can
+        accept, manage or refuse these cookies via the banner shown at the
+        bottom of the page. You can update your preference at any time by
+        clearing browser storage.
       </p>
     </div>
   );
