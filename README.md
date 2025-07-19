@@ -20,6 +20,21 @@ npm run dev
 
 This starts the Next.js development server on http://localhost:3000.
 
+Authentication cookies from the API are issued with the `Secure` and
+`SameSite=None` attributes (see
+`Northeast/Controllers/AdminController.cs`). Browsers will not send
+these cookies from an insecure (HTTP) page. For local development run
+the front end over HTTPS:
+
+```bash
+cd WT4Q/WT4Q
+HTTPS=true npm run dev
+```
+
+If your environment requires it, generate a local certificate and set
+the `SSL_CERT_FILE` and `SSL_KEY_FILE` environment variables as
+described in the Next.js documentation.
+
 ### Backend
 
 ```bash
