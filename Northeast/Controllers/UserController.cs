@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Northeast.Data;
 using Northeast.DTOs;
 using Northeast.Models;
@@ -25,9 +26,19 @@ namespace Northeast.Controllers
 
         }
         [HttpGet("{email}")]
-        public ActionResult<User> getUserByEmail([FromBody] UserLoginDTO user)  { 
-            return Ok(User);
-        
+        public async Task<ActionResult<User>> getUserByEmail(string email)  {
+            if (string.IsNullOrWhiteSpace(email)) {
+                return BadRequest(new { message = "Email parameter is required" });
+            }
+
+            var user = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null) {
+                return NotFound(new { message = $"User with email {email} not found" });
+            }
+
+            return Ok(user);
+
         }
 
         
