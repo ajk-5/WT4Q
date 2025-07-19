@@ -1,0 +1,39 @@
+.section {
+  margin-top: 2rem;
+}
+.heading {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.commentList {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+.comment {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--metal-base);
+  border-radius: 0.5rem;
+}
+.commentAuthor {
+  font-weight: bold;
+  margin-right: 0.25rem;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.textarea {
+  resize: vertical;
+}
+.button {
+  align-self: flex-start;
+}
+.error {
+  color: #c00;
+}
