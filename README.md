@@ -35,6 +35,12 @@ If your environment requires it, generate a local certificate and set
 the `SSL_CERT_FILE` and `SSL_KEY_FILE` environment variables as
 described in the Next.js documentation.
 
+The front end now verifies admin authentication on the server. Since the
+`AdminToken` cookie is marked `HttpOnly`, client-side code cannot read it.
+Redirects on the admin login and dashboard pages rely on the server-side
+`cookies()` API, ensuring authentication works even when JavaScript cannot
+access the cookie.
+
 ### Backend
 
 ```bash
