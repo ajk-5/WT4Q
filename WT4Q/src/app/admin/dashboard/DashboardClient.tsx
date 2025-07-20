@@ -6,6 +6,7 @@ import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
 import styles from './dashboard.module.css';
+import countries from '../../../../public/datas/Countries.json';
 
 export default function DashboardClient() {
   const router = useRouter();
@@ -14,6 +15,11 @@ export default function DashboardClient() {
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
+  const [createdDate, setCreatedDate] = useState('');
+  const [photos, setPhotos] = useState<FileList | null>(null);
+  const [altText, setAltText] = useState('');
+  const [countryName, setCountryName] = useState('');
+  const [countryCode, setCountryCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -32,17 +38,41 @@ export default function DashboardClient() {
     setError(null);
     startTransition(async () => {
       try {
+        const photosBase64 = photos
+          ? await Promise.all(
+              Array.from(photos).map(
+                (file) =>
+                  new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const result = reader.result as string;
+                      const base64 = result.split(',')[1];
+                      resolve(base64);
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(file);
+                  })
+              )
+            )
+          : undefined;
+
         const body = {
           title,
           category: category ? CATEGORIES.indexOf(category) + 1 : 0,
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
-          createdDate: new Date().toISOString(),
+          createdDate: createdDate
+            ? new Date(createdDate).toISOString()
+            : new Date().toISOString(),
           description,
+          photo: photosBase64,
+          altText: altText || undefined,
+          countryName: countryName || undefined,
+          countryCode: countryCode || undefined,
           keyword: keywords
             .split(',')
             .map((k) => k.trim())
             .filter((k) => k.length > 0),
-        };
+        } as Record<string, unknown>;
         const res = await fetch(API_ROUTES.ARTICLE.CREATE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -58,6 +88,11 @@ export default function DashboardClient() {
         setType('');
         setCategory('');
         setKeywords('');
+        setCreatedDate('');
+        setPhotos(null);
+        setAltText('');
+        setCountryName('');
+        setCountryCode('');
       } catch (err) {
         if (err instanceof Error) setError(err.message);
         else setError('Failed to publish');
@@ -81,6 +116,12 @@ export default function DashboardClient() {
           className={styles.input}
           required
         />
+        <input
+          type="datetime-local"
+          value={createdDate}
+          onChange={(e) => setCreatedDate(e.target.value)}
+          className={styles.input}
+        />
         <textarea
           placeholder="Description"
           value={description}
@@ -88,6 +129,20 @@ export default function DashboardClient() {
           rows={5}
           className={styles.textarea}
           required
+        />
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => setPhotos(e.target.files)}
+          className={styles.input}
+        />
+        <input
+          type="text"
+          placeholder="Alt text"
+          value={altText}
+          onChange={(e) => setAltText(e.target.value)}
+          className={styles.input}
         />
         <select
           value={type}
@@ -104,6 +159,31 @@ export default function DashboardClient() {
             </option>
           ))}
         </select>
+        {type === 'News' && (
+          <select
+            value={countryName}
+            onChange={(e) => {
+              const name = e.target.value;
+              setCountryName(name);
+              const match = (countries as { name: string; code: string }[]).find(
+                (c) => c.name === name
+              );
+              setCountryCode(match ? match.code : '');
+            }}
+            className={styles.select}
+          >
+            <option value="" disabled>
+              Select Country
+            </option>
+            {(
+              countries as { name: string; code: string }[]
+            ).map((c) => (
+              <option key={c.code} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
