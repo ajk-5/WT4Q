@@ -15,7 +15,7 @@ namespace Northeast.DTOs
         public ArticleType ArticleType { get; set; }
 
         [Required]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [Required]
         public string Description { get; set; }

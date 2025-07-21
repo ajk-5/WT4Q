@@ -15,7 +15,6 @@ export default function DashboardClient() {
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [createdDate, setCreatedDate] = useState('');
   const [photos, setPhotos] = useState<FileList | null>(null);
   const [photoLink, setPhotoLink] = useState('');
   const [embededCode, setEmbededCode] = useState('');
@@ -62,9 +61,7 @@ export default function DashboardClient() {
           title,
           category: category ? CATEGORIES.indexOf(category) + 1 : 0,
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
-          createdDate: createdDate
-            ? new Date(createdDate).toISOString()
-            : new Date().toISOString(),
+          createdDate: new Date().toISOString(),
           description,
           photo: photosBase64,
           photoLink: photoLink || undefined,
@@ -92,7 +89,6 @@ export default function DashboardClient() {
         setType('');
         setCategory('');
         setKeywords('');
-        setCreatedDate('');
         setPhotos(null);
         setPhotoLink('');
         setEmbededCode('');
@@ -121,12 +117,6 @@ export default function DashboardClient() {
           onChange={(e) => setTitle(e.target.value)}
           className={styles.input}
           required
-        />
-        <input
-          type="datetime-local"
-          value={createdDate}
-          onChange={(e) => setCreatedDate(e.target.value)}
-          className={styles.input}
         />
         <textarea
           placeholder="Description"
