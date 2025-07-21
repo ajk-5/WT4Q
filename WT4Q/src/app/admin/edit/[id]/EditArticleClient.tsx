@@ -1,14 +1,28 @@
 'use client';
 
-import { useState, FormEvent, useTransition } from 'react';
+import { useState, useEffect, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
-import styles from './dashboard.module.css';
-import countries from '../../../../public/datas/Countries.json';
+import countries from '../../../../../public/datas/Countries.json';
+import styles from '../../dashboard/dashboard.module.css';
 
-export default function DashboardClient() {
+interface ArticleDetails {
+  title: string;
+  description: string;
+  createdDate: string;
+  articleType: number;
+  category: number;
+  photoLink?: string;
+  embededCode?: string;
+  altText?: string;
+  countryName?: string;
+  countryCode?: string;
+  keywords?: string[];
+}
+
+export default function EditArticleClient({ id }: { id: string }) {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -25,15 +39,31 @@ export default function DashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-
-  const handleLogout = async () => {
-    await fetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    document.cookie = 'AdminToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    router.replace('/admin-login');
-  };
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), {
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Failed to load');
+        const data: ArticleDetails = await res.json();
+        setTitle(data.title);
+        setDescription(data.description);
+        setType(ARTICLE_TYPES[data.articleType] ?? '');
+        setCategory(CATEGORIES[data.category - 1] ?? '');
+        setCreatedDate(data.createdDate.slice(0, 16));
+        setPhotoLink(data.photoLink || '');
+        setEmbededCode(data.embededCode || '');
+        setAltText(data.altText || '');
+        setCountryName(data.countryName || '');
+        setCountryCode(data.countryCode || '');
+        setKeywords(data.keywords ? data.keywords.join(', ') : '');
+      } catch {
+        setError('Failed to load article');
+      }
+    }
+    load();
+  }, [id]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,41 +107,28 @@ export default function DashboardClient() {
             .map((k) => k.trim())
             .filter((k) => k.length > 0),
         } as Record<string, unknown>;
-        const res = await fetch(API_ROUTES.ARTICLE.CREATE, {
-          method: 'POST',
+
+        const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(body),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(data.message || 'Failed to publish');
+          throw new Error(data.message || 'Failed to update');
         }
-        setTitle('');
-        setDescription('');
-        setType('');
-        setCategory('');
-        setKeywords('');
-        setCreatedDate('');
-        setPhotos(null);
-        setPhotoLink('');
-        setEmbededCode('');
-        setAltText('');
-        setCountryName('');
-        setCountryCode('');
+        router.push(`/articles/${id}`);
       } catch (err) {
         if (err instanceof Error) setError(err.message);
-        else setError('Failed to publish');
+        else setError('Failed to update');
       }
     });
   };
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Admin Dashboard</h1>
-      <button onClick={handleLogout} className={styles.logoutButton}>
-        Logout
-      </button>
+      <h1 className={styles.title}>Edit Article</h1>
       {error && <p className={styles.error}>{error}</p>}
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
@@ -195,9 +212,7 @@ export default function DashboardClient() {
             <option value="" disabled>
               Select Country
             </option>
-            {(
-              countries as { name: string; code: string }[]
-            ).map((c) => (
+            {(countries as { name: string; code: string }[]).map((c) => (
               <option key={c.code} value={c.name}>
                 {c.name}
               </option>
@@ -227,9 +242,10 @@ export default function DashboardClient() {
           className={styles.input}
         />
         <button type="submit" disabled={isPending} className={styles.button}>
-          {isPending ? 'Publishing...' : 'Publish'}
+          {isPending ? 'Updating...' : 'Update'}
         </button>
       </form>
     </div>
   );
 }
+

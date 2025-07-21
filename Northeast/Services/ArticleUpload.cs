@@ -38,10 +38,12 @@ namespace Northeast.Services
                 AuthorId = userId,
                 Title = articleDto.Title,
                 Category= articleDto.Category,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = articleDto.CreatedDate,
                 ArticleType= articleDto.ArticleType,
                 Description= articleDto.Description,
                 Photo = articleDto.Photo ?? null,
+                PhotoLink = articleDto.PhotoLink,
+                EmbededCode = articleDto.EmbededCode,
                 AltText= articleDto.AltText ?? null,
                 Keywords=articleDto.Keyword ?? null,
 
@@ -106,26 +108,36 @@ namespace Northeast.Services
         }
 
 
-        public async Task ModifyArticle(Guid id, ArticleDto articleDto) {
-
-            var Article = await _articleRepository.GetByGUId(id);
-
-            Article article = new Article()
+        public async Task ModifyArticle(Guid id, ArticleDto articleDto)
+        {
+            var article = await _articleRepository.GetByGUId(id);
+            if (article == null)
             {
-                Title = articleDto.Title,
-                Category = articleDto.Category,
-                ArticleType = articleDto.ArticleType,
-                Description = articleDto.Description,
-                Photo = articleDto.Photo,
-                AltText = articleDto.AltText,
-              
+                return;
+            }
 
-            };
-            if (articleDto.ArticleType == 0) { 
+            article.Title = articleDto.Title;
+            article.Category = articleDto.Category;
+            article.ArticleType = articleDto.ArticleType;
+            article.Description = articleDto.Description;
+            article.CreatedDate = articleDto.CreatedDate;
+            article.Photo = articleDto.Photo;
+            article.PhotoLink = articleDto.PhotoLink;
+            article.EmbededCode = articleDto.EmbededCode;
+            article.AltText = articleDto.AltText;
+            article.Keywords = articleDto.Keyword ?? null;
+
+            if (articleDto.ArticleType == 0)
+            {
                 article.CountryName = articleDto.CountryName ?? "Global";
                 article.CountryCode = articleDto.CountryCode ?? "GL";
-
             }
+            else
+            {
+                article.CountryName = null;
+                article.CountryCode = null;
+            }
+
             await _articleRepository.Update(article);
         }
 
