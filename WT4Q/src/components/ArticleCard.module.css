@@ -3,7 +3,7 @@
   padding: 1rem;
   border-radius: 0.75rem;
   background: var(--metal-base);
-  font-family: 'Times New Roman', serif;
+  font-family: 'Inter', sans-serif;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s, box-shadow 0.3s;
   border: 2px solid transparent;
@@ -30,11 +30,11 @@
 .summary {
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  color: #555;
+  color: var(--muted);
 }
 
 .readMore {
   font-size: 0.875rem;
-  color: #0070f3;
+  color: var(--accent);
   text-decoration: underline;
 }

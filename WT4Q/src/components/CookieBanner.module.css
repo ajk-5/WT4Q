@@ -3,8 +3,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #f5f5f5;
-  border-top: 1px solid #ccc;
+  background: var(--secondary);
+  color: #fff;
   padding: 1rem;
   font-size: 0.9rem;
   z-index: 1000;
@@ -25,7 +25,8 @@
 
 .button {
   padding: 0.3rem 0.6rem;
-  border: 1px solid #555;
-  background: white;
+  border: 1px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
   cursor: pointer;
 }

@@ -4,9 +4,7 @@
 .heading {
   font-weight: bold;
   margin-bottom: 0.5rem;
-  background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
 }
 .commentList {
   list-style: none;
@@ -16,7 +14,8 @@
 .comment {
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-  background: var(--metal-base);
+  background: var(--secondary);
+  color: #fff;
   border-radius: 0.5rem;
 }
 .commentAuthor {
@@ -35,5 +34,5 @@
   align-self: flex-start;
 }
 .error {
-  color: #c00;
+  color: var(--error-red);
 }

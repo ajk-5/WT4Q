@@ -1,6 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f9fa;
+  --foreground: #1a1a1a;
+  --primary: #1f3c88;
+  --secondary: #457b9d;
+  --accent: #e63946;
+  --muted: #6c757d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,7 +25,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Times New Roman', Times, serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -46,24 +52,22 @@ a {
     color-scheme: dark;
   }
 }
-/* Admin Login theme */
+/* Theme */
 :root {
-  --wt4q-yellow: #ffea00;
-  --wt4q-red: #ff3b30;
-  --wt4q-blue: #4db5ff;
-  --wt4q-green: #7ed957;
-  --metal-base: #D1D1D3;
-  --metal-reflect: #FFFFFF;
-  --metal-shadow: rgba(0,0,0,0.4);
-  --text-default: #212121;
-  --text-light: #555555;
-  --error-red: #D32F2F;
+  --wt4q-yellow: #ffd166;
+  --wt4q-red: #ef476f;
+  --wt4q-blue: #118ab2;
+  --wt4q-green: #06d6a0;
+  --metal-base: #ffffff;
+  --metal-reflect: #f8f9fa;
+  --metal-shadow: rgba(0,0,0,0.1);
+  --text-default: #1a1a1a;
+  --text-light: #6c757d;
+  --error-red: #e63946;
   --metal-gradient: linear-gradient(
-    45deg,
-    var(--wt4q-yellow) 0%,
-    var(--wt4q-red) 33%,
-    var(--wt4q-blue) 66%,
-    var(--wt4q-green) 100%
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
   );
 }
 

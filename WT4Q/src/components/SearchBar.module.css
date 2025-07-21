@@ -4,8 +4,7 @@
   height: 2rem;
   overflow: hidden;
   padding: 0;
-  border: 2px solid transparent;
-  border-image: var(--metal-gradient) 1;
+  border: 1px solid var(--secondary);
 }
 
 .input {
@@ -18,16 +17,14 @@
 
 .button {
   padding: 0 0.75rem;
-  background: var(--metal-base);
-  color: var(--foreground);
+  background: var(--primary);
+  color: #fff;
   border: none;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
-  border-left: 2px solid transparent;
-  border-image: var(--metal-gradient) 1;
 }
 
 .button:hover {
-  background: var(--metal-reflect);
+  background: var(--secondary);
   transform: translateY(-1px);
 }

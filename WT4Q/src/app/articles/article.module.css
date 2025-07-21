@@ -1,5 +1,5 @@
 .container {
-  font-family: 'Times New Roman', serif;
+  font-family: 'Inter', sans-serif;
   padding: 1rem;
 }
 
@@ -7,9 +7,7 @@
   font-size: 2rem;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
 }
 
 .meta {
@@ -38,9 +36,7 @@
   margin-bottom: 1rem;
   font-size: 1.25rem;
   font-weight: bold;
-  background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
 }
 
 .grid {

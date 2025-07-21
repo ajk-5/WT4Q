@@ -1,11 +1,10 @@
 .header {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--primary);
+  color: #ffffff;
   padding: 0.75rem 1rem;
-  font-family: 'Times New Roman', serif;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-bottom: 4px solid transparent;
-  border-image: var(--metal-gradient) 1;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 4px solid var(--secondary);
   animation: slideIn 0.6s ease-out;
 }
 
@@ -36,17 +35,17 @@
 }
 
 .navLink {
-  color: inherit;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   border: 2px solid transparent;
-  border-image: var(--metal-gradient) 1;
-  transition: transform 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .navLink:hover {
+  background: var(--secondary);
   transform: translateY(-2px);
 }
 
