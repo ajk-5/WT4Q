@@ -6,7 +6,12 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 1rem;
+  color: var(--primary);
+  transition: color 0.2s;
 }
 .count {
   margin-left: 0.25rem;
+}
+.button:hover {
+  color: var(--accent);
 }

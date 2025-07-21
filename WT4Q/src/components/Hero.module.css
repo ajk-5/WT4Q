@@ -1,13 +1,10 @@
 .hero {
   perspective: 1000px;
-  background: var(--metal-base);
-  color: var(--foreground);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #ffffff;
   padding: 4rem 1rem;
   text-align: center;
-  font-family: 'Times New Roman', serif;
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  border-image: var(--metal-gradient) 1;
+  font-family: 'Inter', sans-serif;
 }
 
 .inner {
@@ -18,15 +15,12 @@
 .title {
   font-size: 3.5rem;
   margin-bottom: 0.5rem;
-  text-shadow: 0 4px 10px var(--metal-shadow);
-  background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
   font-size: 1.5rem;
-  text-shadow: 0 2px 6px var(--metal-shadow);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes popIn {

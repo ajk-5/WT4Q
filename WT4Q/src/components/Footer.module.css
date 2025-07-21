@@ -1,18 +1,14 @@
 .footer {
-  background: var(--metal-base);
-  color: var(--foreground);
+  background: var(--primary);
+  color: #ffffff;
   padding: 1rem;
-  font-family: 'Times New Roman', serif;
+  font-family: 'Inter', sans-serif;
   text-align: center;
-  border-top: 4px solid transparent;
-  border-image: var(--metal-gradient) 1;
 }
 
 .inner {
   max-width: 960px;
   margin: 0 auto;
   font-size: 0.875rem;
-  background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--secondary);
 }
