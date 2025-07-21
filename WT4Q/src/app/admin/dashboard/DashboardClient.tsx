@@ -17,6 +17,8 @@ export default function DashboardClient() {
   const [keywords, setKeywords] = useState('');
   const [createdDate, setCreatedDate] = useState('');
   const [photos, setPhotos] = useState<FileList | null>(null);
+  const [photoLink, setPhotoLink] = useState('');
+  const [embededCode, setEmbededCode] = useState('');
   const [altText, setAltText] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
@@ -65,6 +67,8 @@ export default function DashboardClient() {
             : new Date().toISOString(),
           description,
           photo: photosBase64,
+          photoLink: photoLink || undefined,
+          embededCode: embededCode || undefined,
           altText: altText || undefined,
           countryName: countryName || undefined,
           countryCode: countryCode || undefined,
@@ -90,6 +94,8 @@ export default function DashboardClient() {
         setKeywords('');
         setCreatedDate('');
         setPhotos(null);
+        setPhotoLink('');
+        setEmbededCode('');
         setAltText('');
         setCountryName('');
         setCountryCode('');
@@ -143,6 +149,20 @@ export default function DashboardClient() {
           value={altText}
           onChange={(e) => setAltText(e.target.value)}
           className={styles.input}
+        />
+        <input
+          type="text"
+          placeholder="Link to photo"
+          value={photoLink}
+          onChange={(e) => setPhotoLink(e.target.value)}
+          className={styles.input}
+        />
+        <textarea
+          placeholder="Embeded code"
+          value={embededCode}
+          onChange={(e) => setEmbededCode(e.target.value)}
+          rows={3}
+          className={styles.textarea}
         />
         <select
           value={type}

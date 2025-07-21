@@ -38,10 +38,12 @@ namespace Northeast.Services
                 AuthorId = userId,
                 Title = articleDto.Title,
                 Category= articleDto.Category,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = articleDto.CreatedDate,
                 ArticleType= articleDto.ArticleType,
                 Description= articleDto.Description,
                 Photo = articleDto.Photo ?? null,
+                PhotoLink = articleDto.PhotoLink,
+                EmbededCode = articleDto.EmbededCode,
                 AltText= articleDto.AltText ?? null,
                 Keywords=articleDto.Keyword ?? null,
 
@@ -116,9 +118,12 @@ namespace Northeast.Services
                 Category = articleDto.Category,
                 ArticleType = articleDto.ArticleType,
                 Description = articleDto.Description,
+                CreatedDate = articleDto.CreatedDate,
                 Photo = articleDto.Photo,
+                PhotoLink = articleDto.PhotoLink,
+                EmbededCode = articleDto.EmbededCode,
                 AltText = articleDto.AltText,
-              
+
 
             };
             if (articleDto.ArticleType == 0) { 
