@@ -129,6 +129,7 @@ namespace Northeast.Services
 
             if (articleDto.ArticleType == 0)
             {
+
                 article.CountryName = articleDto.CountryName ?? "Global";
                 article.CountryCode = articleDto.CountryCode ?? "GL";
             }
