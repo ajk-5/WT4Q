@@ -1,6 +1,5 @@
 # WT4Q
 
-\
 This repository hosts a full stack application consisting of a Next.js front end and a .NET backend.
 
 ## Project Structure
