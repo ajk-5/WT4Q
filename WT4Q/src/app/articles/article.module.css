@@ -23,6 +23,17 @@
   margin-bottom: 2rem;
 }
 
+.image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+}
+
+.embed {
+  margin: 1rem 0;
+}
+
 .relatedHeading {
   margin-bottom: 1rem;
   font-size: 1.25rem;

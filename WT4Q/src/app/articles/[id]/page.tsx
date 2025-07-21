@@ -1,4 +1,5 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
+import Image from 'next/image';
 import CommentsSection, { Comment } from '@/components/CommentsSection';
 import LikeButton from '@/components/LikeButton';
 import { API_ROUTES } from '@/lib/api';
@@ -9,6 +10,11 @@ interface ArticleDetails {
   title: string;
   description: string;
   createdDate: string;
+  countryName?: string;
+  photo?: string[];
+  photoLink?: string;
+  embededCode?: string;
+  altText?: string;
   author?: { adminName?: string };
   comments?: Comment[];
   like?: { id: number }[];
@@ -51,9 +57,32 @@ export default async function ArticlePage({
     <div className={styles.container}>
       <h1 className={styles.title}>{article.title}</h1>
       <p className={styles.meta}>
-        {new Date(article.createdDate).toLocaleDateString()}
+        {new Date(article.createdDate).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}
+        {article.countryName ? ` | ${article.countryName}` : ''}
         {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
       </p>
+      {(article.photoLink || (article.photo && article.photo.length > 0)) && (
+        <Image
+          src={
+            article.photoLink ||
+            `data:image/jpeg;base64,${article.photo?.[0] ?? ''}`
+          }
+          alt={article.altText || article.title}
+          className={styles.image}
+          width={700}
+          height={400}
+        />
+      )}
+      {article.embededCode && (
+        <div
+          className={styles.embed}
+          dangerouslySetInnerHTML={{ __html: article.embededCode }}
+        />
+      )}
       <p className={styles.content}>{article.description}</p>
       <LikeButton articleId={id} initialCount={article.like?.length || 0} />
       <CommentsSection articleId={id} initialComments={article.comments || []} />
