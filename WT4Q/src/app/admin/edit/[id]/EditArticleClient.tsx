@@ -92,9 +92,7 @@ export default function EditArticleClient({ id }: { id: string }) {
           title,
           category: category ? CATEGORIES.indexOf(category) + 1 : 0,
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
-          createdDate: createdDate
-            ? new Date(createdDate).toISOString()
-            : new Date().toISOString(),
+          createdDate: new Date(createdDate).toISOString(),
           description,
           photo: photosBase64,
           photoLink: photoLink || undefined,
@@ -142,7 +140,7 @@ export default function EditArticleClient({ id }: { id: string }) {
         <input
           type="datetime-local"
           value={createdDate}
-          onChange={(e) => setCreatedDate(e.target.value)}
+          readOnly
           className={styles.input}
         />
         <textarea

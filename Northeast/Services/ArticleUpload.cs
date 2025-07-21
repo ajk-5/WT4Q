@@ -38,7 +38,7 @@ namespace Northeast.Services
                 AuthorId = userId,
                 Title = articleDto.Title,
                 Category= articleDto.Category,
-                CreatedDate = articleDto.CreatedDate,
+                CreatedDate = DateTime.UtcNow,
                 ArticleType= articleDto.ArticleType,
                 Description= articleDto.Description,
                 Photo = articleDto.Photo ?? null,
@@ -120,7 +120,6 @@ namespace Northeast.Services
             article.Category = articleDto.Category;
             article.ArticleType = articleDto.ArticleType;
             article.Description = articleDto.Description;
-            article.CreatedDate = articleDto.CreatedDate;
             article.Photo = articleDto.Photo;
             article.PhotoLink = articleDto.PhotoLink;
             article.EmbededCode = articleDto.EmbededCode;
