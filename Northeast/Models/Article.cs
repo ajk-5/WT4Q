@@ -25,6 +25,8 @@ namespace Northeast.Models
         public string Description { get; set; }
        
         public List<byte[]>? Photo { get; set; }
+        public string? PhotoLink { get; set; }
+        public string? EmbededCode { get; set; }
         public string? AltText { get; set; }
         public List<Comment>? Comments { get; set; }= new List<Comment>();
         public ICollection<LikeEntity>? Like { get; set; }=new List<LikeEntity>();
