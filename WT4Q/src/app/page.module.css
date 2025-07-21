@@ -1,14 +1,26 @@
-.container {
+.section {
+  font-family: 'Times New Roman', serif;
+  padding: 2rem 1rem;
+}
+
+.heading {
+  text-transform: capitalize;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: bold;
+  background: var(--metal-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-  font-family: 'Times New Roman', serif;
-  padding: 2rem 1rem;
-  margin-top: 2rem;
 }
 
 @media (max-width: 700px) {
-  .container {
+  .grid {
     grid-template-columns: 1fr;
   }
 }
