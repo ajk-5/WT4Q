@@ -61,8 +61,8 @@ namespace Northeast.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true, // Prevents JavaScript access
-                    Secure = true,   // Ensures the cookie is sent only over HTTPS
-                    SameSite = SameSiteMode.Strict, // Prevents CSRF attacks
+                    Secure = true,   // Required when SameSite=None
+                    SameSite = SameSiteMode.None, // allows cross-site cookies; use Strict/Lax to mitigate CSRF
                     Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
                 };
 
