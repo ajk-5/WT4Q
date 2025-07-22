@@ -30,6 +30,10 @@ namespace Northeast.Data
 
         public DbSet<Visitors> Visitors { get; set; }
 
+        public DbSet<Cocktail> Cocktails { get; set; }
+        public DbSet<Ingridient> Ingridients { get; set; }
+        public DbSet<IngridientQuantity> IngridientQuantities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>()

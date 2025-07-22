@@ -5,4 +5,5 @@ export const CATEGORIES = [
   'Celebrities',
   'Business',
   'Space',
+  'Adult',
 ];

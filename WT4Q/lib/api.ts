@@ -38,6 +38,16 @@ export const API_ROUTES = {
     MODIFY_COMMENT: `${API_BASE_URL}/api/Article/ModifyComment`,
   },
 
+  COCKTAIL: {
+    CREATE: `${API_BASE_URL}/api/Cocktail`,
+    GET_ALL: `${API_BASE_URL}/api/Cocktail`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
+    SEARCH: (query: string) =>
+      `${API_BASE_URL}/api/Cocktail/search?query=${encodeURIComponent(query)}`,
+  },
+
   GOOGLE_SIGN_IN: {
     AUTH: `${API_BASE_URL}/api/GoogleSignIn/google-auth`,
   },
