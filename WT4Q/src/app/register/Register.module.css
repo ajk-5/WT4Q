@@ -206,3 +206,18 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.switch {
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.switchLink {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.switchLink:hover {
+  text-decoration: underline;
+}

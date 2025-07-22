@@ -1,6 +1,7 @@
 'use client';
 import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import styles from './Login.module.css';
 import { API_ROUTES } from '@/lib/api';
 
@@ -138,6 +139,12 @@ const LoginClient: FC = () => {
         <button onClick={handleGoogleSignIn} className={styles.button}>
           Sign in with Google
         </button>
+        <p className={styles.switch}>
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className={styles.switchLink}>
+            Register
+          </Link>
+        </p>
       </section>
     </main>
   );
