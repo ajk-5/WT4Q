@@ -16,6 +16,9 @@
 }
 
 .loginLink {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   font-weight: 600;
   text-decoration: none;
   padding: 0.25rem 0.75rem;

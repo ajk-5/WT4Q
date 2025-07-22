@@ -24,30 +24,11 @@
 }
 
 .logoImage {
-  width: 60px;
-  height: 60px;
+  height: 3rem;
+  width: auto;
   border-radius: 50%;
 }
 
-.nav {
-  display: flex;
-  gap: 1rem;
-}
-
-.navLink {
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  border: 2px solid transparent;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.navLink:hover {
-  background: var(--secondary);
-  transform: translateY(-2px);
-}
 
 .categories {
   max-width: 960px;
