@@ -13,15 +13,13 @@ export default function Header() {
           <Image
             src="/images/wt4q-logo.png"
             alt="WT4Q logo"
-            width={60}
-            height={60}
+            width={0}
+            height={0}
+            sizes="3rem"
             className={styles.logoImage}
             priority
           />
         </Link>
-        <nav className={styles.nav}>
-          <Link href="/" className={styles.navLink}>Home</Link>
-        </nav>
         <div className={styles.search}>
           <SearchBar />
         </div>
