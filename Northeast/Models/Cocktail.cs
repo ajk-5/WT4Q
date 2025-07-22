@@ -7,10 +7,12 @@ namespace Northeast.Models
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }    
+        public string Name { get; set; }
         public string description { get; set; }
 
-        public List<Ingridient> Ingridients {get; set;}=new List<Ingridient>();
+        public List<Ingridient> Ingridients { get; set; } = new List<Ingridient>();
+
+        public List<IngridientQuantity> IngredientQuantities { get; set; } = new List<IngridientQuantity>();
     }
 
     public class Ingridient { 

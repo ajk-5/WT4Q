@@ -9,5 +9,7 @@
         Celebrities,
         Business,
         Space,
+        Adult,
+        Cocktails,
     }
 }
