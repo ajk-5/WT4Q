@@ -65,7 +65,8 @@ const LoginClient: FC = () => {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = API_ROUTES.GOOGLE_SIGN_IN.AUTH;
+    const returnUrl = window.location.origin;
+    window.location.href = `${API_ROUTES.GOOGLE_SIGN_IN.AUTH}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
 
   return (
