@@ -13,6 +13,9 @@ export default function CategoryNavbar() {
           {c}
         </Link>
       ))}
+      <Link href="/bar" className={styles.link}>
+        Bar
+      </Link>
     </nav>
   );
 }
