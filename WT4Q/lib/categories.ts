@@ -1,9 +1,10 @@
 export const CATEGORIES = [
-  'StockMarket',
+  'News',
+  'Articles',
   'Politics',
   'Crime',
-  'Celebrities',
+  'Enetrtainment',
   'Business',
-  'Space',
+  'Technology',
   'Adult',
 ];
