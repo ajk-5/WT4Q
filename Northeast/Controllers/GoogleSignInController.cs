@@ -30,7 +30,7 @@ namespace Northeast.Controllers
 
         // Single endpoint for BOTH initiating Google login and handling the callback
         [HttpGet("google-auth")]
-        public async Task<IActionResult> GoogleAuth()
+        public async Task<IActionResult> GoogleAuth([FromQuery] string? returnUrl)
         {
             // Attempt to see if the user is returning from Google with valid credentials
             var authResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
@@ -42,7 +42,7 @@ namespace Northeast.Controllers
                 var redirectUrl = Url.Action(
                     action: nameof(GoogleAuth), // "google-auth"
                     controller: "GoogleSignIn",
-                    values: null,
+                    values: new { returnUrl },
                     protocol: Request.Scheme,
                     host: Request.Host.Value
                 );
@@ -99,12 +99,15 @@ namespace Northeast.Controllers
             };
             Response.Cookies.Append("JwtToken", token, cookieOptions);
 
-            // Return success info
-            return Ok(new
+            // Redirect back to the requesting client
+            var targetUrl = "/";
+            if (!string.IsNullOrEmpty(returnUrl) &&
+                Uri.IsWellFormedUriString(returnUrl, UriKind.Absolute))
             {
-                Message = "Google login successful",
+                targetUrl = returnUrl;
+            }
 
-            });
+            return Redirect(targetUrl);
         }
     }
 }
