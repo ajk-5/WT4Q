@@ -9,6 +9,8 @@
         Entertainment,
         Business,
         Technology,
-        Adult
+        Adult,
+        Cocktails
+
     }
 }
