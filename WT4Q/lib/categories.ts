@@ -3,7 +3,8 @@ export const CATEGORIES = [
   'Articles',
   'Politics',
   'Crime',
-  'Enetrtainment',
+  'Entertainment',
+
   'Business',
   'Technology',
   'Adult',

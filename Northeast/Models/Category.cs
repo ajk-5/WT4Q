@@ -10,7 +10,7 @@
         Business,
         Technology,
         Adult,
-        Space,
         Cocktails
+
     }
 }
