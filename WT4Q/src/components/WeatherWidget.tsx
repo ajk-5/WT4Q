@@ -1,0 +1,33 @@
+'use client';
+import { useEffect, useState } from 'react';
+import WeatherIcon from './WeatherIcon';
+import styles from './WeatherWidget.module.css';
+import { API_ROUTES } from '@/lib/api';
+
+interface Weather {
+  temperature: number;
+  weathercode: number;
+}
+
+export default function WeatherWidget() {
+  const [weather, setWeather] = useState<Weather | null>(null);
+
+  useEffect(() => {
+    fetch(API_ROUTES.WEATHER.CURRENT)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setWeather(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!weather) return null;
+
+  return (
+    <div className={styles.weather} aria-label="Current weather">
+      <WeatherIcon code={weather.weathercode} className={styles.icon} />
+      <span>{Math.round(weather.temperature)}&deg;C</span>
+    </div>
+  );
+}
+
