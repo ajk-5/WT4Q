@@ -68,4 +68,8 @@ export const API_ROUTES = {
   USER_LOCATION: {
     GET: `${API_BASE_URL}/api/UserLocation/get-location`,
   },
+
+  WEATHER: {
+    CURRENT: `${API_BASE_URL}/api/Weather/current`,
+  },
 };
