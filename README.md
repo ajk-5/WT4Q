@@ -50,4 +50,13 @@ dotnet run
 
 The API will run on the port configured in the project settings.
 
+### Applying Migrations
+
+When new migrations are added (for example, a migration named `AddIsGuestToVisitors`), update the database by running:
+
+```bash
+dotnet ef database update
+```
+from the `Northeast` directory.
+
 This repository contains a Next.js app in the `WT4Q` directory and a .NET API in the `Northeast` directory.
