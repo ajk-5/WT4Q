@@ -363,6 +363,9 @@ namespace Northeast.Migrations
                     b.Property<string>("IpAddress")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
