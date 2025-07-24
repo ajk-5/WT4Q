@@ -1,6 +1,5 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import Hero from '@/components/Hero';
-import WeatherWidget from '@/components/WeatherWidget';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import styles from './page.module.css';
@@ -28,7 +27,6 @@ export default async function Home() {
   return (
     <>
       <Hero />
-      <WeatherWidget />
       {categoriesWithArticles.map(({ category, articles }) => (
         <section key={category} className={styles.section}>
           <h2 className={styles.heading}>{category}</h2>
