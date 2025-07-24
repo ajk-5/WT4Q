@@ -3,6 +3,7 @@ import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
 import SearchBar from './SearchBar';
 import UserMenu from './UserMenu';
+import WeatherWidget from './WeatherWidget';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -23,6 +24,7 @@ export default function Header() {
         <div className={styles.search}>
           <SearchBar />
         </div>
+        <WeatherWidget />
         <UserMenu />
       </div>
       <div className={styles.categories}>

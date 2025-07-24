@@ -1,15 +1,17 @@
 .weather {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.25rem;
   font-family: 'Inter', sans-serif;
 }
 
 .icon {
   width: 24px;
   height: 24px;
-  color: var(--primary);
+  color: currentColor;
+}
+
+.location {
+  font-size: 0.875rem;
 }
 
