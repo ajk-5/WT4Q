@@ -6,11 +6,10 @@
         Articles,
         Politics,
         Crime,
-        Entertainment,
+        Enetrtainment,
         Business,
         Technology,
-        Adult,
-        Cocktails
+        Adult
 
     }
 }
