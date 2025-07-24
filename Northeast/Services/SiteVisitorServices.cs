@@ -46,18 +46,31 @@ namespace Northeast.Services
             var response = await _httpClient.GetStringAsync(apiUrl);
             var locationData = JsonSerializer.Deserialize<IpinfoResponse>(response);
 
-            Visitors visitors = new Visitors();
+            Visitors? visitors = null;
 
             var userId = _getConnectedUser.GetUserid();
 
             if (userId != Guid.Empty)
             {
+                visitors = await _visitorsRepository.GetByUserIdAsync(userId);
+                if (visitors == null)
+                {
+                    visitors = new Visitors();
+                }
+
                 var user = await _userRepository.GetByGUId(userId);
                 if (user != null)
                 {
                     visitors.User = user;
                     visitors.UserId = user.Id;
                 }
+
+                visitors.IsGuest = false;
+            }
+            else
+            {
+                visitors = await _visitorsRepository.GetGuestByIpAsync(ipAddress) ?? new Visitors();
+                visitors.IsGuest = true;
             }
             if (locationData != null)
             {
@@ -92,7 +105,14 @@ namespace Northeast.Services
                 }
                 visitors.VisitTime = DateTime.UtcNow;
 
-                await _visitorsRepository.Add(visitors);
+                if (visitors.Id == 0)
+                {
+                    await _visitorsRepository.Add(visitors);
+                }
+                else
+                {
+                    await _visitorsRepository.Update(visitors);
+                }
 
                 return visitors;
 

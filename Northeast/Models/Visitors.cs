@@ -29,6 +29,9 @@ namespace Northeast.Models
 
         public string? Timezone { get; set; }
 
+        // Indicates whether the visitor is a guest (not authenticated)
+        public bool IsGuest { get; set; }
+
         public DateTime? VisitTime{ get; set; }
     }
 }
