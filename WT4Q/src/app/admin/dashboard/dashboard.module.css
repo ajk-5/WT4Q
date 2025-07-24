@@ -108,3 +108,26 @@
   font-weight: bold;
   text-align: center;
 }
+
+.subtitle {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.articleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--muted);
+}
+
+.articleActions button {
+  margin-left: 0.5rem;
+}

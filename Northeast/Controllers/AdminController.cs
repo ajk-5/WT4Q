@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Northeast.DTOs;
 using Northeast.Services;
+using Northeast.Data;
+using Northeast.Utilities;
 
 namespace Northeast.Controllers
 {
@@ -14,12 +18,16 @@ namespace Northeast.Controllers
         private readonly AdminAuthentification _auth;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
+        private readonly AppDbContext _context;
+        private readonly GetConnectedUser _connectedUser;
 
-        public AdminController(AdminAuthentification auth, IConfiguration configuration, IWebHostEnvironment env)
+        public AdminController(AdminAuthentification auth, IConfiguration configuration, IWebHostEnvironment env, AppDbContext context, GetConnectedUser connectedUser)
         {
             _auth = auth;
             _configuration = configuration;
             _env = env;
+            _context = context;
+            _connectedUser = connectedUser;
         }
         [HttpPost("Adminlogin")]
         public async Task<IActionResult> AdminLogin([FromBody] AdminLoginDTO costumer)
@@ -68,6 +76,25 @@ namespace Northeast.Controllers
 
             return Ok(new { message = "logged out successfully" });
 
+        }
+
+        [Authorize(Policy = "AdminOnly")]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentAdmin()
+        {
+            var id = _connectedUser.Id;
+            if (id == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Id == id);
+            if (admin == null)
+            {
+                return NotFound(new { message = "Admin not found" });
+            }
+
+            return Ok(new { id = admin.Id, adminName = admin.AdminName, email = admin.Email });
         }
 
     }

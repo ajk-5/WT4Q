@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, FormEvent, useTransition } from 'react';
+import { useState, useEffect, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
@@ -23,6 +24,28 @@ export default function DashboardClient() {
   const [countryCode, setCountryCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [articles, setArticles] = useState<{ id: string; title: string }[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const adminRes = await fetch(API_ROUTES.ADMIN_AUTH.ME, {
+          credentials: 'include',
+        });
+        if (!adminRes.ok) return;
+        const admin = await adminRes.json();
+        const res = await fetch(API_ROUTES.ARTICLE.SEARCH_BY_AUTHOR(admin.id), {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setArticles(data);
+      } catch {
+        // ignore
+      }
+    }
+    load();
+  }, []);
 
 
   const handleLogout = async () => {
@@ -220,6 +243,38 @@ export default function DashboardClient() {
           {isPending ? 'Publishing...' : 'Publish'}
         </button>
       </form>
+      <Link href="/admin/cocktails" className={styles.button} style={{marginTop:'1rem'}}>Upload Cocktail</Link>
+      <h2 className={styles.subtitle}>Your Articles</h2>
+      <ul className={styles.list}>
+        {articles.map((a) => (
+          <li key={a.id} className={styles.articleItem}>
+            <span>{a.title}</span>
+            <span className={styles.articleActions}>
+              <button
+                type="button"
+                onClick={() => router.push(`/admin/edit/${a.id}`)}
+                className={styles.button}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!confirm('Delete article?')) return;
+                  await fetch(`${API_ROUTES.ARTICLE.DELETE}?Id=${a.id}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                  });
+                  setArticles(articles.filter((art) => art.id !== a.id));
+                }}
+                className={styles.button}
+              >
+                Delete
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
