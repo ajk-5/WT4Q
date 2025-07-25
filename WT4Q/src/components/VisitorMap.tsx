@@ -24,6 +24,7 @@ export default function VisitorMap() {
 
   const [lat, lon] = info.location?.split(',') ?? [];
   const mapSrc = lat && lon
+
     ? (() => {
         const delta = 0.02;
         const latNum = parseFloat(lat);
@@ -31,6 +32,7 @@ export default function VisitorMap() {
         const bbox = `${lonNum - delta},${latNum - delta},${lonNum + delta},${latNum + delta}`;
         return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latNum},${lonNum}`;
       })()
+
     : undefined;
 
   return (
