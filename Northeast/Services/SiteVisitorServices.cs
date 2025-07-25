@@ -14,19 +14,21 @@ namespace Northeast.Services
         private readonly  GetConnectedUser _getConnectedUser;
         private readonly UserRepository _userRepository;
         private readonly VisitorsRepository _visitorsRepository;
-        public SiteVisitorServices(HttpClient httpClient, UserRepository userRepository, GetConnectedUser getConnectedUser, VisitorsRepository visitorsRepository)
+        private readonly PageVisitRepository _pageVisitRepository;
+        public SiteVisitorServices(HttpClient httpClient, UserRepository userRepository, GetConnectedUser getConnectedUser, VisitorsRepository visitorsRepository, PageVisitRepository pageVisitRepository)
         {
             _httpClient = httpClient;
             _userRepository = userRepository;
             _getConnectedUser = getConnectedUser;
             _visitorsRepository = visitorsRepository;
+            _pageVisitRepository = pageVisitRepository;
         }
 
 
         public async Task<Visitors> VisitorLog()
         {
             var ipAddress = _getConnectedUser.GetUserIP();
-
+            
             // Fallback in case of localhost (will return the server's location)
             if (string.IsNullOrWhiteSpace(ipAddress) || ipAddress == "::1" || ipAddress == "127.0.0.1")
             {
@@ -74,6 +76,23 @@ namespace Northeast.Services
             }
             if (locationData != null)
             {
+                var now = DateTime.UtcNow;
+                bool duplicate = visitors.Id != 0 && visitors.VisitTime.HasValue &&
+                    Math.Abs((now - visitors.VisitTime.Value).TotalMinutes) < 1 &&
+                    visitors.IpAddress == locationData.Ip &&
+                    visitors.Location == locationData.Loc &&
+                    visitors.City == locationData.City &&
+                    visitors.Country == locationData.Country &&
+                    visitors.Region == locationData.Region &&
+                    visitors.Org == locationData.Org &&
+                    visitors.PostalCode == locationData.Postal &&
+                    visitors.Timezone == locationData.Timezone;
+
+                if (duplicate)
+                {
+                    return visitors;
+                }
+
                 if (locationData.Ip!=null) {
                     visitors.IpAddress = locationData.Ip;
                 };
@@ -100,10 +119,10 @@ namespace Northeast.Services
                 if(locationData.Timezone!=null) {
                     visitors.Timezone = locationData.Timezone;
                 }
-                if (locationData.Region!=null) { 
+                if (locationData.Region!=null) {
                     visitors.Region = locationData.Region;
                 }
-                visitors.VisitTime = DateTime.UtcNow;
+                visitors.VisitTime = now;
 
                 if (visitors.Id == 0)
                 {
@@ -121,6 +140,28 @@ namespace Northeast.Services
             return null;
 
 
+        }
+
+        public async Task LogPageVisit(string pageUrl)
+        {
+            var visitor = await VisitorLog();
+            if (visitor == null)
+            {
+                return;
+            }
+
+            var recent = await _pageVisitRepository.GetRecentVisit(visitor.Id, pageUrl, 1);
+            if (recent != null)
+            {
+                return;
+            }
+
+            await _pageVisitRepository.Add(new PageVisit
+            {
+                VisitorId = visitor.Id,
+                PageUrl = pageUrl,
+                VisitTime = DateTime.UtcNow
+            });
         }
     }
 }

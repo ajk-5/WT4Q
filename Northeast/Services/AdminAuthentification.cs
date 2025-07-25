@@ -2,6 +2,8 @@
 using Microsoft.IdentityModel.Tokens;
 using Northeast.Data;
 using Northeast.Models;
+using Northeast.Repository;
+using Northeast.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -12,12 +14,15 @@ namespace Northeast.Services
         private readonly AppDbContext _appDbContext;
 
         private readonly IConfiguration _configuration;
+        private readonly GetConnectedUser _connectedUser;
+        private readonly LoginHistoryRepository _loginHistoryRepository;
 
-
-        public AdminAuthentification(AppDbContext appDbContext, IConfiguration configuration)
+        public AdminAuthentification(AppDbContext appDbContext, IConfiguration configuration, GetConnectedUser connectedUser, LoginHistoryRepository loginHistoryRepository)
         {
             _appDbContext = appDbContext;
             _configuration = configuration;
+            _connectedUser = connectedUser;
+            _loginHistoryRepository = loginHistoryRepository;
         }
         public async Task<(Admin user, string token)> Login(string email, string password)
         {
@@ -39,6 +44,18 @@ namespace Northeast.Services
 
             // Generate the JWT token
             var token = GenerateJwtToken(user);
+
+            var ip = _connectedUser.GetUserIP();
+            var recent = await _loginHistoryRepository.GetRecentForUser(user.Id, ip ?? string.Empty, 1);
+            if (recent == null)
+            {
+                await _loginHistoryRepository.Add(new LoginHistory
+                {
+                    UserId = user.Id,
+                    IpAddress = ip,
+                    LoginTime = DateTime.UtcNow
+                });
+            }
 
             // Create IdToken object to store in the database
             var userToken = new IdToken

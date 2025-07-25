@@ -34,6 +34,9 @@ namespace Northeast.Data
         public DbSet<Ingridient> Ingridients { get; set; }
         public DbSet<IngridientQuantity> IngridientQuantities { get; set; }
 
+        public DbSet<LoginHistory> LoginHistories { get; set; }
+        public DbSet<PageVisit> PageVisits { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>()
