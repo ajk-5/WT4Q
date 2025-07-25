@@ -33,6 +33,8 @@ namespace Northeast.Models
         public bool IsGuest { get; set; }
 
         public DateTime? VisitTime{ get; set; }
+
+        public List<PageVisit>? PageVisits { get; set; } = new List<PageVisit>();
     }
 }
 

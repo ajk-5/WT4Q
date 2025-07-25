@@ -41,4 +41,9 @@ public class UserLocationController : ControllerBase
             return BadRequest($"Error retrieving location: {ex.Message}");
         }
     }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 0bc536267a2a3fab2c96e51ba9ac0240bc6b842c
 }
