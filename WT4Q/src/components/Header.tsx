@@ -24,7 +24,9 @@ export default function Header() {
         <div className={styles.search}>
           <SearchBar />
         </div>
-        <WeatherWidget />
+        <Link href="/weather" aria-label="Weather details">
+          <WeatherWidget />
+        </Link>
         <UserMenu />
       </div>
       <div className={styles.categories}>
