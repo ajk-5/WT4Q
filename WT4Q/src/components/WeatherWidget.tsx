@@ -19,21 +19,27 @@ export default function WeatherWidget() {
   const [location, setLocation] = useState<Location | null>(null);
 
   useEffect(() => {
-    fetch(API_ROUTES.WEATHER.CURRENT)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setWeather(data);
-      })
-      .catch(() => {});
+    const fetchData = () => {
+      fetch(API_ROUTES.WEATHER.CURRENT)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setWeather(data);
+        })
+        .catch(() => {});
 
-    fetch(API_ROUTES.USER_LOCATION.GET)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.city && data.country) {
-          setLocation({ city: data.city, country: data.country });
-        }
-      })
-      .catch(() => {});
+      fetch(API_ROUTES.USER_LOCATION.GET)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.city && data.country) {
+            setLocation({ city: data.city, country: data.country });
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchData();
+    const id = setInterval(fetchData, 10 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
   if (!weather) return null;
