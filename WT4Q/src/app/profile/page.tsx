@@ -79,6 +79,34 @@ export default function Profile() {
 
   return (
     <>
+     <VisitorMap />
+     {activity && (
+      <section className={styles.activitySection}>
+        <h2 className={styles.title}>Recent Activity</h2>
+        <h3>Comments</h3>
+        {activity.comments.length === 0 ? (
+          <p>No comments yet.</p>
+        ) : (
+          <ul className={styles.activityList}>
+            {activity.comments.map((c) => (
+              <li key={c.id}>
+                Commented on {c.articleTitle}: {c.content}
+              </li>
+            ))}
+          </ul>
+        )}
+        <h3>Likes</h3>
+        {activity.likes.length === 0 ? (
+          <p>No likes yet.</p>
+        ) : (
+          <ul className={styles.activityList}>
+            {activity.likes.map((l) => (
+              <li key={l.id}>Liked {l.articleTitle}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
     <form onSubmit={handleSubmit} className={styles.form}>
       <h1 className={styles.title}>Profile</h1>
       <label className={styles.label}>
@@ -145,35 +173,9 @@ export default function Profile() {
         </div>
       )}
     </section>
-    <VisitorMap />
+   
 
-    {activity && (
-      <section className={styles.activitySection}>
-        <h2 className={styles.title}>Recent Activity</h2>
-        <h3>Comments</h3>
-        {activity.comments.length === 0 ? (
-          <p>No comments yet.</p>
-        ) : (
-          <ul className={styles.activityList}>
-            {activity.comments.map((c) => (
-              <li key={c.id}>
-                Commented on {c.articleTitle}: {c.content}
-              </li>
-            ))}
-          </ul>
-        )}
-        <h3>Likes</h3>
-        {activity.likes.length === 0 ? (
-          <p>No likes yet.</p>
-        ) : (
-          <ul className={styles.activityList}>
-            {activity.likes.map((l) => (
-              <li key={l.id}>Liked {l.articleTitle}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-    )}
+    
     </>
   );
 }

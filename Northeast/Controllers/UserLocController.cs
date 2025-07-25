@@ -16,13 +16,13 @@ public class UserLocationController : ControllerBase
     public UserLocationController(SiteVisitorServices siteVisitorServices)
     {
         _siteVisitorServices = siteVisitorServices;
-       
+
     }
 
     [HttpGet("get-location")]
     public async Task<IActionResult> GetLocation()
     {
-        
+
 
         try
         {
@@ -31,7 +31,7 @@ public class UserLocationController : ControllerBase
             {
                 return BadRequest(new { message = "error retrieving IP" });
             }
-       
+
 
             return Ok(response);
         }
@@ -41,4 +41,4 @@ public class UserLocationController : ControllerBase
             return BadRequest($"Error retrieving location: {ex.Message}");
         }
     }
-
+}

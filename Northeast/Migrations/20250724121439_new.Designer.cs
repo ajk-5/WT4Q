@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250719131241_3")]
-    partial class _3
+    [Migration("20250724121439_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -89,11 +89,17 @@ namespace Northeast.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EmbededCode")
+                        .HasColumnType("text");
+
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .HasColumnType("text[]");
 
                     b.PrimitiveCollection<List<byte[]>>("Photo")
                         .HasColumnType("bytea[]");
+
+                    b.Property<string>("PhotoLink")
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -109,6 +115,27 @@ namespace Northeast.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("Northeast.Models.Cocktail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cocktails");
                 });
 
             modelBuilder.Entity("Northeast.Models.Comment", b =>
@@ -167,6 +194,55 @@ namespace Northeast.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("IdTokens");
+                });
+
+            modelBuilder.Entity("Northeast.Models.Ingridient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CocktailId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CocktailId");
+
+                    b.ToTable("Ingridients");
+                });
+
+            modelBuilder.Entity("Northeast.Models.IngridientQuantity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CocktailID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IngridientID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Quantity")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CocktailID");
+
+                    b.HasIndex("IngridientID");
+
+                    b.ToTable("IngridientQuantities");
                 });
 
             modelBuilder.Entity("Northeast.Models.LikeEntity", b =>
@@ -290,6 +366,9 @@ namespace Northeast.Migrations
                     b.Property<string>("IpAddress")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
@@ -352,6 +431,32 @@ namespace Northeast.Migrations
                     b.Navigation("Writer");
                 });
 
+            modelBuilder.Entity("Northeast.Models.Ingridient", b =>
+                {
+                    b.HasOne("Northeast.Models.Cocktail", null)
+                        .WithMany("Ingridients")
+                        .HasForeignKey("CocktailId");
+                });
+
+            modelBuilder.Entity("Northeast.Models.IngridientQuantity", b =>
+                {
+                    b.HasOne("Northeast.Models.Cocktail", "Cocktail")
+                        .WithMany("IngredientQuantities")
+                        .HasForeignKey("CocktailID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Northeast.Models.Ingridient", "Ingridient")
+                        .WithMany()
+                        .HasForeignKey("IngridientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cocktail");
+
+                    b.Navigation("Ingridient");
+                });
+
             modelBuilder.Entity("Northeast.Models.LikeEntity", b =>
                 {
                     b.HasOne("Northeast.Models.Article", "Article")
@@ -401,6 +506,13 @@ namespace Northeast.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Like");
+                });
+
+            modelBuilder.Entity("Northeast.Models.Cocktail", b =>
+                {
+                    b.Navigation("IngredientQuantities");
+
+                    b.Navigation("Ingridients");
                 });
 
             modelBuilder.Entity("Northeast.Models.User", b =>

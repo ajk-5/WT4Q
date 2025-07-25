@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class @new : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,17 +28,17 @@ namespace Northeast.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Country",
+                name: "Cocktails",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Code = table.Column<string>(type: "text", nullable: false)
+                    description = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Country", x => x.Id);
+                    table.PrimaryKey("PK_Cocktails", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,6 +75,25 @@ namespace Northeast.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Ingridients",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    CocktailId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ingridients", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Ingridients_Cocktails_CocktailId",
+                        column: x => x.CocktailId,
+                        principalTable: "Cocktails",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Articles",
                 columns: table => new
                 {
@@ -84,10 +103,14 @@ namespace Northeast.Migrations
                     Title = table.Column<string>(type: "text", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Photo = table.Column<List<byte[]>>(type: "bytea[]", nullable: false),
-                    AltText = table.Column<string>(type: "text", nullable: false),
+                    Photo = table.Column<List<byte[]>>(type: "bytea[]", nullable: true),
+                    PhotoLink = table.Column<string>(type: "text", nullable: true),
+                    EmbededCode = table.Column<string>(type: "text", nullable: true),
+                    AltText = table.Column<string>(type: "text", nullable: true),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CountryId = table.Column<int>(type: "integer", nullable: true),
+                    CountryName = table.Column<string>(type: "text", nullable: true),
+                    CountryCode = table.Column<string>(type: "text", nullable: true),
+                    Keywords = table.Column<List<string>>(type: "text[]", nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -99,11 +122,6 @@ namespace Northeast.Migrations
                         principalTable: "Admins",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Articles_Country_CountryId",
-                        column: x => x.CountryId,
-                        principalTable: "Country",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Articles_Users_UserId",
                         column: x => x.UserId,
@@ -149,6 +167,7 @@ namespace Northeast.Migrations
                     Org = table.Column<string>(type: "text", nullable: true),
                     PostalCode = table.Column<string>(type: "text", nullable: true),
                     Timezone = table.Column<string>(type: "text", nullable: true),
+                    IsGuest = table.Column<bool>(type: "boolean", nullable: false),
                     VisitTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -159,6 +178,33 @@ namespace Northeast.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IngridientQuantities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Quantity = table.Column<string>(type: "text", nullable: false),
+                    IngridientID = table.Column<int>(type: "integer", nullable: false),
+                    CocktailID = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IngridientQuantities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IngridientQuantities_Cocktails_CocktailID",
+                        column: x => x.CocktailID,
+                        principalTable: "Cocktails",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_IngridientQuantities_Ingridients_IngridientID",
+                        column: x => x.IngridientID,
+                        principalTable: "Ingridients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -219,22 +265,17 @@ namespace Northeast.Migrations
             migrationBuilder.InsertData(
                 table: "Admins",
                 columns: new[] { "Id", "AdminName", "Email", "Password" },
-                values: new object[] { new Guid("3bc99596-5eac-481a-b758-c4b2c5ba239f"), "AJK", "anamoljang@gmail.com", "$2a$10$CwXnoerau3kO8EBWY1etyeAcpxXvFmSVQsfQHMXjtqmhvI8cauxcO" });
+                values: new object[] { new Guid("3bc99596-5eac-481a-b758-c4b2c5ba239f"), "AJK", "anamoljang@gmail.com", "$2a$10$e/ClUCcy1Ctn1Sy/ZMvkcuzSJXk0YvvD1m1s/JuhFTmrmmEjOIrI." });
 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "DOB", "Email", "Password", "Phone", "UserName", "isVerified" },
-                values: new object[] { new Guid("3bc99596-5eac-481a-b758-c4b2c5ba239f"), null, "anamoljang@gmail.com", "$2a$10$CwXnoerau3kO8EBWY1etyeAcpxXvFmSVQsfQHMXjtqmhvI8cauxcO", null, "AJK", true });
+                values: new object[] { new Guid("3bc99596-5eac-481a-b758-c4b2c5ba239f"), null, "anamoljang@gmail.com", "$2a$10$e/ClUCcy1Ctn1Sy/ZMvkcuzSJXk0YvvD1m1s/JuhFTmrmmEjOIrI.", null, "AJK", true });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_AuthorId",
                 table: "Articles",
                 column: "AuthorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Articles_CountryId",
-                table: "Articles",
-                column: "CountryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_UserId",
@@ -250,6 +291,21 @@ namespace Northeast.Migrations
                 name: "IX_Comment_WriterId",
                 table: "Comment",
                 column: "WriterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IngridientQuantities_CocktailID",
+                table: "IngridientQuantities",
+                column: "CocktailID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IngridientQuantities_IngridientID",
+                table: "IngridientQuantities",
+                column: "IngridientID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ingridients_CocktailId",
+                table: "Ingridients",
+                column: "CocktailId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Likes_ArticleId",
@@ -294,6 +350,9 @@ namespace Northeast.Migrations
                 name: "IdTokens");
 
             migrationBuilder.DropTable(
+                name: "IngridientQuantities");
+
+            migrationBuilder.DropTable(
                 name: "Likes");
 
             migrationBuilder.DropTable(
@@ -303,13 +362,16 @@ namespace Northeast.Migrations
                 name: "Visitors");
 
             migrationBuilder.DropTable(
+                name: "Ingridients");
+
+            migrationBuilder.DropTable(
                 name: "Articles");
 
             migrationBuilder.DropTable(
-                name: "Admins");
+                name: "Cocktails");
 
             migrationBuilder.DropTable(
-                name: "Country");
+                name: "Admins");
 
             migrationBuilder.DropTable(
                 name: "Users");
