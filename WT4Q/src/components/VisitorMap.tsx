@@ -25,7 +25,13 @@ export default function VisitorMap() {
   const [lat, lon] = info.location?.split(',') ?? [];
   const mapSrc = lat && lon
 
-    ? `https://staticmap.openstreetmap.fr/staticmap.php?center=${lat},${lon}&zoom=10&size=200x200&markers=${lat},${lon},red-pushpin`
+    ? (() => {
+        const delta = 0.02;
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+        const bbox = `${lonNum - delta},${latNum - delta},${lonNum + delta},${latNum + delta}`;
+        return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latNum},${lonNum}`;
+      })()
 
     : undefined;
 
@@ -33,10 +39,12 @@ export default function VisitorMap() {
     <div className={styles.container}>
       <h2 className={styles.title}>Last Login</h2>
       {mapSrc && (
-        <img
+        <iframe
           src={mapSrc}
-          alt="Map showing your last location"
+          title="Map showing your last location"
           className={styles.map}
+          width={200}
+          height={200}
         />
       )}
       {info.visitTime && (
