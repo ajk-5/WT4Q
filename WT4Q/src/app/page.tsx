@@ -2,7 +2,18 @@ import ArticleCard, { Article } from '@/components/ArticleCard';
 import Hero from '@/components/Hero';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
+import type { Metadata } from 'next';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: 'Home',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'WT4Q News',
+    url: '/',
+    type: 'website',
+  },
+};
 
 async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   try {
