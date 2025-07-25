@@ -1,0 +1,25 @@
+.container {
+  max-width: 220px;
+  margin: 1rem auto;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.map {
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.info {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
