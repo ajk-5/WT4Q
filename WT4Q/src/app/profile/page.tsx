@@ -27,6 +27,7 @@ export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [password, setPassword] = useState('');
   const [activity, setActivity] = useState<Activity | null>(null);
+
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const router = useRouter();
 
@@ -117,6 +118,7 @@ export default function Profile() {
         >
           Delete account
         </button>
+
       ) : (
         <div className={styles.deleteConfirm}>
           <input
@@ -143,6 +145,7 @@ export default function Profile() {
         </div>
       )}
     </section>
+
     {activity && (
       <section className={styles.activitySection}>
         <h2 className={styles.title}>Recent Activity</h2>

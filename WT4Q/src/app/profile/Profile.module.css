@@ -64,6 +64,7 @@
   list-style: disc;
 }
 
+
 .accountSection {
   max-width: 500px;
   margin: 2rem auto;
@@ -85,3 +86,4 @@
   display: flex;
   gap: 0.5rem;
 }
+
