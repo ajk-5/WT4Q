@@ -8,6 +8,7 @@ interface Weather {
   country: string;
   temperature: number;
   weathercode: number;
+  isDay: boolean;
   windspeed?: number | null;
 }
 
@@ -54,7 +55,11 @@ export default function WeatherPage() {
       {error && <p className={styles.error}>{error}</p>}
       {weather && (
         <div className={styles.result}>
-          <WeatherIcon code={weather.weathercode} className={styles.icon} />
+          <WeatherIcon
+            code={weather.weathercode}
+            isDay={weather.isDay}
+            className={styles.icon}
+          />
           <span>
             {Math.round(unit === 'C' ? weather.temperature : weather.temperature * 1.8 + 32)}
             &deg;{unit} - {weather.city}, {weather.country}
