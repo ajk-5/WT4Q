@@ -118,7 +118,6 @@ export default function Profile() {
         >
           Delete account
         </button>
-
       ) : (
         <div className={styles.deleteConfirm}>
           <input
@@ -144,7 +143,6 @@ export default function Profile() {
           </button>
         </div>
       )}
-    </section>
 
     {activity && (
       <section className={styles.activitySection}>
