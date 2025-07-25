@@ -46,6 +46,8 @@ builder.Services.AddScoped<CommentRepository>();
 builder.Services.AddScoped<LikeRepository>();
 builder.Services.AddScoped<OTPrepository>();
 builder.Services.AddScoped<VisitorsRepository>();
+builder.Services.AddScoped<LoginHistoryRepository>();
+builder.Services.AddScoped<PageVisitRepository>();
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>
