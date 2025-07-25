@@ -58,3 +58,13 @@
   text-align: center;
   margin-top: 2rem;
 }
+
+.activitySection {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.activityList {
+  margin-left: 1.25rem;
+  list-style: disc;
+}
