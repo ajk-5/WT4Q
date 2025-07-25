@@ -39,11 +39,6 @@
   font-weight: 700;
 }
 
-.deleteSection {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
 
 .deleteButton {
   background: var(--error-red);

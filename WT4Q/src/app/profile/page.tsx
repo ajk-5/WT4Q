@@ -60,14 +60,17 @@ export default function Profile() {
 
   const handleDelete = async () => {
     if (!password) return;
-    if (!confirm('Delete account?')) return;
-    await fetch(API_ROUTES.USERS.DELETE, {
+    const res = await fetch(API_ROUTES.USERS.DELETE, {
       method: 'DELETE',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
-    router.replace('/');
+    if (res.ok) {
+      router.replace('/');
+    } else {
+      alert('Invalid password');
+    }
   };
 
   if (!user) return <p className={styles.message}>Please log in</p>;
