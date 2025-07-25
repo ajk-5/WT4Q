@@ -72,5 +72,6 @@ export const API_ROUTES = {
 
   WEATHER: {
     CURRENT: `${API_BASE_URL}/api/Weather/current`,
+    FORECAST: `${API_BASE_URL}/api/Weather/forecast`,
   },
 };
