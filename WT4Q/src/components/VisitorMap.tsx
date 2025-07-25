@@ -24,8 +24,9 @@ export default function VisitorMap() {
 
   const [lat, lon] = info.location?.split(',') ?? [];
   const mapSrc = lat && lon
-    ?
-      `https://static-maps.yandex.ru/1.x/?ll=${lon},${lat}&size=200,200&z=10&l=map&pt=${lon},${lat},pm2rdm`
+
+    ? `https://staticmap.openstreetmap.fr/staticmap.php?center=${lat},${lon}&zoom=10&size=200x200&markers=${lat},${lon},red-pushpin`
+
     : undefined;
 
   return (
