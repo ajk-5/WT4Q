@@ -10,9 +10,23 @@ interface User {
   dob?: string;
 }
 
+interface Activity {
+  comments: {
+    id: string;
+    articleTitle: string;
+    content: string;
+  }[];
+  likes: {
+    id: number;
+    articleTitle: string;
+    type: number;
+  }[];
+}
+
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [password, setPassword] = useState('');
+  const [activity, setActivity] = useState<Activity | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,6 +34,11 @@ export default function Profile() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
       .catch(() => setUser(null));
+
+    fetch(API_ROUTES.USERS.ACTIVITY, { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setActivity(data))
+      .catch(() => setActivity(null));
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -53,6 +72,7 @@ export default function Profile() {
   if (!user) return <p className={styles.message}>Please log in</p>;
 
   return (
+    <>
     <form onSubmit={handleSubmit} className={styles.form}>
       <h1 className={styles.title}>Profile</h1>
       <label className={styles.label}>
@@ -98,5 +118,33 @@ export default function Profile() {
         </button>
       </div>
     </form>
+    {activity && (
+      <section className={styles.activitySection}>
+        <h2 className={styles.title}>Recent Activity</h2>
+        <h3>Comments</h3>
+        {activity.comments.length === 0 ? (
+          <p>No comments yet.</p>
+        ) : (
+          <ul className={styles.activityList}>
+            {activity.comments.map((c) => (
+              <li key={c.id}>
+                Commented on {c.articleTitle}: {c.content}
+              </li>
+            ))}
+          </ul>
+        )}
+        <h3>Likes</h3>
+        {activity.likes.length === 0 ? (
+          <p>No likes yet.</p>
+        ) : (
+          <ul className={styles.activityList}>
+            {activity.likes.map((l) => (
+              <li key={l.id}>Liked {l.articleTitle}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
+    </>
   );
 }
