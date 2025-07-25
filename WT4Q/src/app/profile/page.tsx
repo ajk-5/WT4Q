@@ -3,6 +3,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Profile.module.css';
 import { API_ROUTES } from '@/lib/api';
+import VisitorMap from '@/components/VisitorMap';
 
 interface User {
   userName: string;
@@ -143,6 +144,8 @@ export default function Profile() {
           </button>
         </div>
       )}
+    </section>
+    <VisitorMap />
 
     {activity && (
       <section className={styles.activitySection}>
