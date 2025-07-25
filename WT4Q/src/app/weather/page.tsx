@@ -8,12 +8,14 @@ interface Weather {
   country: string;
   temperature: number;
   weathercode: number;
+  windspeed?: number | null;
 }
 
 export default function WeatherPage() {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState<Weather | null>(null);
   const [error, setError] = useState('');
+  const [unit, setUnit] = useState<'C' | 'F'>('C');
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +56,17 @@ export default function WeatherPage() {
         <div className={styles.result}>
           <WeatherIcon code={weather.weathercode} className={styles.icon} />
           <span>
-            {Math.round(weather.temperature)}&deg;C - {weather.city}, {weather.country}
+            {Math.round(unit === 'C' ? weather.temperature : weather.temperature * 1.8 + 32)}
+            &deg;{unit} - {weather.city}, {weather.country}
+            {weather.windspeed != null && `, ${Math.round(weather.windspeed)} km/h`}
           </span>
+          <button
+            type="button"
+            onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
+            className={styles.button}
+          >
+            {unit === 'C' ? '°F' : '°C'}
+          </button>
         </div>
       )}
     </div>
