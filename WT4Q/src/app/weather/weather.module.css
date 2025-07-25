@@ -44,3 +44,24 @@
   width: 32px;
   height: 32px;
 }
+
+.subheading {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.forecast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.forecastItem {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time {
+  width: 100px;
+}

@@ -12,9 +12,17 @@ interface Weather {
   windspeed?: number | null;
 }
 
+interface ForecastEntry {
+  time: string;
+  temperature: number;
+  windspeed: number | null;
+  symbol: string | null;
+}
+
 export default function WeatherPage() {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState<Weather | null>(null);
+  const [forecast, setForecast] = useState<ForecastEntry[]>([]);
   const [error, setError] = useState('');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
 
@@ -28,14 +36,23 @@ export default function WeatherPage() {
       if (res.ok) {
         const data: Weather = await res.json();
         setWeather(data);
+        const fRes = await fetch(`/api/weather/forecast-by-city?city=${encodeURIComponent(trimmed)}`);
+        if (fRes.ok) {
+          const fData = await fRes.json();
+          setForecast(Array.isArray(fData.forecast) ? fData.forecast : []);
+        } else {
+          setForecast([]);
+        }
       } else {
         const data = await res.json().catch(() => null);
         setError(data?.message || 'Unable to fetch weather');
         setWeather(null);
+        setForecast([]);
       }
     } catch {
       setError('Unable to fetch weather');
       setWeather(null);
+      setForecast([]);
     }
   };
 
@@ -72,6 +89,21 @@ export default function WeatherPage() {
           >
             {unit === 'C' ? '°F' : '°C'}
           </button>
+        </div>
+      )}
+      {forecast.length > 0 && (
+        <div className={styles.forecast}>
+          <h2 className={styles.subheading}>Next 24 Hours</h2>
+          {forecast.map((f) => (
+            <div key={f.time} className={styles.forecastItem}>
+              <span className={styles.time}>{new Date(f.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <span>
+                {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}°{unit}
+                {f.windspeed != null && `, ${Math.round(f.windspeed)} km/h`}
+                {f.symbol && `, ${f.symbol}`}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
