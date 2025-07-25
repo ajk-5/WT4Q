@@ -3,6 +3,7 @@ import Image from 'next/image';
 import CommentsSection, { Comment } from '@/components/CommentsSection';
 import LikeButton from '@/components/LikeButton';
 import { API_ROUTES } from '@/lib/api';
+import type { Metadata } from 'next';
 import styles from '../article.module.css';
 
 interface ArticleDetails {
@@ -38,6 +39,28 @@ async function fetchRelated(id: string): Promise<Article[]> {
   } catch {
     return [];
   }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const article = await fetchArticle(id);
+  if (!article) return {};
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const url = `${siteUrl}/articles/${id}`;
+  const description = article.description.slice(0, 160);
+  const image = article.photoLink || (article.photo && article.photo.length > 0 ? `data:image/jpeg;base64,${article.photo[0]}` : undefined);
+  return {
+    title: article.title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: article.title,
+      description,
+      url,
+      type: 'article',
+      images: image ? [{ url: image }] : undefined,
+    },
+  };
 }
 
 

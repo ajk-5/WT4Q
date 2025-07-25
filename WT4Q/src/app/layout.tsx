@@ -15,9 +15,29 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
-  title: "WT4Q News",
-  description: "Latest news and updates from WT4Q",
+  title: {
+    default: 'WT4Q News',
+    template: '%s | WT4Q'
+  },
+  description: 'Latest news and updates from WT4Q',
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    title: 'WT4Q News',
+    description: 'Latest news and updates from WT4Q',
+    url: siteUrl,
+    siteName: 'WT4Q News',
+    type: 'website',
+  },
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
