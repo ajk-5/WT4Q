@@ -26,6 +26,11 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.result .button {
+  padding: 0.25rem 0.5rem;
+  margin-left: 0.25rem;
+}
 .error {
   color: red;
 }

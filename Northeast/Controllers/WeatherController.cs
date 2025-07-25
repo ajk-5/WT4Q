@@ -45,7 +45,10 @@ namespace Northeast.Controllers
             var result = new
             {
                 temperature = current.GetProperty("temperature").GetDecimal(),
-                weathercode = current.GetProperty("weathercode").GetInt32()
+                weathercode = current.GetProperty("weathercode").GetInt32(),
+                windspeed = current.TryGetProperty("windspeed", out var speed)
+                    ? speed.GetDecimal()
+                    : (decimal)0
             };
 
             return Ok(result);

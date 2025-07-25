@@ -50,6 +50,7 @@ export async function GET(request: Request) {
         country,
         temperature: current.temperature,
         weathercode: current.weathercode,
+        windspeed: current.windspeed ?? null,
       }),
       {
         status: 200,
