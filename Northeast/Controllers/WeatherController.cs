@@ -46,6 +46,8 @@ namespace Northeast.Controllers
             {
                 temperature = current.GetProperty("temperature").GetDecimal(),
                 weathercode = current.GetProperty("weathercode").GetInt32(),
+                isDay = current.TryGetProperty("is_day", out var isDayProperty) &&
+                        isDayProperty.GetInt32() == 1,
                 windspeed = current.TryGetProperty("windspeed", out var speed)
                     ? speed.GetDecimal()
                     : (decimal)0

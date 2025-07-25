@@ -7,6 +7,7 @@ import { API_ROUTES } from '@/lib/api';
 interface Weather {
   temperature: number;
   weathercode: number;
+  isDay: boolean;
   windspeed?: number | null;
 }
 
@@ -66,7 +67,11 @@ export default function WeatherWidget() {
 
   return (
     <div className={styles.weather} aria-label="Current weather">
-      <WeatherIcon code={weather.weathercode} className={styles.icon} />
+      <WeatherIcon
+        code={weather.weathercode}
+        isDay={weather.isDay}
+        className={styles.icon}
+      />
       <span className={styles.temp}>
         {Math.round(unit === 'C' ? weather.temperature : weather.temperature * 1.8 + 32)}&deg;{unit}
         <button className={styles.button} onClick={() => setUnit(unit === 'C' ? 'F' : 'C')} aria-label="Toggle units">

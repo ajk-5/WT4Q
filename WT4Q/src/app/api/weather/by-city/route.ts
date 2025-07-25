@@ -50,6 +50,7 @@ export async function GET(request: Request) {
         country,
         temperature: current.temperature,
         weathercode: current.weathercode,
+        isDay: current.is_day === 1,
         windspeed: current.windspeed ?? null,
       }),
       {
