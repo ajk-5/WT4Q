@@ -116,6 +116,44 @@ namespace Northeast.Controllers
             return Ok(new { message = "Account deleted" });
         }
 
+        [Authorize]
+        [HttpGet("activity")]
+        public async Task<IActionResult> GetActivity()
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var comments = await _appDbContext.Set<Comment>()
+                .Include(c => c.Article)
+                .Where(c => c.Writer.Id == userId)
+                .Select(c => new
+                {
+                    id = c.Id,
+                    articleId = c.ArticleId,
+                    articleTitle = c.Article.Title,
+                    content = c.Content,
+                    createdAt = c.CreatedAt
+                })
+                .ToListAsync();
+
+            var likes = await _appDbContext.Set<LikeEntity>()
+                .Include(l => l.Article)
+                .Where(l => l.UserId == userId)
+                .Select(l => new
+                {
+                    id = l.Id,
+                    articleId = l.ArticleId,
+                    articleTitle = l.Article.Title,
+                    type = l.Type
+                })
+                .ToListAsync();
+
+            return Ok(new { comments, likes });
+        }
+
         
 
     }
