@@ -45,6 +45,18 @@
   height: 32px;
 }
 
+.windIcon {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.125rem;
+}
+
+.wind {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
 .subheading {
   font-size: 1.25rem;
   font-weight: bold;

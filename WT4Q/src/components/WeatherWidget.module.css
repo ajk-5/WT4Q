@@ -26,6 +26,12 @@
   color: currentColor;
 }
 
+.windIcon {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.125rem;
+}
+
 .location {
   font-size: 0.875rem;
 }
