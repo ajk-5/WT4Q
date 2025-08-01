@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
@@ -10,12 +7,16 @@ import WeatherWidget from './WeatherWidget';
 import styles from './Header.module.css';
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
-
   return (
     <header className={styles.header}>
-      {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
+        <UserMenu />
+        <div className={styles.search}>
+          <SearchBar />
+        </div>
+        <Link href="/weather" aria-label="Weather details">
+          <WeatherWidget />
+        </Link>
         <Link href="/" className={styles.logo}>
           <Image
             src="/images/wt4q-logo.png"
@@ -27,23 +28,9 @@ export default function Header() {
             priority
           />
         </Link>
-        <button
-          className={styles.menuButton}
-          onClick={() => setOpen(true)}
-          aria-label="Open categories"
-        >
-          ☰
-        </button>
-        <div className={styles.search}>
-          <SearchBar />
-        </div>
-        <Link href="/weather" aria-label="Weather details">
-          <WeatherWidget />
-        </Link>
-        <UserMenu />
       </div>
       <div className={styles.categories}>
-        <CategoryNavbar open={open} />
+        <CategoryNavbar />
       </div>
     </header>
   );
