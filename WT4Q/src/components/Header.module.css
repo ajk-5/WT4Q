@@ -40,7 +40,17 @@
 
 @media (max-width: 768px) {
   .inner {
+    position: relative;
     flex-wrap: wrap;
+    min-height: 3rem;
+  }
+  .logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .menuButton {
+    order: -1;
   }
   .search {
     order: 2;
@@ -52,8 +62,12 @@
   background: none;
   border: none;
   color: inherit;
-  font-size: 1.5rem;
   cursor: pointer;
+}
+
+.menuIcon {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .overlay {
