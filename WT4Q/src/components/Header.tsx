@@ -34,12 +34,12 @@ export default function Header() {
         >
           ☰
         </button>
-        <div className={styles.search}>
-          <SearchBar />
-        </div>
         <Link href="/weather" aria-label="Weather details">
           <WeatherWidget />
         </Link>
+        <div className={styles.search}>
+          <SearchBar />
+        </div>
         <UserMenu />
       </div>
       <div className={styles.categories}>
