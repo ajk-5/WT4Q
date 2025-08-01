@@ -10,6 +10,13 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
+        <UserMenu />
+        <div className={styles.search}>
+          <SearchBar />
+        </div>
+        <Link href="/weather" aria-label="Weather details">
+          <WeatherWidget />
+        </Link>
         <Link href="/" className={styles.logo}>
           <Image
             src="/images/wt4q-logo.png"
@@ -21,13 +28,6 @@ export default function Header() {
             priority
           />
         </Link>
-        <div className={styles.search}>
-          <SearchBar />
-        </div>
-        <Link href="/weather" aria-label="Weather details">
-          <WeatherWidget />
-        </Link>
-        <UserMenu />
       </div>
       <div className={styles.categories}>
         <CategoryNavbar />
