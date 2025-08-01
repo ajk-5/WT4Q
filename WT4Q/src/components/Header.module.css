@@ -38,6 +38,27 @@
   display: flex;
 }
 
+.menuButton {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+}
+
+@media (min-width: 769px) {
+  .menuButton {
+    display: none;
+  }
+}
+
 @keyframes slideIn {
   from {
     transform: translateY(-100%);

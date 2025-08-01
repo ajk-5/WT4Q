@@ -2,9 +2,12 @@ import Link from 'next/link';
 import { CATEGORIES } from '@/lib/categories';
 import styles from './CategoryNavbar.module.css';
 
-export default function CategoryNavbar() {
+interface Props {
+  open?: boolean;
+}
+export default function CategoryNavbar({ open }: Props = {}) {
   return (
-    <nav className={styles.nav} aria-label="categories">
+    <nav className={`${styles.nav} ${open ? styles.open : ''}`} aria-label="categories">
       <Link href="/" className={styles.link}>
         Home
       </Link>
