@@ -38,6 +38,16 @@
   display: flex;
 }
 
+@media (max-width: 768px) {
+  .inner {
+    flex-wrap: wrap;
+  }
+  .search {
+    order: 2;
+    width: 100%;
+  }
+}
+
 .menuButton {
   background: none;
   border: none;
