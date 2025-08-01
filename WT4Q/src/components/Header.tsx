@@ -7,6 +7,7 @@ import CategoryNavbar from './CategoryNavbar';
 import SearchBar from './SearchBar';
 import UserMenu from './UserMenu';
 import WeatherWidget from './WeatherWidget';
+import MenuIcon from './MenuIcon';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -32,7 +33,7 @@ export default function Header() {
           onClick={() => setOpen(true)}
           aria-label="Open categories"
         >
-          ☰
+          <MenuIcon className={styles.menuIcon} />
         </button>
         <Link href="/weather" aria-label="Weather details">
           <WeatherWidget />
