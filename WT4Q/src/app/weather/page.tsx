@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { ReactElement, useState } from 'react';
 import WeatherIcon from '@/components/WeatherIcon';
+import WindIcon from '@/components/WindIcon';
 import styles from './weather.module.css';
 
 interface Weather {
@@ -17,6 +18,20 @@ interface ForecastEntry {
   temperature: number;
   windspeed: number | null;
   symbol: string | null;
+}
+
+function iconFromSymbol(symbol: string | null, className: string): ReactElement | null {
+  if (!symbol) return null;
+  const isDay = !symbol.includes('night');
+  if (symbol.includes('clearsky')) return <WeatherIcon code={0} isDay={isDay} className={className} />;
+  if (symbol.includes('partlycloudy'))
+    return <WeatherIcon code={1} isDay={isDay} className={className} />;
+  if (symbol.includes('cloudy')) return <WeatherIcon code={3} isDay={isDay} className={className} />;
+  if (symbol.includes('rain')) return <WeatherIcon code={61} isDay={isDay} className={className} />;
+  if (symbol.includes('snow')) return <WeatherIcon code={71} isDay={isDay} className={className} />;
+  if (symbol.includes('fog')) return <WeatherIcon code={45} isDay={isDay} className={className} />;
+  if (symbol.includes('thunder')) return <WeatherIcon code={95} isDay={isDay} className={className} />;
+  return <WeatherIcon code={3} isDay={isDay} className={className} />;
 }
 
 export default function WeatherPage() {
@@ -97,11 +112,16 @@ export default function WeatherPage() {
           {forecast.map((f) => (
             <div key={f.time} className={styles.forecastItem}>
               <span className={styles.time}>{new Date(f.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {iconFromSymbol(f.symbol, styles.icon)}
               <span>
                 {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}°{unit}
-                {f.windspeed != null && `, ${Math.round(f.windspeed)} km/h`}
-                {f.symbol && `, ${f.symbol}`}
               </span>
+              {f.windspeed != null && (
+                <span className={styles.wind}>
+                  <WindIcon className={styles.windIcon} />
+                  {Math.round(f.windspeed)} km/h
+                </span>
+              )}
             </div>
           ))}
         </div>

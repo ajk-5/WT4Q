@@ -59,6 +59,27 @@ function Cloud({ className }: { className?: string }) {
   );
 }
 
+function PartlyCloudy({ isDay = true, className }: { isDay?: boolean; className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+    >
+      {isDay ? (
+        <circle cx="8" cy="8" r="4" fill="#FFD54F" />
+      ) : (
+        <path d="M12 2a6 6 0 1 0 0 12c-2.5 0-4.5-2-4.5-4.5S9.5 5 12 5z" fill="#FFEB3B" />
+      )}
+      <path
+        fill="#90A4AE"
+        d="M19 18H8a4 4 0 0 1 0-8 6 6 0 0 1 10.7-1.6A4.5 4.5 0 0 1 19 18z"
+      />
+    </svg>
+  );
+}
+
 function Rain({ className }: { className?: string }) {
   return (
     <svg
@@ -141,7 +162,9 @@ function Storm({ className }: { className?: string }) {
 
 export default function WeatherIcon({ code, isDay = true, className }: Props) {
   if (code === 0) return isDay ? <Sun className={className} /> : <Moon className={className} />;
-  if (code >= 1 && code <= 3) return <Cloud className={className} />;
+  if (code === 1 || code === 2)
+    return <PartlyCloudy isDay={isDay} className={className} />;
+  if (code === 3) return <Cloud className={className} />;
   if (code >= 45 && code <= 48) return <Fog className={className} />;
   if (code >= 51 && code <= 67) return <Rain className={className} />;
   if (code >= 80 && code <= 82) return <Rain className={className} />;

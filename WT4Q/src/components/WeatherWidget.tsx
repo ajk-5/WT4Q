@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import WeatherIcon from './WeatherIcon';
+import WindIcon from './WindIcon';
 import styles from './WeatherWidget.module.css';
 import { API_ROUTES } from '@/lib/api';
 
@@ -79,7 +80,10 @@ export default function WeatherWidget() {
         </button>
       </span>
       {weather.windspeed != null && (
-        <span className={styles.location}>{Math.round(weather.windspeed)} km/h</span>
+        <span className={styles.location}>
+          <WindIcon className={styles.windIcon} />
+          {Math.round(weather.windspeed)} km/h
+        </span>
       )}
       {location && (
         <span className={styles.location}>
