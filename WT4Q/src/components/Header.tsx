@@ -28,6 +28,23 @@ export default function Header() {
             priority
           />
         </Link>
+<<<<<<< HEAD
+=======
+        <button
+          className={styles.menuButton}
+          onClick={() => setOpen(true)}
+          aria-label="Open categories"
+        >
+          ☰
+        </button>
+        <Link href="/weather" aria-label="Weather details">
+          <WeatherWidget />
+        </Link>
+        <div className={styles.search}>
+          <SearchBar />
+        </div>
+        <UserMenu />
+>>>>>>> 35dc4f909d7ca6083055278c088fa2d14f10a3fa
       </div>
       <div className={styles.categories}>
         <CategoryNavbar />

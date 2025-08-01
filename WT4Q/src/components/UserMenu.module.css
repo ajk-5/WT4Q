@@ -27,6 +27,22 @@
   color: #fff;
 }
 
+.loginIcon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 768px) {
+  .loginLink {
+    flex-direction: column;
+    padding: 0.25rem;
+  }
+  .loginText {
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+}
+
 .dropdown {
   position: absolute;
   top: 110%;
