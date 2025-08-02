@@ -17,18 +17,6 @@ export default function Header() {
     <header className={styles.header}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
-        <div className={styles.left}>
-          <Link
-            href="/weather"
-            aria-label="Weather details"
-            className={styles.weather}
-          >
-            <WeatherWidget />
-          </Link>
-          <div className={styles.search}>
-            <SearchBar />
-          </div>
-        </div>
         <Link href="/" className={styles.logo}>
           <Image
             src="/images/wt4q-logo.png"
@@ -40,7 +28,14 @@ export default function Header() {
             priority
           />
         </Link>
-        <div className={styles.right}>
+        <Link
+          href="/weather"
+          aria-label="Weather details"
+          className={styles.weather}
+        >
+          <WeatherWidget />
+        </Link>
+        <div className={styles.actions}>
           <button
             className={styles.menuButton}
             onClick={() => setOpen(true)}
@@ -51,6 +46,9 @@ export default function Header() {
           <div className={styles.userMenu}>
             <UserMenu />
           </div>
+        </div>
+        <div className={styles.search}>
+          <SearchBar />
         </div>
       </div>
       <div className={styles.categories}>
