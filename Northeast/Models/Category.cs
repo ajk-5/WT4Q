@@ -9,7 +9,8 @@
         Enetrtainment,
         Business,
         Technology,
-        Adult
+        Adult,
+        Sports
 
     }
 }
