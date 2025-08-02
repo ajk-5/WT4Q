@@ -35,13 +35,19 @@ export default function Header() {
         >
           <MenuIcon className={styles.menuIcon} />
         </button>
-        <Link href="/weather" aria-label="Weather details">
+        <Link
+          href="/weather"
+          aria-label="Weather details"
+          className={styles.weather}
+        >
           <WeatherWidget />
         </Link>
         <div className={styles.search}>
           <SearchBar />
         </div>
-        <UserMenu />
+        <div className={styles.userMenu}>
+          <UserMenu />
+        </div>
       </div>
       <div className={styles.categories}>
         <CategoryNavbar open={open} />
