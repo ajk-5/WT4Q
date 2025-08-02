@@ -17,7 +17,7 @@
 
 .button {
   padding: 0 0.75rem;
-  background: var(--primary);
+  background: var(--secondary);
   color: #fff;
   border: none;
   cursor: pointer;
