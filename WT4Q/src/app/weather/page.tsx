@@ -54,6 +54,7 @@ export default function WeatherPage() {
   const [error, setError] = useState('');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
   const [saved, setSaved] = useState<SavedCity[]>([]);
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
@@ -92,6 +93,8 @@ export default function WeatherPage() {
       ...saved,
       { ...weather, forecast: Array.isArray(fData.forecast) ? fData.forecast : [] },
     ]);
+    setNotice('City saved');
+    setTimeout(() => setNotice(''), 3000);
   };
 
   const removeCity = (name: string) => {
@@ -156,6 +159,7 @@ export default function WeatherPage() {
         <button type="submit" className={styles.button}>Search</button>
       </form>
       {error && <p className={styles.error}>{error}</p>}
+      {notice && <p className={styles.notice}>{notice}</p>}
       {weather && (
         <>
           <div className={styles.result}>
