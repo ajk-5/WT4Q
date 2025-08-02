@@ -3,6 +3,7 @@
 import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './AdminLogin.module.css';
+import Button from '@/components/Button';
 import { API_ROUTES } from '@/lib/api';
 
 interface LoginRequest {
@@ -125,17 +126,13 @@ const AdminLoginClient: FC = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={styles.button}
-          >
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <span className={styles.spinner} aria-hidden="true" />
             ) : (
               'Sign In'
             )}
-          </button>
+          </Button>
         </form>
       </section>
     </main>

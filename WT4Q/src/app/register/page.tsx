@@ -3,6 +3,7 @@ import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Register.module.css';
+import Button from '@/components/Button';
 import { API_ROUTES } from '@/lib/api';
 
 interface RegisterRequest {
@@ -191,17 +192,15 @@ const Register: FC = () => {
               className={styles.input}
             />
           </div>
-          <button type="submit" disabled={isLoading} className={styles.button}>
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <span className={styles.spinner} aria-hidden="true" />
             ) : (
               'Register'
             )}
-          </button>
+          </Button>
         </form>
-        <button onClick={handleGoogleSignIn} className={styles.button}>
-          Sign in with Google
-        </button>
+        <Button onClick={handleGoogleSignIn}>Sign in with Google</Button>
         <p className={styles.switch}>
           Already have an account?{' '}
           <Link href="/login" className={styles.switchLink}>

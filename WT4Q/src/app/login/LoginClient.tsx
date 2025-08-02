@@ -3,6 +3,7 @@ import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Login.module.css';
+import Button from '@/components/Button';
 import { API_ROUTES } from '@/lib/api';
 
 interface LoginRequest {
@@ -129,17 +130,15 @@ const LoginClient: FC = () => {
             </div>
           </div>
 
-          <button type="submit" disabled={isLoading} className={styles.button}>
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <span className={styles.spinner} aria-hidden="true" />
             ) : (
               'Sign In'
             )}
-          </button>
+          </Button>
         </form>
-        <button onClick={handleGoogleSignIn} className={styles.button}>
-          Sign in with Google
-        </button>
+        <Button onClick={handleGoogleSignIn}>Sign in with Google</Button>
         <p className={styles.switch}>
           Don&apos;t have an account?{' '}
           <Link href="/register" className={styles.switchLink}>
