@@ -16,7 +16,10 @@ export default function CategoryNavbar({ open }: Props = {}) {
           {c}
         </Link>
       ))}
-      <Link href="/bar" className={styles.link}>
+      <Link href="/weather" className={styles.link}>
+       Weather
+      </Link>
+            <Link href="/bar" className={styles.link}>
         Bar
       </Link>
     </nav>
