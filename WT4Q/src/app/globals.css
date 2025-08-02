@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 :root {
-  --background: #f8f9fa;
+  --background: #3c6c9c;
   --foreground: #1a1a1a;
-  --primary: #1f3c88;
-  --secondary: #457b9d;
+  --primary: #2b0a86;
+  --secondary: #1e1e6f;
   --accent: #e63946;
   --muted: #6c757d;
 }
@@ -12,7 +12,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #584949;
   }
 }
 

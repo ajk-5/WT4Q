@@ -6,7 +6,7 @@
   font-family: var(--font-geist-mono);
   font-weight: 700;
   background: var(--primary);
-  color: #fff;
+  color: #a44646;
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -24,7 +24,7 @@
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   background: var(--primary);
-  color: #fff;
+  color: #3c2b59;
 }
 
 .loginIcon {
@@ -47,7 +47,7 @@
   position: absolute;
   top: 110%;
   right: 0;
-  background: #fff;
+  background: #191559;
   border: 1px solid var(--secondary);
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
