@@ -21,9 +21,10 @@ export default function Header() {
           <Image
             src="/images/wt4q-logo.png"
             alt="WT4Q logo"
-            width={0}
-            height={0}
-            sizes="3rem"
+            width={602}
+            height={470}
+            quality={100}
+            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
             className={styles.logoImage}
             priority
           />

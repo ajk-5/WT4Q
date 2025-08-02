@@ -25,8 +25,8 @@
 }
 
 .logoImage {
-  height: 3rem;
-  width: auto;
+  width: clamp(4rem, 10vw, 6rem);
+  height: auto;
   border-radius: 50%;
 }
 
