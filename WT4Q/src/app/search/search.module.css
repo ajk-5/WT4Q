@@ -32,6 +32,18 @@
   transform: translateY(-2px);
 }
 
+.advancedLink {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.advancedLink:hover {
+  color: var(--secondary);
+}
+
 .results {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
