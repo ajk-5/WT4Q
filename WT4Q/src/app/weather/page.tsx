@@ -1,5 +1,5 @@
 'use client';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useState, useEffect } from 'react';
 import WeatherIcon from '@/components/WeatherIcon';
 import WindIcon from '@/components/WindIcon';
 import styles from './weather.module.css';
@@ -7,6 +7,8 @@ import styles from './weather.module.css';
 interface Weather {
   city: string;
   country: string;
+  latitude: number;
+  longitude: number;
   temperature: number;
   weathercode: number;
   isDay: boolean;
@@ -40,6 +42,35 @@ export default function WeatherPage() {
   const [forecast, setForecast] = useState<ForecastEntry[]>([]);
   const [error, setError] = useState('');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
+  const [saved, setSaved] = useState<Weather[]>([]);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
+    if (stored.length > 0) {
+      Promise.all(
+        stored.map(async (c) => {
+          const res = await fetch(`/api/weather/by-city?city=${encodeURIComponent(c)}`);
+          return res.ok ? res.json() : null;
+        })
+      ).then((list) => setSaved(list.filter(Boolean) as Weather[]));
+    }
+  }, []);
+
+  const saveCurrentCity = () => {
+    if (!weather) return;
+    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
+    if (stored.includes(weather.city)) return;
+    stored.push(weather.city);
+    localStorage.setItem('savedCities', JSON.stringify(stored));
+    setSaved([...saved, weather]);
+  };
+
+  const removeCity = (name: string) => {
+    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
+    const updated = stored.filter((c) => c !== name);
+    localStorage.setItem('savedCities', JSON.stringify(updated));
+    setSaved(saved.filter((w) => w.city !== name));
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,25 +117,36 @@ export default function WeatherPage() {
       </form>
       {error && <p className={styles.error}>{error}</p>}
       {weather && (
-        <div className={styles.result}>
-          <WeatherIcon
-            code={weather.weathercode}
-            isDay={weather.isDay}
-            className={styles.icon}
-          />
-          <span>
-            {Math.round(unit === 'C' ? weather.temperature : weather.temperature * 1.8 + 32)}
-            &deg;{unit} - {weather.city}, {weather.country}
-            {weather.windspeed != null && `, ${Math.round(weather.windspeed)} km/h`}
-          </span>
-          <button
-            type="button"
-            onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
-            className={styles.button}
-          >
-            {unit === 'C' ? '°F' : '°C'}
-          </button>
-        </div>
+        <>
+          <div className={styles.result}>
+            <WeatherIcon
+              code={weather.weathercode}
+              isDay={weather.isDay}
+              className={styles.icon}
+            />
+            <span>
+              {Math.round(unit === 'C' ? weather.temperature : weather.temperature * 1.8 + 32)}
+              &deg;{unit} - {weather.city}, {weather.country}
+              {weather.windspeed != null && `, ${Math.round(weather.windspeed)} km/h`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
+              className={styles.button}
+            >
+              {unit === 'C' ? '°F' : '°C'}
+            </button>
+          </div>
+          <div className={styles.mapContainer}>
+            <iframe
+              className={styles.map}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${weather.longitude - 0.05},${weather.latitude - 0.05},${weather.longitude + 0.05},${weather.latitude + 0.05}&layer=mapnik&marker=${weather.latitude},${weather.longitude}`}
+            />
+            <button type="button" onClick={saveCurrentCity} className={styles.button}>
+              Save City
+            </button>
+          </div>
+        </>
       )}
       {forecast.length > 0 && (
         <div className={styles.forecast}>
@@ -122,6 +164,31 @@ export default function WeatherPage() {
                   {Math.round(f.windspeed)} km/h
                 </span>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+      {saved.length > 0 && (
+        <div className={styles.saved}>
+          <h2 className={styles.subheading}>Saved Cities</h2>
+          {saved.map((w) => (
+            <div key={w.city} className={styles.savedItem}>
+              <WeatherIcon
+                code={w.weathercode}
+                isDay={w.isDay}
+                className={styles.icon}
+              />
+              <span>
+                {Math.round(unit === 'C' ? w.temperature : w.temperature * 1.8 + 32)}&deg;{unit} - {w.city}, {w.country}
+                {w.windspeed != null && `, ${Math.round(w.windspeed)} km/h`}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeCity(w.city)}
+                className={styles.button}
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>

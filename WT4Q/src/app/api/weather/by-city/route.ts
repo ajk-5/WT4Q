@@ -48,6 +48,8 @@ export async function GET(request: Request) {
       JSON.stringify({
         city: name,
         country,
+        latitude,
+        longitude,
         temperature: current.temperature,
         weathercode: current.weathercode,
         isDay: current.is_day === 1,
