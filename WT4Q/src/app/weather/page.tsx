@@ -22,6 +22,17 @@ interface ForecastEntry {
   symbol: string | null;
 }
 
+interface DailyForecast {
+  date: string;
+  weathercode: number;
+  max: number;
+  min: number;
+}
+
+interface SavedCity extends Weather {
+  forecast: DailyForecast[];
+}
+
 function iconFromSymbol(symbol: string | null, className: string): ReactElement | null {
   if (!symbol) return null;
   const isDay = !symbol.includes('night');
@@ -42,27 +53,45 @@ export default function WeatherPage() {
   const [forecast, setForecast] = useState<ForecastEntry[]>([]);
   const [error, setError] = useState('');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
-  const [saved, setSaved] = useState<Weather[]>([]);
+  const [saved, setSaved] = useState<SavedCity[]>([]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
     if (stored.length > 0) {
       Promise.all(
         stored.map(async (c) => {
-          const res = await fetch(`/api/weather/by-city?city=${encodeURIComponent(c)}`);
-          return res.ok ? res.json() : null;
+          const wRes = await fetch(`/api/weather/by-city?city=${encodeURIComponent(c)}`);
+          const fRes = await fetch(
+            `/api/weather/daily-forecast-by-city?city=${encodeURIComponent(c)}`
+          );
+          if (wRes.ok && fRes.ok) {
+            const wData = await wRes.json();
+            const fData = await fRes.json();
+            return {
+              ...wData,
+              forecast: Array.isArray(fData.forecast) ? fData.forecast : [],
+            } as SavedCity;
+          }
+          return null;
         })
-      ).then((list) => setSaved(list.filter(Boolean) as Weather[]));
+      ).then((list) => setSaved(list.filter(Boolean) as SavedCity[]));
     }
   }, []);
 
-  const saveCurrentCity = () => {
+  const saveCurrentCity = async () => {
     if (!weather) return;
     const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
     if (stored.includes(weather.city)) return;
     stored.push(weather.city);
     localStorage.setItem('savedCities', JSON.stringify(stored));
-    setSaved([...saved, weather]);
+    const fRes = await fetch(
+      `/api/weather/daily-forecast-by-city?city=${encodeURIComponent(weather.city)}`
+    );
+    const fData = fRes.ok ? await fRes.json() : { forecast: [] };
+    setSaved([
+      ...saved,
+      { ...weather, forecast: Array.isArray(fData.forecast) ? fData.forecast : [] },
+    ]);
   };
 
   const removeCity = (name: string) => {
@@ -72,17 +101,16 @@ export default function WeatherPage() {
     setSaved(saved.filter((w) => w.city !== name));
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = city.trim();
-    if (!trimmed) return;
+  const loadCity = async (name: string) => {
     try {
       setError('');
-      const res = await fetch(`/api/weather/by-city?city=${encodeURIComponent(trimmed)}`);
+      const res = await fetch(`/api/weather/by-city?city=${encodeURIComponent(name)}`);
       if (res.ok) {
         const data: Weather = await res.json();
         setWeather(data);
-        const fRes = await fetch(`/api/weather/forecast-by-city?city=${encodeURIComponent(trimmed)}`);
+        const fRes = await fetch(
+          `/api/weather/forecast-by-city?city=${encodeURIComponent(name)}`
+        );
         if (fRes.ok) {
           const fData = await fRes.json();
           setForecast(Array.isArray(fData.forecast) ? fData.forecast : []);
@@ -100,6 +128,18 @@ export default function WeatherPage() {
       setWeather(null);
       setForecast([]);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = city.trim();
+    if (!trimmed) return;
+    await loadCity(trimmed);
+  };
+
+  const openSavedCity = (name: string) => {
+    setCity(name);
+    void loadCity(name);
   };
 
   return (
@@ -172,23 +212,52 @@ export default function WeatherPage() {
         <div className={styles.saved}>
           <h2 className={styles.subheading}>Saved Cities</h2>
           {saved.map((w) => (
-            <div key={w.city} className={styles.savedItem}>
-              <WeatherIcon
-                code={w.weathercode}
-                isDay={w.isDay}
-                className={styles.icon}
-              />
-              <span>
-                {Math.round(unit === 'C' ? w.temperature : w.temperature * 1.8 + 32)}&deg;{unit} - {w.city}, {w.country}
-                {w.windspeed != null && `, ${Math.round(w.windspeed)} km/h`}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeCity(w.city)}
-                className={styles.button}
-              >
-                Remove
-              </button>
+            <div
+              key={w.city}
+              className={styles.savedItem}
+              onClick={() => openSavedCity(w.city)}
+            >
+              <div className={styles.savedHeader}>
+                <WeatherIcon
+                  code={w.weathercode}
+                  isDay={w.isDay}
+                  className={styles.icon}
+                />
+                <span>
+                  {Math.round(unit === 'C' ? w.temperature : w.temperature * 1.8 + 32)}
+                  &deg;{unit} - {w.city}, {w.country}
+                  {w.windspeed != null && `, ${Math.round(w.windspeed)} km/h`}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeCity(w.city);
+                  }}
+                  className={styles.button}
+                >
+                  Remove
+                </button>
+              </div>
+              {w.forecast.length > 0 && (
+                <div className={styles.savedForecast}>
+                  {w.forecast.map((d) => (
+                    <div key={d.date} className={styles.savedForecastDay}>
+                      <span className={styles.day}>
+                        {new Date(d.date).toLocaleDateString([], { weekday: 'short' })}
+                      </span>
+                      <WeatherIcon
+                        code={d.weathercode}
+                        isDay
+                        className={styles.smallIcon}
+                      />
+                      <span>
+                        {Math.round(unit === 'C' ? d.max : d.max * 1.8 + 32)}°{unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
