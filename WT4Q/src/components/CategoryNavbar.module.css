@@ -9,6 +9,12 @@
   color: #ffffff;
 }
 
+@media (min-width: 769px) {
+  .nav {
+    justify-content: center;
+  }
+}
+
 .link {
   text-decoration: none;
   color: inherit;

@@ -38,6 +38,16 @@
   display: flex;
 }
 
+.weather {
+  display: flex;
+  align-items: center;
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+}
+
 @media (max-width: 768px) {
   .inner {
     position: relative;
@@ -52,9 +62,17 @@
   .menuButton {
     order: -1;
   }
+  .weather {
+    margin-left: auto;
+    order: 1;
+  }
   .search {
     order: 2;
-    width: 100%;
+    flex: 1;
+    width: auto;
+  }
+  .userMenu {
+    order: 3;
   }
 }
 
