@@ -36,7 +36,7 @@ export default async function Home() {
     }))
   );
   return (
-    <>
+    <div className={styles.newspaper}>
       <Hero />
       {categoriesWithArticles.map(({ category, articles }) => (
         <section key={category} className={styles.section}>
@@ -48,6 +48,6 @@ export default async function Home() {
           </div>
         </section>
       ))}
-    </>
+    </div>
   );
 }
