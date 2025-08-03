@@ -6,7 +6,7 @@
   padding: 0.5rem 1rem;
   font-family: 'Inter', sans-serif;
   border-radius: 0 0 var(--radius) var(--radius);
-  color: #ffffff;
+  color: #847494;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   perspective: 500px;
   z-index: 0;
@@ -14,13 +14,14 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  font-weight: 600;
 }
 
 .nav::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 128, 0.5);
+  background: rgba(202, 202, 222, 0.197);
   z-index: -1;
   border-radius: inherit;
 }
