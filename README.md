@@ -2,6 +2,12 @@
 
 This repository hosts a full stack application consisting of a Next.js front end and a .NET backend.
 
+## Features
+
+- Users can report inappropriate comments. Reports are tallied per comment and administrators receive notifications in their dashboard.
+- The site footer now includes links to report a problem or contact the team.
+- A contact page lets visitors send a message. If signed in, their email is pre-filled and they receive a polite confirmation via SMTP.
+
 ## Project Structure
 
 - **WT4Q/WT4Q** – Next.js front-end code

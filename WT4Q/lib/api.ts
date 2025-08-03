@@ -38,6 +38,7 @@ export const API_ROUTES = {
     LIKE: `${API_BASE_URL}/api/Article/Like`,
     COMMENT: `${API_BASE_URL}/api/Article/Comment`,
     MODIFY_COMMENT: `${API_BASE_URL}/api/Article/ModifyComment`,
+    REPORT_COMMENT: `${API_BASE_URL}/api/Article/ReportComment`,
     SEARCH_BY_AUTHOR: (id: string) => `${API_BASE_URL}/api/ArticleSearch/by-author/${id}`,
     BREAKING: `${API_BASE_URL}/api/Article/breaking`,
   },
@@ -79,5 +80,8 @@ export const API_ROUTES = {
   NOTIFICATIONS: {
     GET: `${API_BASE_URL}/api/Notification`,
     MARK_READ: `${API_BASE_URL}/api/Notification/mark-as-read`,
+  },
+  CONTACT: {
+    POST: `${API_BASE_URL}/api/Contact`,
   },
 };

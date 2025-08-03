@@ -31,6 +31,23 @@
   text-decoration: underline;
   font-size: 0.875rem;
 }
+.reportButton {
+  background: none;
+  border: none;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.reportButton img {
+  width: 16px;
+  height: 16px;
+}
+.reportCount {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+}
 .replying {
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
