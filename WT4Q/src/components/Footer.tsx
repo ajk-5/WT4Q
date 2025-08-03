@@ -9,6 +9,8 @@ export default function Footer() {
         <span aria-hidden="true">|</span>{' '}
         <Link href="/terms">Terms &amp; Cookies</Link>{' '}
         <span aria-hidden="true">|</span>{' '}
+        <Link href="/about">About</Link>{' '}
+        <span aria-hidden="true">|</span>{' '}
         <Link href="/contact?type=problem">Report a Problem</Link>{' '}
         <span aria-hidden="true">|</span>{' '}
         <Link href="/contact">Contact Us</Link>
