@@ -45,6 +45,15 @@
   gap: 1rem;
 }
 
+.breaking {
+  background: red;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 700px) {
   .grid {
     grid-template-columns: 1fr;

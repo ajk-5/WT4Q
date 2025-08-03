@@ -47,6 +47,17 @@ namespace Northeast.Controllers
 
         }
 
+        [HttpGet("breaking")]
+        public async Task<IActionResult> GetBreakingNews()
+        {
+            var articles = await articleUpload.GetBreakingNews();
+            if (!articles.Any())
+            {
+                return NotFound(new { message = "No breaking news available" });
+            }
+            return Ok(articles);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {

@@ -41,6 +41,7 @@ namespace Northeast.Services
                 CreatedDate = DateTime.UtcNow,
                 ArticleType= articleDto.ArticleType,
                 Description= articleDto.Description,
+                IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews,
                 Photo = articleDto.Photo ?? null,
                 PhotoLink = articleDto.PhotoLink,
                 EmbededCode = articleDto.EmbededCode,
@@ -96,6 +97,10 @@ namespace Northeast.Services
         {
             return await _articleRepository.GetRecommendedArticles(articleId, count);
         }
+        public async Task<IEnumerable<Article>> GetBreakingNews()
+        {
+            return await _articleRepository.GetBreakingNews();
+        }
         public async Task<LikeEntity> GetLikeByUserAndArticle(Guid ArticleId)
         {
            var UserId = _connectedUser.Id;
@@ -120,6 +125,7 @@ namespace Northeast.Services
             article.Category = articleDto.Category;
             article.ArticleType = articleDto.ArticleType;
             article.Description = articleDto.Description;
+            article.IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews;
             article.Photo = articleDto.Photo;
             article.PhotoLink = articleDto.PhotoLink;
             article.EmbededCode = articleDto.EmbededCode;

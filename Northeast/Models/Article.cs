@@ -23,7 +23,10 @@ namespace Northeast.Models
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]
         public string Description { get; set; }
-       
+
+        [DefaultValue(false)]
+        public bool IsBreakingNews { get; set; } = false;
+
         public List<byte[]>? Photo { get; set; }
         public string? PhotoLink { get; set; }
         public string? EmbededCode { get; set; }

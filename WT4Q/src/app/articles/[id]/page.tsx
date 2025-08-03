@@ -11,6 +11,7 @@ interface ArticleDetails {
   title: string;
   description: string;
   createdDate: string;
+  isBreakingNews?: boolean;
   countryName?: string;
   photo?: string[];
   photoLink?: string;
@@ -75,9 +76,16 @@ export default async function ArticlePage({
   if (!article) {
     return <div className={styles.container}>Article not found.</div>;
   }
+  const isBreakingActive =
+    article.isBreakingNews &&
+    new Date(article.createdDate) >=
+      new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   const related = await fetchRelated(id);
   return (
     <div className={styles.container}>
+      {isBreakingActive && (
+        <div className={styles.breaking}>Breaking News</div>
+      )}
       <h1 className={styles.title}>{article.title}</h1>
       <p className={styles.meta}>
         {new Date(article.createdDate).toLocaleDateString(undefined, {

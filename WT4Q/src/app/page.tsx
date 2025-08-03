@@ -1,5 +1,6 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import Hero from '@/components/Hero';
+import BreakingNewsSlider from '@/components/BreakingNewsSlider';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import type { Metadata } from 'next';
@@ -28,6 +29,16 @@ async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   }
 }
 
+async function fetchBreakingNews(): Promise<{ id: string; title: string }[]> {
+  try {
+    const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function Home() {
   const categoriesWithArticles = await Promise.all(
     CATEGORIES.map(async (c) => ({
@@ -35,9 +46,11 @@ export default async function Home() {
       articles: await fetchArticlesByCategory(c),
     }))
   );
+  const breaking = await fetchBreakingNews();
   return (
     <div className={styles.newspaper}>
       <Hero />
+      <BreakingNewsSlider articles={breaking} />
       {categoriesWithArticles.map(({ category, articles }) => (
         <section key={category} className={styles.section}>
           <h2 className={styles.heading}>{category}</h2>

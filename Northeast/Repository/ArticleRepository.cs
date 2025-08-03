@@ -177,6 +177,15 @@ namespace Northeast.Repository
             return scored;
         }
 
+        public async Task<IEnumerable<Article>> GetBreakingNews()
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-3);
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.ArticleType == ArticleType.News && a.IsBreakingNews && a.CreatedDate >= cutoff)
+                .OrderByDescending(a => a.CreatedDate)
+                .ToListAsync();
+        }
+
         private static double CalculateSimilarity(Article a, Article b)
         {
             double score = 0;
