@@ -39,6 +39,7 @@ export const API_ROUTES = {
     COMMENT: `${API_BASE_URL}/api/Article/Comment`,
     MODIFY_COMMENT: `${API_BASE_URL}/api/Article/ModifyComment`,
     SEARCH_BY_AUTHOR: (id: string) => `${API_BASE_URL}/api/ArticleSearch/by-author/${id}`,
+    BREAKING: `${API_BASE_URL}/api/Article/breaking`,
   },
 
   COCKTAIL: {

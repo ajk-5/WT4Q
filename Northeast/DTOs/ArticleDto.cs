@@ -20,6 +20,8 @@ namespace Northeast.DTOs
         [Required]
         public string Description { get; set; }
 
+        public bool IsBreakingNews { get; set; } = false;
+
         public List<byte[]>? Photo { get; set; }
         public string? PhotoLink { get; set; }
         public string? EmbededCode { get; set; }
