@@ -30,6 +30,7 @@ namespace Northeast.Data
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<PageVisit> PageVisits { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<CommentReport> CommentReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

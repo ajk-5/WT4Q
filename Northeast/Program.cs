@@ -49,6 +49,7 @@ builder.Services.AddScoped<VisitorsRepository>();
 builder.Services.AddScoped<LoginHistoryRepository>();
 builder.Services.AddScoped<PageVisitRepository>();
 builder.Services.AddScoped<NotificationRepository>();
+builder.Services.AddScoped<CommentReportRepository>();
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>

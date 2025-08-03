@@ -5,6 +5,8 @@ using System.Security.Claims; // For working with Claims
 using Microsoft.AspNetCore.Http;
 using Northeast.Repository;
 using Northeast.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Northeast.Data;
 
 
 namespace Northeast.Services
@@ -19,8 +21,10 @@ namespace Northeast.Services
         private readonly LikeRepository _likeRepository;
         private readonly CommentRepository _commentRepository;
         private readonly NotificationRepository _notificationRepository;
+        private readonly CommentReportRepository _commentReportRepository;
+        private readonly AppDbContext _appDbContext;
 
-        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository) {
+        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository, CommentReportRepository commentReportRepository, AppDbContext appDbContext) {
 
             _connectedUser = connectedUser;
             _articleRepository= articleRepository;
@@ -28,6 +32,8 @@ namespace Northeast.Services
             _likeRepository= likeRepository;
             _commentRepository= commentRepository;
             _notificationRepository = notificationRepository;
+            _commentReportRepository = commentReportRepository;
+            _appDbContext = appDbContext;
 
         }
         public async Task Publish(ArticleDto articleDto)
@@ -324,6 +330,52 @@ namespace Northeast.Services
 
             await _commentRepository.Update(comment);
 
+        }
+
+        public async Task<bool> ReportComment(Guid CommentId)
+        {
+            var comment = await _commentRepository.GetByGUId(CommentId);
+            if (comment == null)
+            {
+                return false;
+            }
+
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return false;
+            }
+
+            var existing = await _commentReportRepository.GetByUserAndComment(userId, CommentId);
+            if (existing != null)
+            {
+                return false;
+            }
+
+            var report = new CommentReport
+            {
+                CommentId = CommentId,
+                UserId = userId
+            };
+            await _commentReportRepository.Add(report);
+
+            comment.ReportCount += 1;
+            await _commentRepository.Update(comment);
+
+            var admins = await _appDbContext.Admins.ToListAsync();
+            foreach (var admin in admins)
+            {
+                var notification = new Notification
+                {
+                    RecipientId = admin.Id,
+                    Message = "A comment was reported",
+                    CommentId = comment.Id,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _notificationRepository.Add(notification);
+            }
+
+            return true;
         }
     }
 }

@@ -24,5 +24,9 @@ namespace Northeast.Models
         public DateTime CreatedAt { get; set; }
 
         public DateTime LastUpdated { get; set; }
+
+        public ICollection<CommentReport>? Reports { get; set; } = new List<CommentReport>();
+
+        public int ReportCount { get; set; } = 0;
     }
 }

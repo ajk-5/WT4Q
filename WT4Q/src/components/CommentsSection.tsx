@@ -9,6 +9,7 @@ export interface Comment {
   content: string;
   writer?: { userName?: string };
   parentCommentId?: string;
+  reportCount?: number;
 }
 
 export default function CommentsSection({
@@ -23,6 +24,7 @@ export default function CommentsSection({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [reported, setReported] = useState<Record<string, boolean>>({});
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,6 +63,28 @@ export default function CommentsSection({
     }
   };
 
+  const handleReport = async (id: string) => {
+    if (reported[id]) return;
+    try {
+      const res = await fetch(
+        `${API_ROUTES.ARTICLE.REPORT_COMMENT}?CommentId=${id}`,
+        { method: 'POST', credentials: 'include' }
+      );
+      if (res.ok) {
+        setComments((prev) =>
+          prev.map((c) =>
+            c.id === id
+              ? { ...c, reportCount: (c.reportCount || 0) + 1 }
+              : c
+          )
+        );
+        setReported({ ...reported, [id]: true });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <section className={styles.section}>
       <h2 className={styles.heading}>Comments</h2>
@@ -72,6 +96,18 @@ export default function CommentsSection({
             <li key={c.id} className={styles.comment}>
               <span className={styles.commentAuthor}>{c.writer?.userName || 'Anonymous'}:</span>
               {c.content}
+              <button
+                type="button"
+                className={styles.reportButton}
+                onClick={() => handleReport(c.id)}
+                disabled={reported[c.id]}
+                aria-label="Report comment"
+              >
+                <img src="/report.svg" alt="Report" />
+                {c.reportCount ? (
+                  <span className={styles.reportCount}>{c.reportCount}</span>
+                ) : null}
+              </button>
               <button
                 type="button"
                 className={styles.replyButton}

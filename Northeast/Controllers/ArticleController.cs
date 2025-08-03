@@ -210,5 +210,21 @@ namespace Northeast.Controllers
 
         }
 
+        [Authorize]
+        [HttpPost("ReportComment")]
+        public async Task<IActionResult> ReportComment(Guid CommentId)
+        {
+            if (CommentId == Guid.Empty)
+            {
+                return BadRequest(new { message = " Error Occoured while performing task" });
+            }
+            var success = await articleUpload.ReportComment(CommentId);
+            if (!success)
+            {
+                return BadRequest(new { message = "Already reported" });
+            }
+            return Ok(new { message = "Reported" });
+        }
+
     }
 }
