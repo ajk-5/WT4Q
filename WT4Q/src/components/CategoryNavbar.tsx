@@ -10,18 +10,23 @@ interface Props {
 
 export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
   return (
-
+    <nav className={`${styles.nav} ${open ? styles.open : ''}`}>
       <Link href="/" className={styles.link} onClick={onNavigate}>
-        Home
-
+        <HomeIcon className={styles.homeIcon} />
+        <span className={styles.homeText}>Home</span>
       </Link>
       {CATEGORIES.map((c) => (
-        <Link key={c} href={`/category/${c}`} className={styles.link} onClick={onNavigate}>
+        <Link
+          key={c}
+          href={`/category/${c}`}
+          className={styles.link}
+          onClick={onNavigate}
+        >
           {c}
         </Link>
       ))}
       <Link href="/weather" className={styles.link} onClick={onNavigate}>
-       Weather
+        Weather
       </Link>
       <Link href="/bar" className={styles.link} onClick={onNavigate}>
         Bar
