@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import PageVisitReporter from "@/components/PageVisitReporter";
+import BreakingNewsBar from "@/components/BreakingNewsBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PageVisitReporter />
         <Header />
+        <BreakingNewsBar />
         <main>{children}</main>
         <Footer />
         <CookieBanner />

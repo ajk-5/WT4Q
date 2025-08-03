@@ -10,8 +10,10 @@ export interface BreakingArticle {
 
 export default function BreakingNewsSlider({
   articles,
+  className,
 }: {
   articles: BreakingArticle[];
+  className?: string;
 }) {
   const [index, setIndex] = useState(0);
 
@@ -26,7 +28,7 @@ export default function BreakingNewsSlider({
   if (articles.length === 0) return null;
 
   return (
-    <div className={styles.slider}>
+    <div className={`${styles.slider} ${className ?? ''}`.trim()}>
       <Link href={`/articles/${articles[index].id}`} className={styles.item}>
         {articles[index].title}
       </Link>
