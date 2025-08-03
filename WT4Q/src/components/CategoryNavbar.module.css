@@ -1,14 +1,28 @@
 .nav {
+  position: relative;
   display: flex;
   gap: 1rem;
   overflow-x: auto;
   padding: 0.5rem 1rem;
   font-family: 'Inter', sans-serif;
-  background: var(--secondary);
   border-radius: 0 0 var(--radius) var(--radius);
   color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   perspective: 500px;
+  z-index: 0;
+  background-image: url('/images/paper_background.webp');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 128, 0.5);
+  z-index: -1;
+  border-radius: inherit;
 }
 
 @media (min-width: 1025px) {
