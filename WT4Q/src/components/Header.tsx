@@ -13,6 +13,10 @@ import styles from './Header.module.css';
 export default function Header() {
   const [open, setOpen] = useState(false);
 
+  const handleNavigate = () => {
+    if (window.innerWidth <= 1024) setOpen(false);
+  };
+
   return (
     <header className={styles.header}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
@@ -39,7 +43,7 @@ export default function Header() {
         <div className={styles.actions}>
           <button
             className={styles.menuButton}
-            onClick={() => setOpen(true)}
+            onClick={() => setOpen((o) => !o)}
             aria-label="Open categories"
           >
             <MenuIcon className={styles.menuIcon} />
@@ -53,7 +57,7 @@ export default function Header() {
         </div>
       </div>
       <div className={styles.categories}>
-        <CategoryNavbar open={open} />
+        <CategoryNavbar open={open} onNavigate={handleNavigate} />
       </div>
     </header>
   );
