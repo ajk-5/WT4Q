@@ -7,6 +7,8 @@
   background: var(--secondary);
   border-radius: 0 0 var(--radius) var(--radius);
   color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  perspective: 500px;
 }
 
 @media (min-width: 1025px) {
@@ -23,12 +25,13 @@
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   border: 2px solid transparent;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .link:hover {
   background: var(--primary);
-  transform: translateY(-2px);
+  transform: translateY(-2px) translateZ(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 1024px) {
