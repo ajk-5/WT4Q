@@ -1,5 +1,6 @@
 'use client';
 import { useState, FormEvent, useTransition } from 'react';
+import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
 
@@ -15,6 +16,7 @@ export default function CocktailDashboardClient() {
     { name: '', quantity: '' },
   ]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const addIngredient = () => {
@@ -30,6 +32,7 @@ export default function CocktailDashboardClient() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       try {
         const body = {
@@ -50,6 +53,7 @@ export default function CocktailDashboardClient() {
         setName('');
         setDescription('');
         setIngredients([{ name: '', quantity: '' }]);
+        setSuccess('Cocktail saved');
       } catch (err) {
         if (err instanceof Error) setError(err.message);
         else setError('Failed to publish');
@@ -60,7 +64,11 @@ export default function CocktailDashboardClient() {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Cocktail Manager</h1>
+      <Link href="/admin/dashboard" className={styles.button}>
+        Back to Dashboard
+      </Link>
       {error && <p className={styles.error}>{error}</p>}
+      {success && <p className={styles.success}>{success}</p>}
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
