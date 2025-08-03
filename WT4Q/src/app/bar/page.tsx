@@ -19,11 +19,15 @@ export default function BarPage() {
       const url = query
         ? API_ROUTES.COCKTAIL.SEARCH(query)
         : API_ROUTES.COCKTAIL.GET_ALL;
-      const res = await fetch(url, { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setList(data);
-      } else {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          setList(data);
+        } else {
+          setList([]);
+        }
+      } catch {
         setList([]);
       }
     }

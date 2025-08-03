@@ -109,6 +109,12 @@
   text-align: center;
 }
 
+.success {
+  color: var(--wt4q-green);
+  font-weight: bold;
+  text-align: center;
+}
+
 .subtitle {
   margin-top: 2rem;
   font-size: 1.25rem;

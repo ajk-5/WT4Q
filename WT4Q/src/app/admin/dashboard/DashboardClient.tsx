@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useEffect, FormEvent, useTransition } from 'react';
+import {
+  useState,
+  useEffect,
+  FormEvent,
+  useTransition,
+  useRef,
+  ChangeEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
@@ -16,14 +23,16 @@ export default function DashboardClient() {
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [photos, setPhotos] = useState<FileList | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [photoLink, setPhotoLink] = useState('');
   const [embededCode, setEmbededCode] = useState('');
   const [altText, setAltText] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [articles, setArticles] = useState<{ id: string; title: string }[]>([]);
 
   useEffect(() => {
@@ -60,11 +69,12 @@ export default function DashboardClient() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       try {
-        const photosBase64 = photos
+        const photosBase64 = photos.length
           ? await Promise.all(
-              Array.from(photos).map(
+              photos.map(
                 (file) =>
                   new Promise<string>((resolve, reject) => {
                     const reader = new FileReader();
@@ -112,17 +122,26 @@ export default function DashboardClient() {
         setType('');
         setCategory('');
         setKeywords('');
-        setPhotos(null);
+        setPhotos([]);
         setPhotoLink('');
         setEmbededCode('');
         setAltText('');
         setCountryName('');
         setCountryCode('');
+        setSuccess('Article published');
       } catch (err) {
         if (err instanceof Error) setError(err.message);
         else setError('Failed to publish');
       }
     });
+  };
+
+  const handlePhotoSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length) {
+      setPhotos((prev) => [...prev, ...files]);
+      e.target.value = '';
+    }
   };
 
   return (
@@ -132,6 +151,7 @@ export default function DashboardClient() {
         Logout
       </button>
       {error && <p className={styles.error}>{error}</p>}
+      {success && <p className={styles.success}>{success}</p>}
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
@@ -153,9 +173,25 @@ export default function DashboardClient() {
           type="file"
           multiple
           accept="image/*"
-          onChange={(e) => setPhotos(e.target.files)}
+          ref={fileInputRef}
+          onChange={handlePhotoSelect}
           className={styles.input}
+          style={{ display: 'none' }}
         />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={styles.button}
+        >
+          Add Photo
+        </button>
+        {photos.length > 0 && (
+          <ul className={styles.list}>
+            {photos.map((p, i) => (
+              <li key={i}>{p.name}</li>
+            ))}
+          </ul>
+        )}
         <input
           type="text"
           placeholder="Alt text"
