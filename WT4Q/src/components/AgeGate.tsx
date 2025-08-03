@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './AgeGate.module.css';
 
 interface AgeGateProps {
@@ -9,6 +10,7 @@ interface AgeGateProps {
 
 export default function AgeGate({ storageKey, children }: AgeGateProps) {
   const [verified, setVerified] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -21,14 +23,32 @@ export default function AgeGate({ storageKey, children }: AgeGateProps) {
     setVerified(true);
   };
 
+  const reject = () => {
+    if (typeof window === 'undefined') return;
+    router.push('/');
+  };
+
   if (verified) return <>{children}</>;
 
   return (
     <div className={styles.gate}>
       <p className={styles.text}>You must be 18+ to view this content.</p>
-      <button className={styles.button} onClick={verify} aria-label="confirm age">
-        I am over 18
-      </button>
+      <div className={styles.buttons}>
+        <button
+          className={styles.button}
+          onClick={verify}
+          aria-label="confirm age"
+        >
+          I am over 18
+        </button>
+        <button
+          className={styles.button}
+          onClick={reject}
+          aria-label="reject age"
+        >
+          I am under 18
+        </button>
+      </div>
     </div>
   );
 }
