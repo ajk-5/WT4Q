@@ -18,6 +18,9 @@ namespace Northeast.Models
         [ForeignKey(nameof(Article))]
         public Guid ArticleId { get; set; }
 
+        public Guid? ParentCommentId { get; set; }
+        public Comment? ParentComment { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime LastUpdated { get; set; }

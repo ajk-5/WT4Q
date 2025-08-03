@@ -22,6 +22,20 @@
   font-weight: bold;
   margin-right: 0.25rem;
 }
+.replyButton {
+  background: none;
+  border: none;
+  color: inherit;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.875rem;
+}
+.replying {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: var(--secondary);
+}
 .form {
   display: flex;
   flex-direction: column;

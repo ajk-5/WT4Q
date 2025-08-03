@@ -75,4 +75,9 @@ export const API_ROUTES = {
     CURRENT: `${API_BASE_URL}/api/Weather/current`,
     FORECAST: `${API_BASE_URL}/api/Weather/forecast`,
   },
+
+  NOTIFICATIONS: {
+    GET: `${API_BASE_URL}/api/Notification`,
+    MARK_READ: `${API_BASE_URL}/api/Notification/mark-as-read`,
+  },
 };
