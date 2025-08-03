@@ -8,6 +8,7 @@ export interface Comment {
   id: string;
   content: string;
   writer?: { userName?: string };
+  parentCommentId?: string;
 }
 
 export default function CommentsSection({
@@ -21,6 +22,7 @@ export default function CommentsSection({
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,7 +32,9 @@ export default function CommentsSection({
     setError(null);
     try {
       const res = await fetch(
-        `${API_ROUTES.ARTICLE.COMMENT}?ArticleId=${articleId}&Comment=${encodeURIComponent(trimmed)}`,
+        `${API_ROUTES.ARTICLE.COMMENT}?ArticleId=${articleId}&Comment=${encodeURIComponent(trimmed)}${
+          replyTo ? `&ParentCommentId=${replyTo}` : ''
+        }`,
         { method: 'POST', credentials: 'include' }
       );
       if (res.ok) {
@@ -45,6 +49,7 @@ export default function CommentsSection({
           newComment || { id: Date.now().toString(), content: trimmed },
         ]);
         setContent('');
+        setReplyTo(null);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.message || 'Failed to post comment');
@@ -67,9 +72,19 @@ export default function CommentsSection({
             <li key={c.id} className={styles.comment}>
               <span className={styles.commentAuthor}>{c.writer?.userName || 'Anonymous'}:</span>
               {c.content}
+              <button
+                type="button"
+                className={styles.replyButton}
+                onClick={() => setReplyTo(c.id)}
+              >
+                Reply
+              </button>
             </li>
           ))}
         </ul>
+      )}
+      {replyTo && (
+        <p className={styles.replying}>Replying to a comment</p>
       )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <textarea

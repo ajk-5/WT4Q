@@ -18,15 +18,17 @@ namespace Northeast.Services
         private readonly UserRepository _userRepository;
         private readonly LikeRepository _likeRepository;
         private readonly CommentRepository _commentRepository;
-        
-        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository) { 
-        
+        private readonly NotificationRepository _notificationRepository;
+
+        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository) {
+
             _connectedUser = connectedUser;
             _articleRepository= articleRepository;
             _userRepository= userRepository;
             _likeRepository= likeRepository;
             _commentRepository= commentRepository;
-   
+            _notificationRepository = notificationRepository;
+
         }
         public async Task Publish(ArticleDto articleDto)
         {
@@ -237,29 +239,29 @@ namespace Northeast.Services
 
         }
         /*****************************************COMMENTS----------------------------------------------------*/
-        public async Task addComment(Guid ArticleId, string CommentContent) {
+        public async Task<Comment?> addComment(Guid ArticleId, string CommentContent, Guid? ParentCommentId = null) {
 
             if (ArticleId == Guid.Empty || string.IsNullOrWhiteSpace(CommentContent))
             {
-                return;
+                return null;
             }
 
             var article = await _articleRepository.GetByGUId(ArticleId);
             if (article == null)
             {
-                return;
+                return null;
             }
             var UserId = _connectedUser.Id;
 
             if (UserId == Guid.Empty)
             {
-                return;
+                return null;
 
             }
             var user = await _userRepository.GetByGUId(UserId);
             if (user == null)
             {
-                return;
+                return null;
             }
 
             Comment comment = new Comment
@@ -269,10 +271,30 @@ namespace Northeast.Services
                 Article = article,
                 ArticleId = ArticleId,
                 Writer = user,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ParentCommentId = ParentCommentId
             };
 
             await _commentRepository.Add(comment);
+
+            if (ParentCommentId.HasValue)
+            {
+                var parent = await _commentRepository.GetByGUId(ParentCommentId.Value);
+                if (parent != null && parent.Writer != null && parent.Writer.Id != UserId)
+                {
+                    var notification = new Notification
+                    {
+                        Recipient = parent.Writer,
+                        RecipientId = parent.Writer.Id,
+                        CommentId = comment.Id,
+                        Message = "New reply to your comment",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _notificationRepository.Add(notification);
+                }
+            }
+
+            return comment;
 
         }
 

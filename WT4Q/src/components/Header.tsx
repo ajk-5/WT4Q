@@ -8,6 +8,7 @@ import SearchBar from './SearchBar';
 import UserMenu from './UserMenu';
 import WeatherWidget from './WeatherWidget';
 import MenuIcon from './MenuIcon';
+import NotificationBell from './NotificationBell';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -48,6 +49,7 @@ export default function Header() {
           >
             <MenuIcon className={styles.menuIcon} />
           </button>
+          <NotificationBell />
           <div className={styles.userMenu}>
             <UserMenu />
           </div>

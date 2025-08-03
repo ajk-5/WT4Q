@@ -171,7 +171,7 @@ namespace Northeast.Controllers
 
         [Authorize]
         [HttpPost("Comment")]
-        public async Task<IActionResult> AddComment(Guid ArticleId, string Comment)
+        public async Task<IActionResult> AddComment(Guid ArticleId, string Comment, Guid? ParentCommentId)
         {
 
             if (ArticleId == Guid.Empty || Comment == null)
@@ -184,9 +184,9 @@ namespace Northeast.Controllers
             {
                 return NotFound(new { message = "Article doesnot exists" });
             }
-            await articleUpload.addComment(ArticleId, Comment);
+            var newComment = await articleUpload.addComment(ArticleId, Comment, ParentCommentId);
 
-            return Ok(new { message = "comment added successfully" });
+            return Ok(newComment);
 
         }
         [Authorize]
