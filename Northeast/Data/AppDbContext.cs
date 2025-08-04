@@ -18,7 +18,6 @@ namespace Northeast.Data
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<Admin> Admins { get; set; }
         public DbSet<Article> Articles { get; set; }
         public DbSet<IdToken> IdTokens { get; set; }
         public DbSet<LikeEntity> Likes { get; set; }
@@ -38,27 +37,6 @@ namespace Northeast.Data
                 .HasOne(a => a.Author)
                 .WithMany(u => u.Articles)
                 .HasForeignKey(a => a.AuthorId);
-
-            modelBuilder.Entity<Admin>().HasData(
-                new Admin
-                {
-                    Id = Guid.Parse("3bc99596-5eac-481a-b758-c4b2c5ba239f"),
-                    AdminName = "AJK",
-                    Email = "anamoljang@gmail.com",
-                    Password = "$2a$10$e/ClUCcy1Ctn1Sy/ZMvkcuzSJXk0YvvD1m1s/JuhFTmrmmEjOIrI."
-                }
-            );
-
-            modelBuilder.Entity<User>().HasData(
-                new User
-                {
-                    Id = Guid.Parse("3bc99596-5eac-481a-b758-c4b2c5ba239f"),
-                    UserName = "AJK",
-                    isVerified = true,
-                    Email = "anamoljang@gmail.com",
-                    Password = "$2a$10$e/ClUCcy1Ctn1Sy/ZMvkcuzSJXk0YvvD1m1s/JuhFTmrmmEjOIrI."
-                }
-            );
 
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)

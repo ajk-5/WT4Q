@@ -4,7 +4,7 @@ import CocktailDashboardClient from './CocktailDashboardClient';
 
 export default async function CocktailDashboardPage() {
   const cookieStore = await cookies();
-  if (!cookieStore.get('AdminToken')) {
+  if (!cookieStore.get('JwtToken')) {
     redirect('/admin-login');
   }
   return <CocktailDashboardClient />;

@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Northeast.DTOs;
 using Northeast.Services;
 using Northeast.Data;
+using Northeast.Models;
 using Northeast.Utilities;
 
 namespace Northeast.Controllers
@@ -15,22 +16,22 @@ namespace Northeast.Controllers
     public class AdminController : ControllerBase
     {
       
-        private readonly AdminAuthentification _auth;
+        private readonly UserAuthentification _auth;
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _env;
         private readonly AppDbContext _context;
         private readonly GetConnectedUser _connectedUser;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(AdminAuthentification auth, IConfiguration configuration, IWebHostEnvironment env, AppDbContext context, GetConnectedUser connectedUser)
+        public AdminController(UserAuthentification auth, IConfiguration configuration, AppDbContext context, GetConnectedUser connectedUser, ILogger<AdminController> logger)
         {
             _auth = auth;
             _configuration = configuration;
-            _env = env;
             _context = context;
             _connectedUser = connectedUser;
+            _logger = logger;
         }
         [HttpPost("Adminlogin")]
-        public async Task<IActionResult> AdminLogin([FromBody] AdminLoginDTO costumer)
+        public async Task<IActionResult> AdminLogin([FromBody] UserLoginDTO costumer)
         {
             if (string.IsNullOrEmpty(costumer.Email))
             {
@@ -43,7 +44,7 @@ namespace Northeast.Controllers
 
             var (user, token) = await _auth.Login(costumer.Email, costumer.Password);
 
-            if (user == null)
+            if (user == null || (user.Role != Role.Admin && user.Role != Role.SuperAdmin))
             {
                 return Unauthorized(new { message = "Invalid login attempt" });
 
@@ -56,7 +57,7 @@ namespace Northeast.Controllers
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
 
-            Response.Cookies.Append("AdminToken", token, cookieOptions);
+            Response.Cookies.Append("JwtToken", token, cookieOptions);
 
             return Ok(new { response = token });
 
@@ -65,9 +66,9 @@ namespace Northeast.Controllers
         [HttpPost("Adminlogout")]
         public IActionResult AdminLogout()
         {
-            if (Request.Cookies.ContainsKey("AdminToken"))
+            if (Request.Cookies.ContainsKey("JwtToken"))
             {
-                Response.Cookies.Delete("AdminToken", new CookieOptions
+                Response.Cookies.Delete("JwtToken", new CookieOptions
                 {
                     Secure = true,
                     SameSite = SameSiteMode.None
@@ -88,13 +89,31 @@ namespace Northeast.Controllers
                 return Unauthorized(new { message = "Not logged in" });
             }
 
-            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Id == id);
+            var admin = await _context.Users.FirstOrDefaultAsync(a => a.Id == id && (a.Role == Role.Admin || a.Role == Role.SuperAdmin));
             if (admin == null)
             {
                 return NotFound(new { message = "Admin not found" });
             }
 
-            return Ok(new { id = admin.Id, adminName = admin.AdminName, email = admin.Email });
+            return Ok(new { id = admin.Id, adminName = admin.UserName, email = admin.Email });
+        }
+
+        [Authorize(Policy = "SuperAdminOnly")]
+        [HttpPost("approve/{id}")]
+        public async Task<IActionResult> ApproveAdmin(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            user.Role = Role.Admin;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {SuperAdmin} approved admin {User}", _connectedUser.Id, id);
+
+            return Ok(new { message = "Admin approved" });
         }
 
     }

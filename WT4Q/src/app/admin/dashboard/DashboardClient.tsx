@@ -62,9 +62,9 @@ export default function DashboardClient() {
       method: 'POST',
       credentials: 'include',
     });
-    document.cookie = 'AdminToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    router.replace('/admin-login');
-  };
+      document.cookie = 'JwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      router.replace('/admin-login');
+    };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -4,7 +4,7 @@ import DashboardClient from './DashboardClient';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
-  if (!cookieStore.get('AdminToken')) {
+  if (!cookieStore.get('JwtToken')) {
     redirect('/admin-login');
   }
   return <DashboardClient />;

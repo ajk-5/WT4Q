@@ -8,7 +8,7 @@ export default async function EditArticlePage({
   params: Promise<{ id: string }>;
 }) {
   const cookieStore = await cookies();
-  if (!cookieStore.get('AdminToken')) {
+  if (!cookieStore.get('JwtToken')) {
     redirect('/admin-login');
   }
   const { id } = await params;
