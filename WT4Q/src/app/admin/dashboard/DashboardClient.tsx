@@ -29,6 +29,7 @@ export default function DashboardClient() {
   const [altText, setAltText] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
+  const [isBreakingNews, setIsBreakingNews] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -100,6 +101,7 @@ export default function DashboardClient() {
           photoLink: photoLink || undefined,
           embededCode: embededCode || undefined,
           altText: altText || undefined,
+          isBreakingNews,
           countryName: countryName || undefined,
           countryCode: countryCode || undefined,
           keyword: keywords
@@ -128,6 +130,7 @@ export default function DashboardClient() {
         setAltText('');
         setCountryName('');
         setCountryCode('');
+        setIsBreakingNews(false);
         setSuccess('Article published');
       } catch (err) {
         if (err instanceof Error) setError(err.message);
@@ -252,6 +255,16 @@ export default function DashboardClient() {
               </option>
             ))}
           </select>
+        )}
+        {type === 'News' && (
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={isBreakingNews}
+              onChange={(e) => setIsBreakingNews(e.target.checked)}
+            />
+            Breaking news
+          </label>
         )}
         <select
           value={category}

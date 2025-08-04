@@ -21,6 +21,7 @@ export const API_ROUTES = {
     UPDATE: `${API_BASE_URL}/User`,
     DELETE: `${API_BASE_URL}/User`,
     ACTIVITY: `${API_BASE_URL}/User/activity`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/User/password`,
   },
 
   ARTICLE: {

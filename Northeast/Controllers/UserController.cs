@@ -88,6 +88,37 @@ namespace Northeast.Controllers
         }
 
         [Authorize]
+        [HttpPut("password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var user = await _appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password))
+            {
+                return BadRequest(new { message = "Invalid current password" });
+            }
+
+            if (dto.NewPassword != dto.ConfirmPassword)
+            {
+                return BadRequest(new { message = "Passwords do not match" });
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _appDbContext.SaveChangesAsync();
+            return Ok(new { message = "Password updated" });
+        }
+
+        [Authorize]
         [HttpDelete]
         public async Task<IActionResult> DeleteCurrentUser([FromBody] DeleteAccountDTO dto)
         {
