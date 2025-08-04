@@ -183,3 +183,8 @@
 .switchLink:hover {
   text-decoration: underline;
 }
+
+.forgot {
+  margin-top: 0.25rem;
+  text-align: right;
+}

@@ -75,6 +75,25 @@
   gap: 1rem;
 }
 
+.passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.passwordTitle {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  color: var(--error-red);
+}
+
+.success {
+  color: green;
+}
+
 .subtitle {
   font-size: 1.25rem;
   text-align: center;

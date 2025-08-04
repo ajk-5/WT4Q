@@ -128,6 +128,11 @@ const LoginClient: FC = () => {
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
+            <p className={styles.forgot}>
+              <Link href="/forgot-password" className={styles.switchLink}>
+                Forgot password?
+              </Link>
+            </p>
           </div>
 
           <Button type="submit" disabled={isLoading}>

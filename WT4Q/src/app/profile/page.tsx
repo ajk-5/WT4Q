@@ -28,6 +28,11 @@ export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [password, setPassword] = useState('');
   const [activity, setActivity] = useState<Activity | null>(null);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const router = useRouter();
@@ -72,6 +77,31 @@ export default function Profile() {
       router.replace('/');
     } else {
       alert('Invalid password');
+    }
+  };
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordMessage(null);
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    const res = await fetch(API_ROUTES.USERS.CHANGE_PASSWORD, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setPasswordMessage('Password updated');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setPasswordError(data.message || 'Failed to update password');
     }
   };
 
@@ -139,6 +169,36 @@ export default function Profile() {
 
     <section className={styles.accountSection}>
       <h2 className={styles.subtitle}>Account Settings</h2>
+      <form onSubmit={handleChangePassword} className={styles.passwordForm}>
+        <h3 className={styles.passwordTitle}>Change Password</h3>
+        {passwordError && <p className={styles.error}>{passwordError}</p>}
+        {passwordMessage && <p className={styles.success}>{passwordMessage}</p>}
+        <input
+          type="password"
+          placeholder="Current password"
+          className={styles.input}
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="New password"
+          className={styles.input}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Confirm new password"
+          className={styles.input}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+        <button type="submit" className={styles.button}>Update Password</button>
+      </form>
       {!showDeletePrompt ? (
         <button
           type="button"
