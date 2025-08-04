@@ -38,6 +38,7 @@ export default function UserMenu() {
       method: 'POST',
       credentials: 'include',
     });
+    setUser(null);
     router.refresh();
   };
 
