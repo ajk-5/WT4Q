@@ -362,7 +362,9 @@ namespace Northeast.Services
             comment.ReportCount += 1;
             await _commentRepository.Update(comment);
 
-            var admins = await _appDbContext.Admins.ToListAsync();
+            var admins = await _appDbContext.Users
+                .Where(u => u.Role == Role.Admin || u.Role == Role.SuperAdmin)
+                .ToListAsync();
             foreach (var admin in admins)
             {
                 var notification = new Notification

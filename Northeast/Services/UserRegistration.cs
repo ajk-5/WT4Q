@@ -25,14 +25,15 @@ namespace Northeast.Services
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
-            var user = new User
-            {
-                UserName = Username,
-                Password = passwordHash,
-                Email = email,
-                DOB = dob,
-                Phone = phoneNumber,
-                isVerified= false,
+                var user = new User
+                {
+                    UserName = Username,
+                    Password = passwordHash,
+                    Email = email,
+                    DOB = dob,
+                    Phone = phoneNumber,
+                    isVerified= false,
+                    Role = Role.User,
 
             };
 
@@ -48,13 +49,14 @@ namespace Northeast.Services
 
             if (user == null)
             {
-                user = new User
-                {
-                    Id= Guid.NewGuid(), 
-                    Email = email,
-                    UserName = Username,
-                    isVerified = true,
-                };
+                    user = new User
+                    {
+                        Id= Guid.NewGuid(),
+                        Email = email,
+                        UserName = Username,
+                        isVerified = true,
+                        Role = Role.User,
+                    };
 
                await _context.Add(user);
              

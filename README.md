@@ -40,11 +40,11 @@ If your environment requires it, generate a local certificate and set
 the `SSL_CERT_FILE` and `SSL_KEY_FILE` environment variables as
 described in the Next.js documentation.
 
-The front end now verifies admin authentication on the server. Since the
-`AdminToken` cookie is marked `HttpOnly`, client-side code cannot read it.
-Redirects on the admin login and dashboard pages rely on the server-side
-`cookies()` API, ensuring authentication works even when JavaScript cannot
-access the cookie.
+The front end now verifies admin authentication on the server. The shared
+`JwtToken` cookie carries role information and is marked `HttpOnly`, so
+client-side code cannot read it. Redirects on the admin login and dashboard
+pages rely on the server-side `cookies()` API, ensuring authentication works
+even when JavaScript cannot access the cookie.
 
 ### Backend
 
@@ -54,7 +54,9 @@ dotnet restore
 dotnet run
 ```
 
-The API will run on the port configured in the project settings.
+Set the `SuperAdmin:Email` and `SuperAdmin:Password` environment variables to
+seed the initial super administrator account. The API will run on the port
+configured in the project settings.
 
 ### Applying Migrations
 

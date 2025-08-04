@@ -11,8 +11,8 @@ using Northeast.Interface;
 using Northeast.Middlewares;
 using Northeast.Repository;
 using Northeast.Utilities;
-using System.Security.Claims;
 using System.Text;
+using Northeast.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var originsPolicy = "AuthorizedApps";
@@ -26,7 +26,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>();
 
 // --- Register Application Services ---
-builder.Services.AddScoped<AdminAuthentification>();
 builder.Services.AddScoped<UserRegistration>();
 builder.Services.AddScoped<UserAuthentification>();
 builder.Services.AddScoped<ArticleServices>();
@@ -109,9 +108,8 @@ builder.Services.AddAuthentication(options =>
 // --- Configure Authorization ---
 builder.Services.AddAuthorization(options =>
 {
-    // Example policy for Admin
-    options.AddPolicy("AdminOnly",
-        policy => policy.RequireClaim(ClaimTypes.Role, "admin"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "SuperAdmin"));
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SuperAdmin"));
 });
 
 // --- Configure CORS ---
@@ -136,11 +134,31 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 
 // Apply any pending migrations at startup
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.Migrate();
-}
+  using (var scope = app.Services.CreateScope())
+  {
+      var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+      context.Database.Migrate();
+
+      var email = builder.Configuration["SuperAdmin:Email"];
+      var password = builder.Configuration["SuperAdmin:Password"];
+      if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+      {
+          if (!context.Users.Any(u => u.Role == Role.SuperAdmin))
+          {
+              var superAdmin = new User
+              {
+                  Id = Guid.NewGuid(),
+                  UserName = "SuperAdmin",
+                  Email = email,
+                  Password = BCrypt.Net.BCrypt.HashPassword(password),
+                  Role = Role.SuperAdmin,
+                  isVerified = true
+              };
+              context.Users.Add(superAdmin);
+              context.SaveChanges();
+          }
+      }
+  }
 
 // --- Middleware Pipeline ---
 if (app.Environment.IsDevelopment())

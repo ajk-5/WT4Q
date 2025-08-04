@@ -23,6 +23,9 @@ namespace Northeast.Models
 
         public bool isVerified { get; set; }
 
+        [Required]
+        public Role Role { get; set; } = Role.User;
+
         public ICollection<Article> Articles { get; set; }
 
     }

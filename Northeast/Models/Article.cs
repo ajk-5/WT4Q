@@ -34,7 +34,7 @@ namespace Northeast.Models
         public List<Comment>? Comments { get; set; }= new List<Comment>();
         public ICollection<LikeEntity>? Like { get; set; }=new List<LikeEntity>();
 
-        public Admin Author { get; set; }
+        public User Author { get; set; }
 
         [Required]
         [ForeignKey(nameof(Author.Id))]
