@@ -134,31 +134,31 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 
 // Apply any pending migrations at startup
-  using (var scope = app.Services.CreateScope())
-  {
-      var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-      context.Database.Migrate();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
 
-      var email = builder.Configuration["SuperAdmin:Email"];
-      var password = builder.Configuration["SuperAdmin:Password"];
-      if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
-      {
-          if (!context.Users.Any(u => u.Role == Role.SuperAdmin))
-          {
-              var superAdmin = new User
-              {
-                  Id = Guid.NewGuid(),
-                  UserName = "SuperAdmin",
-                  Email = email,
-                  Password = BCrypt.Net.BCrypt.HashPassword(password),
-                  Role = Role.SuperAdmin,
-                  isVerified = true
-              };
-              context.Users.Add(superAdmin);
-              context.SaveChanges();
-          }
-      }
-  }
+    var email = builder.Configuration["SuperAdmin:Email"];
+    var password = builder.Configuration["SuperAdmin:Password"];
+    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+    {
+        if (!context.Users.Any(u => u.Role == Role.SuperAdmin))
+        {
+            var superAdmin = new User
+            {
+                Id = Guid.NewGuid(),
+                UserName = "SuperAdmin",
+                Email = email,
+                Password = BCrypt.Net.BCrypt.HashPassword(password),
+                Role = Role.SuperAdmin,
+                isVerified = true
+            };
+            context.Users.Add(superAdmin);
+            context.SaveChanges();
+        }
+    }
+}
 
 // --- Middleware Pipeline ---
 if (app.Environment.IsDevelopment())
@@ -193,4 +193,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run();
+await app.RunAsync();
