@@ -25,6 +25,20 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
           {c}
         </Link>
       ))}
+      <div className={styles.dropdown}>
+        <Link href="/tools" className={styles.link} onClick={onNavigate}>
+          Tools
+        </Link>
+        <div className={styles.dropdownMenu}>
+          <Link
+            href="/tools/world-clock"
+            className={styles.link}
+            onClick={onNavigate}
+          >
+            World Clock
+          </Link>
+        </div>
+      </div>
       <Link href="/weather" className={styles.link} onClick={onNavigate}>
         Weather
       </Link>
