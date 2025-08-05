@@ -1,6 +1,6 @@
 export interface WorldCity { name: string; lat: number; lon: number; country: string; timezone: string; population: number;}
 
-export const WORLD_CITIES: WorldCity[] = [
+const WORLD_CITIES_DATA = [
   {
     "name": "Shanghai",
     "lat": 31.22222,
@@ -800,5 +800,19 @@ export const WORLD_CITIES: WorldCity[] = [
     "country": "CN",
     "population": 3372102,
     "timezone": "Asia/Shanghai"
+  },
+  {
+    "name": "Kathmandu",
+    "lat": 27.70832,
+    "lon": 85.32058,
+    "country": "NP",
+    "population": 845767,
+    "timezone": "Asia/Kathmandu"
   }
 ] as const;
+
+
+export const WORLD_CITIES: WorldCity[] = [...WORLD_CITIES_DATA].sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
+

@@ -37,6 +37,7 @@ builder.Services.AddTransient<SendEmail>();
 builder.Services.AddScoped<SiteVisitorServices>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<ArticleRepository>();

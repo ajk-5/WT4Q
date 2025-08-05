@@ -1,11 +1,13 @@
 "use client";
 
 // Data courtesy of Open-Meteo (https://open-meteo.com/)
+
 import { useEffect, useState } from 'react';
 import WeatherIcon from '@/components/WeatherIcon';
+
 import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
-import styles from './WorldClock.module.css';
 import { Metadata } from 'next';
+import WorldClockClient from './WorldClockClient';
 
 export const metadata: Metadata = {
   title: 'World Clock – Global Time & Weather',
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   keywords: ['world clock', 'global time', 'weather', 'cities', 'tools'],
 };
 
-interface CityWeather extends WorldCity {
+export interface CityWeather extends WorldCity {
   time: string;
   temperature: number;
   weathercode: number;
@@ -38,6 +40,7 @@ async function fetchCity(city: WorldCity): Promise<CityWeather> {
     is_day: data.current_weather?.is_day ?? 1,
   };
 }
+
 
 export default function WorldClockPage() {
   const [cities, setCities] = useState<CityWeather[]>([]);
@@ -69,6 +72,7 @@ export default function WorldClockPage() {
     return () => clearInterval(interval);
   }, []);
 
+
   return (
     <main className={styles.container}>
       <h1>World Clock</h1>
@@ -86,4 +90,5 @@ export default function WorldClockPage() {
       </div>
     </main>
   );
+
 }
