@@ -1,4 +1,7 @@
+"use client";
+
 // Data courtesy of Open-Meteo (https://open-meteo.com/)
+
 import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
 import { Metadata } from 'next';
 import WorldClockClient from './WorldClockClient';
@@ -18,7 +21,7 @@ export interface CityWeather extends WorldCity {
 
 async function fetchCity(city: WorldCity): Promise<CityWeather> {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=${encodeURIComponent(city.timezone)}`;
-  const res = await fetch(url, { next: { revalidate: 300 } });
+  const res = await fetch(url);
   const data = await res.json();
   const now = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
@@ -38,4 +41,5 @@ async function fetchCity(city: WorldCity): Promise<CityWeather> {
 export default async function WorldClockPage() {
   const cities = await Promise.all(WORLD_CITIES.map(fetchCity));
   return <WorldClockClient cities={cities} />;
+
 }
