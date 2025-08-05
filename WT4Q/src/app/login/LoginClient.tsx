@@ -2,6 +2,7 @@
 import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './Login.module.css';
 import Button from '@/components/Button';
 import { API_ROUTES } from '@/lib/api';
@@ -143,7 +144,16 @@ const LoginClient: FC = () => {
             )}
           </Button>
         </form>
-        <Button onClick={handleGoogleSignIn}>Sign in with Google</Button>
+        <Button onClick={handleGoogleSignIn} className={styles.googleButton}>
+          <Image
+            src="/images/google.svg"
+            alt="Google logo"
+            width={18}
+            height={18}
+            className={styles.googleIcon}
+          />
+          <span>Sign in with Google</span>
+        </Button>
         <p className={styles.switch}>
           Don&apos;t have an account?{' '}
           <Link href="/register" className={styles.switchLink}>
