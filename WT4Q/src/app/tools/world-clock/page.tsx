@@ -1,8 +1,10 @@
+"use client";
+
 // Data courtesy of Open-Meteo (https://open-meteo.com/)
-import WeatherIcon from '@/components/WeatherIcon';
+
 import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
-import styles from './WorldClock.module.css';
 import { Metadata } from 'next';
+import WorldClockClient from './WorldClockClient';
 
 export const metadata: Metadata = {
   title: 'World Clock – Global Time & Weather',
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   keywords: ['world clock', 'global time', 'weather', 'cities', 'tools'],
 };
 
-interface CityWeather extends WorldCity {
+export interface CityWeather extends WorldCity {
   time: string;
   temperature: number;
   weathercode: number;
@@ -19,7 +21,7 @@ interface CityWeather extends WorldCity {
 
 async function fetchCity(city: WorldCity): Promise<CityWeather> {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=${encodeURIComponent(city.timezone)}`;
-  const res = await fetch(url, { next: { revalidate: 300 } });
+  const res = await fetch(url);
   const data = await res.json();
   const now = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
@@ -37,6 +39,7 @@ async function fetchCity(city: WorldCity): Promise<CityWeather> {
 }
 
 export default async function WorldClockPage() {
+
   const cities = await Promise.all(
     [...WORLD_CITIES].sort((a, b) => a.name.localeCompare(b.name)).map(fetchCity)
   );
@@ -57,4 +60,5 @@ export default async function WorldClockPage() {
       </div>
     </main>
   );
+
 }
