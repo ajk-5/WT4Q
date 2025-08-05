@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Northeast.Services;
+using System;
 using System.Text.Json;
 using System.Collections.Generic;
 
@@ -11,14 +13,17 @@ namespace Northeast.Controllers
     {
         private readonly SiteVisitorServices _siteVisitorServices;
         private readonly HttpClient _httpClient;
+        private readonly IMemoryCache _cache;
 
-        public WeatherController(SiteVisitorServices siteVisitorServices, HttpClient httpClient)
+        public WeatherController(SiteVisitorServices siteVisitorServices, HttpClient httpClient, IMemoryCache cache)
         {
             _siteVisitorServices = siteVisitorServices;
             _httpClient = httpClient;
+            _cache = cache;
         }
 
         [HttpGet("current")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetCurrent()
         {
             var visitor = await _siteVisitorServices.VisitorLog();
@@ -33,6 +38,12 @@ namespace Northeast.Controllers
                 !double.TryParse(parts[1], out var lon))
             {
                 return BadRequest(new { message = "Invalid location." });
+            }
+
+            var cacheKey = $"current-{lat}-{lon}";
+            if (_cache.TryGetValue(cacheKey, out object cachedCurrent))
+            {
+                return Ok(cachedCurrent);
             }
 
             var url = $"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true";
@@ -54,10 +65,13 @@ namespace Northeast.Controllers
                     : (decimal)0
             };
 
+            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(10));
+
             return Ok(result);
         }
 
         [HttpGet("forecast")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetForecast()
         {
             var visitor = await _siteVisitorServices.VisitorLog();
@@ -72,6 +86,12 @@ namespace Northeast.Controllers
                 !double.TryParse(parts[1], out var lon))
             {
                 return BadRequest(new { message = "Invalid location." });
+            }
+
+            var cacheKey = $"forecast-{lat}-{lon}";
+            if (_cache.TryGetValue(cacheKey, out object cachedForecast))
+            {
+                return Ok(cachedForecast);
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get,
@@ -111,8 +131,11 @@ namespace Northeast.Controllers
                 list.Add(new { time, temperature = temp, windspeed = wind, symbol });
                 count++;
             }
+            var result = new { forecast = list };
 
-            return Ok(new { forecast = list });
+            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(10));
+
+            return Ok(result);
         }
     }
 }
