@@ -46,6 +46,14 @@ client-side code cannot read it. Redirects on the admin login and dashboard
 pages rely on the server-side `cookies()` API, ensuring authentication works
 even when JavaScript cannot access the cookie.
 
+### Deployment and CDN
+
+The Next.js front end can serve static assets through a CDN such as Vercel or
+CloudFront. Set the `CDN_URL` environment variable to your CDN's base URL
+before building. `next.config.ts` uses this value as an `assetPrefix` and
+applies `Cache-Control` headers so assets and pages are cached appropriately
+by the CDN and browsers.
+
 ### Backend
 
 ```bash
