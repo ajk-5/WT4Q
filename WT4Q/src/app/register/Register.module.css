@@ -183,3 +183,24 @@
 .switchLink:hover {
   text-decoration: underline;
 }
+
+.googleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: #444;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+.googleButton:hover:not(:disabled) {
+  background: #f7f7f7;
+}
+
+.googleIcon {
+  width: 18px;
+  height: 18px;
+}
