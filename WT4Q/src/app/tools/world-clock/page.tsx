@@ -2,6 +2,9 @@
 
 // Data courtesy of Open-Meteo (https://open-meteo.com/)
 
+import { useEffect, useState } from 'react';
+import WeatherIcon from '@/components/WeatherIcon';
+
 import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
 import { Metadata } from 'next';
 import WorldClockClient from './WorldClockClient';
@@ -38,11 +41,38 @@ async function fetchCity(city: WorldCity): Promise<CityWeather> {
   };
 }
 
-export default async function WorldClockPage() {
 
-  const cities = await Promise.all(
-    [...WORLD_CITIES].sort((a, b) => a.name.localeCompare(b.name)).map(fetchCity)
-  );
+export default function WorldClockPage() {
+  const [cities, setCities] = useState<CityWeather[]>([]);
+
+  useEffect(() => {
+    async function loadCities() {
+      const cityData = await Promise.all(WORLD_CITIES.map(fetchCity));
+      setCities(cityData);
+    }
+    loadCities();
+  }, []);
+
+  useEffect(() => {
+    const updateTimes = () => {
+      setCities((prev) =>
+        prev.map((c) => ({
+          ...c,
+          time: new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: c.timezone,
+          }).format(new Date()),
+        }))
+      );
+    };
+    const interval = setInterval(updateTimes, 60000);
+    updateTimes();
+    return () => clearInterval(interval);
+  }, []);
+
+
   return (
     <main className={styles.container}>
       <h1>World Clock</h1>
