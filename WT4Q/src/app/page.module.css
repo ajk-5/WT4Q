@@ -1,35 +1,62 @@
-.newspaper {
-  background-color: rgba(133, 171, 188, 0.326);
-  padding: 2rem;
-  margin: 0 auto;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+.wrapper {
+  font-family: Georgia, serif;
+  margin: 40px;
+  background: #fff;
+  color: #000;
 }
 
-.section {
-  font-family: 'Times New Roman', serif;
-  padding: 2rem 0;
-  border-bottom: 1px solid #ccc;
+.header,
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
 }
 
-.heading {
-  font-family: 'Times New Roman', serif;
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-  font-size: 2rem;
+.title {
+  text-align: center;
+  font-size: 48px;
+  margin: 0;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 20px;
+  margin: 5px 0 20px 0;
+}
+
+.main {
+  display: flex;
+  gap: 20px;
+}
+
+.column {
+  flex: 1;
+}
+
+.imageBox {
+  text-align: center;
+}
+
+.imageBox img {
+  width: 100%;
+  max-width: 250px;
+}
+
+.caption {
+  font-style: italic;
+  font-size: 12px;
+}
+
+.wrapper blockquote {
+  font-style: italic;
+  margin: 20px 0;
+}
+
+.bold {
   font-weight: bold;
-  color: var(--primary);
-  border-bottom: 2px solid #333;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-@media (max-width: 700px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.pageRef {
+  font-weight: bold;
+  font-size: 12px;
 }
