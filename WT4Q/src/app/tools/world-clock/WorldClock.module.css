@@ -2,6 +2,14 @@
   padding: 1rem;
 }
 
+.search {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 1rem;
+  padding: 0.5rem;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
