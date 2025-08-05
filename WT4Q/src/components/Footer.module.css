@@ -4,6 +4,7 @@
   padding: 1rem;
   font-family: 'Inter', sans-serif;
   text-align: center;
+   background-image: url('/images/paper_background.webp');
 }
 
 .inner {
@@ -11,4 +12,6 @@
   margin: 0 auto;
   font-size: 0.875rem;
   color: var(--muted);
+   
+
 }

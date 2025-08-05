@@ -1,3 +1,4 @@
+
 .wrapper {
   font-family: Georgia, serif;
   margin: 40px;
@@ -10,6 +11,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 14px;
+
 }
 
 .title {

@@ -17,7 +17,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 128, 0.5);
+  background: rgba(0, 34, 128, 0.245);
   z-index: 0;
 }
 
@@ -43,7 +43,7 @@
 .logoImage {
   width: clamp(4rem, 10vw, 6rem);
   height: auto;
-  border-radius: 50%;
+  border-radius: 10%;
 }
 
 .weather {
