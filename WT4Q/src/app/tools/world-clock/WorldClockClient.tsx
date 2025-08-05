@@ -3,27 +3,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import WeatherIcon from '@/components/WeatherIcon';
 import styles from './WorldClock.module.css';
-import { WorldCity } from '@/lib/worldCities';
 
-export interface CityWeather extends WorldCity {
-  time: string;
-  temperature: number;
-  weathercode: number;
-  is_day: number;
-}
+import type { CityWeather } from './types';
+
 
 interface Props {
   cities: CityWeather[];
 }
 
-export default function WorldClockClient({ cities }: Props) {
+export default function WorldClockClient({ cities: initialCities }: Props) {
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState(search);
+  const [cities, setCities] = useState(initialCities);
 
   useEffect(() => {
     const handler = setTimeout(() => setDebounced(search), 300);
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const updateTimes = () => {
+      setCities((prev) =>
+        prev.map((c) => ({
+          ...c,
+          time: new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: c.timezone,
+          }).format(new Date()),
+        }))
+      );
+    };
+    const interval = setInterval(updateTimes, 60000);
+    updateTimes();
+    return () => clearInterval(interval);
+  }, []);
 
   const filtered = useMemo(() => {
     const lower = debounced.toLowerCase();

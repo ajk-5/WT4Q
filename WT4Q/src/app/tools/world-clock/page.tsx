@@ -1,6 +1,12 @@
-import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
+
+// Data courtesy of Open-Meteo (https://open-meteo.com/)
+
 import { Metadata } from 'next';
-import WorldClockClient, { CityWeather } from './WorldClockClient';
+
+import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
+import WorldClockClient from './WorldClockClient';
+import type { CityWeather } from './types';
+
 
 export const metadata: Metadata = {
   title: 'World Clock – Global Time & Weather',
@@ -31,3 +37,4 @@ export default async function WorldClockPage() {
   const cities = await Promise.all(WORLD_CITIES.map(fetchCity));
   return <WorldClockClient cities={cities} />;
 }
+
