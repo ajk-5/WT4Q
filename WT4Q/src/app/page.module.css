@@ -1,5 +1,5 @@
 .newspaper {
-  background-color: rgba(133, 171, 188, 0.326);
+  background-color: rgba(239, 239, 239, 0.107);
   padding: 2rem;
   margin: 0 auto;
   border: 1px solid #ddd;
@@ -9,7 +9,7 @@
 .section {
   font-family: 'Times New Roman', serif;
   padding: 2rem 0;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #ccccccb7;
 }
 
 .heading {

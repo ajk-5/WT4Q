@@ -13,6 +13,7 @@
   font-size: 0.875rem;
   border: none;
   outline: none;
+  background: var(--background);
 }
 
 .button {
