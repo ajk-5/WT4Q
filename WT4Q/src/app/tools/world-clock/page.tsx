@@ -37,7 +37,9 @@ async function fetchCity(city: WorldCity): Promise<CityWeather> {
 }
 
 export default async function WorldClockPage() {
-  const cities = await Promise.all(WORLD_CITIES.map(fetchCity));
+  const cities = await Promise.all(
+    [...WORLD_CITIES].sort((a, b) => a.name.localeCompare(b.name)).map(fetchCity)
+  );
   return (
     <main className={styles.container}>
       <h1>World Clock</h1>
