@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import WeatherIcon from '@/components/WeatherIcon';
 import styles from './WorldClock.module.css';
+
 import type { CityWeather } from './types';
+
 
 interface Props {
   cities: CityWeather[];

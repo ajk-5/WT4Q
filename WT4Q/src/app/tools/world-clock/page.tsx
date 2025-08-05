@@ -1,3 +1,4 @@
+
 // Data courtesy of Open-Meteo (https://open-meteo.com/)
 
 import { Metadata } from 'next';
@@ -5,6 +6,7 @@ import { Metadata } from 'next';
 import { WORLD_CITIES, WorldCity } from '@/lib/worldCities';
 import WorldClockClient from './WorldClockClient';
 import type { CityWeather } from './types';
+
 
 export const metadata: Metadata = {
   title: 'World Clock – Global Time & Weather',
