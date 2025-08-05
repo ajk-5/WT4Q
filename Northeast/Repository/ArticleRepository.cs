@@ -186,6 +186,14 @@ namespace Northeast.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Article>> GetRecentArticlesUsingProcedure(int limit)
+        {
+            return await _context.Articles
+                .FromSqlRaw("SELECT * FROM get_recent_articles({0})", limit)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         private static double CalculateSimilarity(Article a, Article b)
         {
             double score = 0;

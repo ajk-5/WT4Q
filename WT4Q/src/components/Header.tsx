@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
+import PrefetchLink from './PrefetchLink';
 import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
 import SearchBar from './SearchBar';
@@ -22,7 +22,7 @@ export default function Header() {
     <header className={styles.header}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
-        <Link href="/" className={styles.logo}>
+        <PrefetchLink href="/" className={styles.logo}>
           <Image
             src="/images/wt4q-logo.png"
             alt="WT4Q logo"
@@ -33,14 +33,14 @@ export default function Header() {
             className={styles.logoImage}
             priority
           />
-        </Link>
-        <Link
+        </PrefetchLink>
+        <PrefetchLink
           href="/weather"
           aria-label="Weather details"
           className={styles.weather}
         >
           <WeatherWidget />
-        </Link>
+        </PrefetchLink>
         <div className={styles.actions}>
           <button
             className={styles.menuButton}

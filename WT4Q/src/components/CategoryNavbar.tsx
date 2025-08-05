@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import PrefetchLink from './PrefetchLink';
 import { CATEGORIES } from '@/lib/categories';
 import HomeIcon from './HomeIcon';
 import styles from './CategoryNavbar.module.css';
@@ -11,40 +11,40 @@ interface Props {
 export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
   return (
     <nav className={`${styles.nav} ${open ? styles.open : ''}`}>
-      <Link href="/" className={styles.link} onClick={onNavigate}>
+      <PrefetchLink href="/" className={styles.link} onClick={onNavigate}>
         <HomeIcon className={styles.homeIcon} />
         <span className={styles.homeText}>Home</span>
-      </Link>
+      </PrefetchLink>
       {CATEGORIES.map((c) => (
-        <Link
+        <PrefetchLink
           key={c}
           href={`/category/${c}`}
           className={styles.link}
           onClick={onNavigate}
         >
           {c}
-        </Link>
+        </PrefetchLink>
       ))}
       <div className={styles.dropdown}>
-        <Link href="/tools" className={styles.link} onClick={onNavigate}>
+        <PrefetchLink href="/tools" className={styles.link} onClick={onNavigate}>
           Tools
-        </Link>
+        </PrefetchLink>
         <div className={styles.dropdownMenu}>
-          <Link
+          <PrefetchLink
             href="/tools/world-clock"
             className={styles.link}
             onClick={onNavigate}
           >
             World Clock
-          </Link>
+          </PrefetchLink>
         </div>
       </div>
-      <Link href="/weather" className={styles.link} onClick={onNavigate}>
+      <PrefetchLink href="/weather" className={styles.link} onClick={onNavigate}>
         Weather
-      </Link>
-      <Link href="/bar" className={styles.link} onClick={onNavigate}>
+      </PrefetchLink>
+      <PrefetchLink href="/bar" className={styles.link} onClick={onNavigate}>
         Bar
-      </Link>
+      </PrefetchLink>
     </nav>
   );
 }
