@@ -9,10 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+
     "next": "^15.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "turbo": "^2.5.5"
+    "turbo": "^2.5.5",
+        "html-to-image": "^1.11.11",
+    "html2canvas": "^1.4.1",
+    "react-dropzone": "^14.2.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
