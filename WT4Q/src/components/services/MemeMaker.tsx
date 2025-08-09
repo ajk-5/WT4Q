@@ -597,7 +597,7 @@ export default function MemeMaker() {
     <div style={styles.page}>
       <h1 style={styles.h1}>Glass 3D Meme Maker</h1>
 
-      <div style={styles.controls}>
+      <div style={styles.controls} className="mm-controls">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -607,7 +607,7 @@ export default function MemeMaker() {
           maxLength={240}
         />
 
-        <div style={styles.rowWide}>
+        <div style={styles.rowWide} className="mm-row-wide">
           <label style={styles.label}>
             Font:
             <select
@@ -656,7 +656,7 @@ export default function MemeMaker() {
           )}
         </div>
 
-        <div style={styles.row}>
+        <div style={styles.row} className="mm-row">
           <label style={styles.label}>
             Aspect:
             <select
@@ -713,7 +713,7 @@ export default function MemeMaker() {
           </button>
         </div>
 
-        <div style={styles.row}>
+        <div style={styles.row} className="mm-row">
           <label style={styles.label}>
             Media position:
             <select
@@ -1102,4 +1102,16 @@ const styles: Record<string, React.CSSProperties> = {
 
 const css = `
   .rim-light { filter: drop-shadow(0 0 6px rgba(255,255,255,.25)); }
+  @media (max-width: 768px) {
+    .mm-row,
+    .mm-row-wide {
+      grid-template-columns: 1fr;
+    }
+    .mm-row label,
+    .mm-row-wide label,
+    .mm-row button,
+    .mm-row-wide button {
+      width: 100%;
+    }
+  }
 `;
