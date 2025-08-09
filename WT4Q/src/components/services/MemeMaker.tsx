@@ -131,7 +131,7 @@ export default function MemeMaker() {
   }, [aspectChoice, customW, customH]);
 
   useEffect(() => {
-    const maxW = Math.max(320, Math.min(viewportW * 0.92, 1600));
+    const maxW = Math.max(240, Math.min(viewportW * 0.92, 1600));
     const newW = clamp(stageW, 240, maxW);
     const newH = Math.round(newW / currentRatio);
     setStageW(newW);
@@ -163,7 +163,7 @@ export default function MemeMaker() {
           setAspectChoice("custom");
           setCustomW(img.naturalWidth);
           setCustomH(img.naturalHeight);
-          const maxW = Math.max(320, Math.min(window.innerWidth * 0.92, 1600));
+          const maxW = Math.max(240, Math.min(window.innerWidth * 0.92, 1600));
           const w = clamp(
             Math.round(Math.min(maxW, img.naturalWidth)),
             240,
@@ -206,7 +206,7 @@ export default function MemeMaker() {
             setAspectChoice("custom");
             setCustomW(meta.w);
             setCustomH(meta.h);
-            const maxW = Math.max(320, Math.min(window.innerWidth * 0.92, 1600));
+            const maxW = Math.max(240, Math.min(window.innerWidth * 0.92, 1600));
             const w = clamp(Math.round(Math.min(maxW, meta.w)), 240, 3840);
             const h = Math.round(w / ratio);
             setStageW(w);
@@ -531,7 +531,7 @@ export default function MemeMaker() {
     const dx = e.clientX - st.startX;
     const dy = e.clientY - st.startY;
 
-    const maxW = Math.max(320, Math.min(window.innerWidth * 0.95, 3840));
+    const maxW = Math.max(240, Math.min(window.innerWidth * 0.95, 3840));
     const maxH = 2160;
 
     if (st.lock) {
@@ -586,7 +586,7 @@ export default function MemeMaker() {
     setCustomW(media.width || 1);
     setCustomH(media.height || 1);
     const ratio = (media.width || 1) / (media.height || 1);
-    const maxW = Math.max(320, Math.min(window.innerWidth * 0.92, 1600));
+    const maxW = Math.max(240, Math.min(window.innerWidth * 0.92, 1600));
     const w = clamp(Math.round(Math.min(maxW, stageW)), 240, 3840);
     const h = Math.round(w / ratio);
     setStageW(w);
@@ -931,9 +931,11 @@ const styles: Record<string, React.CSSProperties> = {
   h1: { textAlign: "center", margin: "8px 0 16px" },
   controls: {
     maxWidth: 1100,
+    width: "100%",
     margin: "0 auto 16px",
     display: "grid",
     gap: 12,
+    gridTemplateColumns: "1fr",
   },
   row: {
     display: "grid",
@@ -1103,6 +1105,10 @@ const styles: Record<string, React.CSSProperties> = {
 const css = `
   .rim-light { filter: drop-shadow(0 0 6px rgba(255,255,255,.25)); }
   @media (max-width: 768px) {
+    .mm-controls {
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
     .mm-row,
     .mm-row-wide {
       grid-template-columns: 1fr;
