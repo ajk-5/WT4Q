@@ -7,9 +7,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { JSX } from 'react';
+import type { JSX } from "react";
 import html2canvas from "html2canvas";
 import { useDropzone } from "react-dropzone";
+import Media, { MediaType } from "./components/Media";
 
 const PRESETS = {
   "1:1": { w: 1, h: 1 },
@@ -27,14 +28,6 @@ const PRESETS = {
 
 type PresetKey = keyof typeof PRESETS;
 type AspectChoice = PresetKey | "custom";
-
-type MediaType = {
-  url: string;
-  type: "image" | "video";
-  width: number;
-  height: number;
-  aspectRatio: number;
-};
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
@@ -868,69 +861,6 @@ export default function Page(): JSX.Element {
         locking the aspect.
       </p>
 
-      <style>{css}</style>
-    </div>
-  );
-}
-
-function Media({
-  media,
-  scale,
-  onResizeStart,
-  videoRef,
-}: {
-  media: MediaType;
-  scale: number;
-  onResizeStart: (e: React.MouseEvent) => void;
-  videoRef?: React.MutableRefObject<HTMLVideoElement | null>;
-}) {
-  const wrapper: React.CSSProperties = {
-    position: "relative",
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  const commonInner: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-    display: "block",
-    borderRadius: 20,
-    background: "#1b0a60",
-    padding: 16,
-    boxSizing: "border-box",
-    transform: `scale(${scale})`,
-    transformOrigin: "center center",
-    transition: "transform 60ms linear",
-  };
-
-  return (
-    <div style={wrapper}>
-      {media.type === "image" ? (
-        <img src={media.url} alt="media" draggable={false} style={commonInner} />
-      ) : (
-        <video
-          ref={videoRef || undefined}
-          src={media.url}
-          controls
-          loop
-          autoPlay
-          muted
-          playsInline
-          draggable={false}
-          style={commonInner}
-        />
-      )}
-      <div
-        role="button"
-        aria-label="Resize media"
-        onMouseDown={onResizeStart}
-        style={styles.mediaResizeHandle}
-        title="Drag to resize media"
-      />
     </div>
   );
 }
@@ -1088,18 +1018,6 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0 2px 6px rgba(0,0,0,.35) inset",
     cursor: "nwse-resize",
   },
-  mediaResizeHandle: {
-    position: "absolute",
-    width: 16,
-    height: 16,
-    right: 8,
-    bottom: 8,
-    borderRadius: 4,
-    background:
-      "linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.3))",
-    boxShadow: "0 2px 6px rgba(0,0,0,.35) inset",
-    cursor: "nwse-resize",
-  },
   progressWrap: {
     position: "absolute",
     left: 12,
@@ -1117,6 +1035,3 @@ const styles: Record<string, React.CSSProperties> = {
   footer: { textAlign: "center", opacity: 0.7, marginTop: 4 },
 };
 
-const css = `
-  .rim-light { filter: drop-shadow(0 0 6px rgba(255,255,255,.25)); }
-`;
