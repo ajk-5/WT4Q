@@ -1,11 +1,6 @@
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
 import type { JSX } from "react";
-
-const MemeMaker = dynamic(
-  () => import("@/components/services/MemeMaker"),
-  { ssr: false }
-);
+import MemeMakerClient from "./MemeMakerClient";
 
 export const metadata: Metadata = {
   title: "Meme Maker",
@@ -14,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function MemeMakerPage(): JSX.Element {
-  return <MemeMaker />;
+  return <MemeMakerClient />;
 }
