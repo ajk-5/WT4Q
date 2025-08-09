@@ -1,6 +1,11 @@
 import { Metadata } from "next";
-import MemeMaker from "@/components/services/MemeMaker";
+import dynamic from "next/dynamic";
 import type { JSX } from "react";
+
+const MemeMaker = dynamic(
+  () => import("@/components/services/MemeMaker"),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Meme Maker",
