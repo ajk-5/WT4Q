@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import type { JSX } from "react";
-import MemeMakerClient from "./MemeMakerClient";
+import MemeMakerClient from "./components/MemeMakerClient";
 
 export const metadata: Metadata = {
   title: "Meme Maker",
