@@ -49,7 +49,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const url = `${siteUrl}/articles/${id}`;
   const description = article.description.slice(0, 160);
-  const image = article.photoLink || (article.photo && article.photo.length > 0 ? `data:image/jpeg;base64,${article.photo[0]}` : undefined);
+  const base64Image =
+    article.photo?.[0] ? `data:image/jpeg;base64,${article.photo[0]}` : undefined;
+  const image = article.photoLink || base64Image;
   return {
     title: article.title,
     description,
@@ -96,18 +98,24 @@ export default async function ArticlePage({
         {article.countryName ? ` | ${article.countryName}` : ''}
         {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
       </p>
-      {(article.photoLink || (article.photo && article.photo.length > 0)) && (
-        <Image
-          src={
-            article.photoLink ||
-            `data:image/jpeg;base64,${article.photo?.[0] ?? ''}`
-          }
-          alt={article.altText || article.title}
-          className={styles.image}
-          width={700}
-          height={400}
-        />
-      )}
+      {(() => {
+        const imageSrc =
+          article.photoLink ||
+          (article.photo?.[0]
+            ? `data:image/jpeg;base64,${article.photo[0]}`
+            : undefined);
+        if (!imageSrc) return null;
+        return (
+          <Image
+            src={imageSrc}
+            alt={article.altText || article.title}
+            className={styles.image}
+            width={700}
+            height={400}
+            unoptimized={imageSrc.startsWith('data:')}
+          />
+        );
+      })()}
       {article.embededCode && (
         <div
           className={styles.embed}
