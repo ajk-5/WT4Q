@@ -7,18 +7,16 @@ export const metadata: Metadata = {
   description: 'Handy utilities including a world clock with weather data.',
 };
 
-export default function ToolsPage() {
+export default function GamesPage() {
   return (
     <main style={{ padding: '1rem' }}>
       <h1>Tools</h1>
       <ul>
         <li>
-          <PrefetchLink href="/tools/world-clock">World Clock</PrefetchLink>
+          <PrefetchLink href="/tools/games/2048_game_online">2048</PrefetchLink>
           
         </li>
-        <li>
-          <PrefetchLink href="/tools/mememaker">Mememaker</PrefetchLink>
-        </li>
+
       </ul>
     </main>
   );

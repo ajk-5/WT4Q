@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Merge TD — Drag & Merge Heroes</title>
+  <style>
+    :root { --bg:#0f1220; --panel:#151a2e; --text:#e6e8ee; --muted:#9aa1b3; --accent:#55d6be; --danger:#ff6b6b; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      background:linear-gradient(180deg,#0e1120,#0a0d18);
+      color:var(--text);
+      display:flex;align-items:center;justify-content:center
+    }
+    .wrap{width:1100px;max-width:96vw;}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center}
+    .brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.4px}
+    .stats{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+    .pill{padding:6px 10px;border-radius:999px;background:var(--panel);color:var(--text);font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)}
+    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:700;background:var(--accent);color:#091015;cursor:pointer;box-shadow:0 8px 20px rgba(85,214,190,.25);transition:.15s transform}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:#232a4a;color:#dce0ef;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)}
+    .layout{display:grid;grid-template-columns:820px 1fr;gap:12px}
+
+    /* Fluid canvas keeps aspect ratio for small screens */
+    canvas{
+      display:block;width:100%;height:auto;aspect-ratio:820/560;
+      border-radius:18px;background:#0b0f1e;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,.35);
+      touch-action:none
+    }
+
+    aside{background:var(--panel);padding:12px;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)}
+    .section{padding:10px 10px 14px;border-radius:12px;background:#1a2040;margin-bottom:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)}
+    .section h3{margin:0 0 8px 0;font-size:14px;letter-spacing:.3px;color:#d7dbec}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .small{font-size:12px;color:var(--muted)}
+
+    /* Responsive bench grid */
+    .bench{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:8px}
+    .slot{
+      aspect-ratio:1/1;border-radius:12px;background:#10142a;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06)
+    }
+    .slot.hint{outline:2px dashed #3a97f7;outline-offset:-4px}
+    .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .legend div{background:#12183a;padding:6px 8px;border-radius:10px;font-size:12px;display:flex;justify-content:space-between}
+    .kbd{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;background:#0d1128;padding:2px 6px;border-radius:8px;color:#b6c0e9}
+    .danger{color:var(--danger)}
+
+    /* Stack layout on small screens */
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      .brand h1{font-size:16px}
+      .legend{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 5 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-5z" fill="#55d6be"/></svg>
+        <h1>Merge TD — drag & merge heroes</h1>
+      </div>
+      <div class="stats">
+        <div class="pill">Coins: <span id="coins">0</span></div>
+        <div class="pill">Lives: <span id="lives">20</span></div>
+        <div class="pill">Time: <span id="time">0:00</span></div>
+        <button id="buy" class="btn">Buy Hero (5)</button>
+        <button id="pause" class="btn secondary">Pause</button>
+        <button id="restart" class="btn secondary">Restart</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <canvas id="game" width="820" height="560"></canvas>
+      <aside>
+        <div class="section">
+          <h3>Bench (merge here or place on board)</h3>
+          <div id="bench" class="bench"></div>
+          <div class="small">Drag a hero onto another of the <b>same level</b> to merge → higher damage & range.</div>
+        </div>
+        <div class="section">
+          <h3>How to play</h3>
+          <div class="legend">
+            <div><span>Buy hero</span><span class="kbd">B</span></div>
+            <div><span>Pause</span><span class="kbd">P</span></div>
+            <div><span>Restart</span><span class="kbd">R</span></div>
+            <div><span>Drag</span><span>Hold & move</span></div>
+          </div>
+          <p class="small">Enemies spawn continuously and <b>increase in quantity per minute</b>. Kill enemies to earn coins. If an enemy reaches the exit, you lose a life. Game over at 0 lives.</p>
+          <p class="small">Sprites here are <b>procedurally drawn</b> (license-free). You can swap in CC0 art (e.g., Kenney assets) by replacing the <code>drawHero</code> and <code>drawEnemy</code> functions.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+  /*
+   * Merge TD — single-file, browser-only tower defense
+   * Features
+   * - Free, procedural sprites (no external assets)
+   * - Drag heroes from bench to board; merge identical levels to upgrade
+   * - Coins on kill; buy heroes for 5 coins
+   * - Enemies spawn randomly and ramp up in quantity per minute (spawn rate + HP scale)
+   * - Fixed path; place heroes on non-path tiles
+   * - Mobile friendly: fluid canvas + touch controls
+   */
+
+  const W = 820, H = 560;
+  const TILE = 60;                      // grid size for board
+  const COLS = Math.floor(W / TILE);    // ~13
+  const ROWS = Math.floor(H / TILE);    // ~9
+
+  /** Game State **/
+  const state = {
+    coins: 10,
+    lives: 20,
+    time: 0,             // seconds elapsed
+    paused: false,
+    gameOver: false,
+    enemies: [],
+    towers: [],
+    bullets: [],
+    bench: [],           // bench heroes list
+    dragging: null,      // {hero, from:"bench"|"board", idx or tile, mx,my}
+    spawn: {
+      interval: 1100,    // ms between spawns, will decrease
+      timer: 0,
+      hpScale: 1,
+      speedScale: 1,
+    }
+  };
+
+  /** Path definition (series of waypoints)**/
+  const path = [
+    {x: -40, y: 100},
+    {x: 260, y: 100},
+    {x: 260, y: 240},
+    {x: 560, y: 240},
+    {x: 560, y: 420},
+    {x: 840, y: 420},
+  ];
+
+  // Quick helpers
+  const lerp = (a,b,t)=> a+(b-a)*t;
+  const clamp = (v, a, b)=> Math.max(a, Math.min(b, v));
+  const dist2 = (a,b)=>{ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy; };
+  const nowMs = ()=> performance.now();
+
+  // Canvas setup
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // UI elements
+  const coinsEl = document.getElementById('coins');
+  const livesEl = document.getElementById('lives');
+  const timeEl  = document.getElementById('time');
+  const buyBtn = document.getElementById('buy');
+  const pauseBtn = document.getElementById('pause');
+  const restartBtn = document.getElementById('restart');
+  const benchEl = document.getElementById('bench');
+
+  // Build bench UI (8 slots)
+  const BENCH_SLOTS = 8;
+  function renderBench(){
+    benchEl.innerHTML = '';
+    for(let i=0;i<BENCH_SLOTS;i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.index = i;
+      benchEl.appendChild(slot);
+      const hero = state.bench[i];
+      if(hero){ drawHeroToDiv(slot, hero); }
+    }
+  }
+  function drawHeroToDiv(div, hero){
+    const c = document.createElement('canvas');
+    c.width = 46; c.height = 46; const cx = c.getContext('2d');
+    drawHero(cx, 23, 23, hero.level, 22);
+    div.innerHTML = ''; div.appendChild(c);
+  }
+
+  // Board grid occupancy (non-path tiles allowed for towers)
+  const grid = [];// ROWS x COLS with {blocked:boolean, tower:null|hero}
+  for(let r=0;r<ROWS;r++){
+    const row = [];
+    for(let c=0;c<COLS;c++){
+      const center = {x:c*TILE+TILE/2, y:r*TILE+TILE/2};
+      const onPath = pointNearPath(center, 24);
+      row.push({blocked:onPath, tower:null});
+    }
+    grid.push(row);
+  }
+  function pointNearPath(p, tol){
+    for(let i=0;i<path.length-1;i++){
+      const a = path[i], b = path[i+1];
+      const d = pointToSegmentDistance(p, a, b);
+      if(d < tol) return true;
+    }
+    return false;
+  }
+  function pointToSegmentDistance(p, a, b){
+    const vx=b.x-a.x, vy=b.y-a.y; const wx=p.x-a.x, wy=p.y-a.y;
+    const c1 = vx*wx+vy*wy; if(c1<=0) return Math.hypot(p.x-a.x, p.y-a.y);
+    const c2 = vx*vx+vy*vy; if(c2<=c1) return Math.hypot(p.x-b.x, p.y-b.y);
+    const t = c1/c2; const proj = {x:a.x+t*vx, y:a.y+t*vy};
+    return Math.hypot(p.x-proj.x, p.y-proj.y);
+  }
+
+  /** Entities **/
+  function makeHero(level=1){
+    return {
+      id: crypto.randomUUID(),
+      level,
+      dmg: Math.round(6 * Math.pow(1.8, level-1)),
+      range: 90 + (level-1)*10,
+      fireRate: Math.max(280 - (level-1)*18, 120), // ms per shot
+      cooldown: 0,
+      tile: null, // {r,c} when placed
+      x: 0, y: 0, // world pos when placed
+    };
+  }
+  function makeEnemy(hp, speed){
+    return {
+      id: crypto.randomUUID(),
+      hp, maxHp: hp,
+      speed, // px/s
+      pathIndex: 0, t: 0, // along segment
+      x: path[0].x, y: path[0].y,
+      value: 1 + Math.floor(hp/25),
+      spawnDelay: 0
+    };
+  }
+  function makeBullet(x,y, tx,ty, dmg){
+    const ang = Math.atan2(ty-y, tx-x); const speed = 380; // px/s
+    return {x,y, vx: Math.cos(ang)*speed, vy: Math.sin(ang)*speed, dmg, life: 1200};
+  }
+
+  // Spawn control
+  let lastTick = nowMs();
+
+  function buyHero(){
+    if(state.coins < 5) return;
+    // find first empty bench slot
+    let idx = state.bench.findIndex(h=>!h);
+    if(idx===-1){ idx = state.bench.length < BENCH_SLOTS ? state.bench.length : -1; }
+    if(idx===-1){ flashBenchHint(); return; }
+    state.coins -= 5;
+    state.bench[idx] = makeHero(1);
+    updateHUD();
+    renderBench();
+  }
+  function flashBenchHint(){
+    benchEl.querySelectorAll('.slot').forEach(el=>{
+      el.classList.add('hint');
+      setTimeout(()=>el.classList.remove('hint'), 350);
+    });
+  }
+  function updateHUD(){
+    coinsEl.textContent = state.coins;
+    livesEl.textContent = state.lives;
+    const mins = Math.floor(state.time/60); const secs = Math.floor(state.time%60).toString().padStart(2,'0');
+    timeEl.textContent = `${mins}:${secs}`;
+  }
+  function resetGame(){
+    state.coins = 10; state.lives = 20; state.time = 0; state.paused=false; state.gameOver=false;
+    state.enemies = []; state.towers = []; state.bullets=[]; state.bench=[]; state.dragging=null;
+    state.spawn.interval = 1100; state.spawn.timer = 0; state.spawn.hpScale=1; state.spawn.speedScale=1;
+    for(let r=0;r<ROWS;r++){ for(let c=0;c<COLS;c++){ grid[r][c].tower=null; } }
+    renderBench(); updateHUD();
+  }
+
+  function tick(dt){
+    if(state.paused || state.gameOver) return;
+    state.time += dt/1000;
+
+    // Ramping difficulty: every 60s increase spawn rate and HP, speed tiny
+    if(Math.floor(state.time) % 60 === 0 && Math.abs((state.time%60) - 0) < (dt/1000)){
+      state.spawn.interval = Math.max(280, state.spawn.interval * 0.88); // faster spawns
+      state.spawn.hpScale *= 1.18; // tougher
+      state.spawn.speedScale *= 1.03; // slightly faster
+    }
+
+    // Spawn logic
+    state.spawn.timer += dt;
+    const interval = state.spawn.interval;
+    while(state.spawn.timer >= interval){
+      state.spawn.timer -= interval;
+      // Increase burst amount over time (quantity per minute)
+      const burst = 1 + Math.floor(state.time / 60);
+      for(let i=0;i<burst;i++){
+        const baseHp = 30 + Math.random()*20;
+        const e = makeEnemy(Math.round(baseHp*state.spawn.hpScale), 48*state.spawn.speedScale*(0.8+Math.random()*0.4));
+        e.spawnDelay = i*120; // ms between burst spawns
+        state.enemies.push(e);
+      }
+    }
+
+    // Update enemies
+    for(const e of state.enemies){
+      if(e.spawnDelay && e.spawnDelay>0){ e.spawnDelay -= dt; continue; }
+      const i = e.pathIndex; const a = path[i]; const b = path[i+1];
+      if(!b){ e.reached = true; continue; }
+      const segLen = Math.hypot(b.x-a.x,b.y-a.y);
+      const advance = e.speed * (dt/1000);
+      e.t += advance/segLen;
+      if(e.t >= 1){ e.pathIndex++; e.t -= 1; }
+      const ai = e.pathIndex; const A = path[ai]; const B = path[ai+1] || A;
+      e.x = lerp(A.x,B.x, clamp(e.t,0,1));
+      e.y = lerp(A.y,B.y, clamp(e.t,0,1));
+    }
+
+    // Remove reached enemies and reduce lives
+    for(let i=state.enemies.length-1;i>=0;i--){
+      const e = state.enemies[i];
+      if(e.reached){ state.enemies.splice(i,1); state.lives -= 1; if(state.lives<=0){ state.lives=0; state.gameOver=true; } }
+    }
+
+    // Towers fire
+    for(const t of state.towers){
+      t.cooldown -= dt; if(t.cooldown<0) t.cooldown=0;
+      let target = null, bestD2 = Infinity;
+      for(const e of state.enemies){
+        if(e.spawnDelay>0) continue;
+        const d2 = dist2(t,e);
+        if(d2 <= t.range*t.range && d2 < bestD2){ bestD2 = d2; target = e; }
+      }
+      if(target && t.cooldown===0){
+        state.bullets.push(makeBullet(t.x,t.y, target.x, target.y, t.dmg));
+        t.cooldown = t.fireRate;
+      }
+    }
+
+    // Update bullets and collisions
+    for(let i=state.bullets.length-1;i>=0;i--){
+      const b = state.bullets[i]; b.life -= dt; if(b.life<=0){ state.bullets.splice(i,1); continue; }
+      b.x += b.vx * (dt/1000); b.y += b.vy * (dt/1000);
+      // hit test vs enemies
+      let hit = -1;
+      for(let j=0;j<state.enemies.length;j++){
+        const e = state.enemies[j]; if(e.spawnDelay>0) continue; const r = 14; // enemy radius
+        if(Math.hypot(b.x-e.x, b.y-e.y) <= r){ hit = j; break; }
+      }
+      if(hit>=0){
+        const e = state.enemies[hit]; e.hp -= b.dmg; state.bullets.splice(i,1);
+        if(e.hp<=0){ state.coins += e.value; state.enemies.splice(hit,1); }
+      }
+    }
+
+    updateHUD();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // grid
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const x=c*TILE, y=r*TILE; const cell = grid[r][c];
+        ctx.fillStyle = cell.blocked? '#1e243f' : '#121733';
+        ctx.fillRect(x,y,TILE-1,TILE-1);
+      }
+    }
+    // path stroke
+    ctx.lineWidth = 28; ctx.lineCap='round'; ctx.strokeStyle='#2a335f';
+    ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
+    for(let i=1;i<path.length;i++){ ctx.lineTo(path[i].x, path[i].y); }
+    ctx.stroke();
+    ctx.lineWidth = 18; ctx.strokeStyle='#3b467d'; ctx.stroke();
+
+    // exit marker
+    const exit = path[path.length-1];
+    ctx.fillStyle = '#ffbf69'; ctx.beginPath(); ctx.arc(exit.x, exit.y, 10, 0, Math.PI*2); ctx.fill();
+
+    // towers
+    for(const t of state.towers){
+      drawHero(ctx, t.x, t.y, t.level, 20);
+      // range (faint)
+      ctx.globalAlpha = .06; ctx.fillStyle = '#8fb6ff'; ctx.beginPath(); ctx.arc(t.x,t.y,t.range,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
+    }
+
+    // enemies
+    for(const e of state.enemies){
+      if(e.spawnDelay && e.spawnDelay>0) continue;
+      drawEnemy(ctx, e.x, e.y, 14);
+      // hp bar
+      const w=26, h=4; const pct = clamp(e.hp/e.maxHp,0,1);
+      ctx.fillStyle = '#0009'; ctx.fillRect(e.x-w/2, e.y-20, w, h);
+      ctx.fillStyle = '#75e077'; ctx.fillRect(e.x-w/2, e.y-20, w*pct, h);
+    }
+
+    // bullets
+    ctx.fillStyle = '#d7e3ff';
+    for(const b of state.bullets){ ctx.beginPath(); ctx.arc(b.x,b.y,3,0,Math.PI*2); ctx.fill(); }
+
+    // dragging preview + tile hint
+    if(state.dragging){
+      const d = state.dragging;
+      drawHero(ctx, d.mx, d.my, d.hero.level, 22, true);
+
+      const pos = screenToTile(d.mx, d.my);
+      if(pos){
+        const cell = grid[pos.r][pos.c];
+        const x = pos.c*TILE, y = pos.r*TILE;
+        const canMerge = cell.tower && cell.tower.level === d.hero.level;
+        const canPlace = !cell.blocked && (!cell.tower || canMerge);
+        ctx.save();
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8,6]);
+        ctx.strokeStyle = canPlace ? '#6cf' : '#ff7676';
+        ctx.strokeRect(x+3, y+3, TILE-7, TILE-7);
+        ctx.restore();
+      }
+    }
+
+    // overlays
+    if(state.gameOver){
+      drawOverlay('Game Over', 'Press R to restart');
+    } else if(state.paused) {
+      drawOverlay('Paused', 'Press P to resume');
+    }
+  }
+
+  function drawOverlay(title, subtitle){
+    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff'; ctx.font='bold 36px system-ui,Segoe UI,Arial';
+    ctx.textAlign='center';
+    ctx.fillText(title, W/2, H/2 - 10);
+    ctx.font='16px system-ui,Segoe UI,Arial';
+    ctx.fillStyle='#cdd3ea';
+    ctx.fillText(subtitle, W/2, H/2 + 20);
+  }
+
+  /** Procedural sprites (license-free)**/
+  function drawHero(ctx, x,y, level, r=20, ghost=false){
+    ctx.save(); ctx.translate(x,y);
+    const hues = [170,195,220,260,300,330,20,45,120];
+    const hue = hues[(level-1)%hues.length];
+    ctx.fillStyle = `hsl(${hue} 70% ${ghost?50:60}%)`;
+    roundedRect(ctx, -r*0.9, -r*0.9, r*1.8, r*1.8, 6); ctx.fill();
+    ctx.fillStyle = '#1a203d'; roundedRect(ctx, -6, -r*1.1, 12, r*0.7, 4); ctx.fill(); // cannon
+    ctx.fillStyle = '#0b0f1e'; roundedRect(ctx, -r*0.6, 2, r*1.2, r*0.7, 8); ctx.fill(); // visor
+    for(let i=0;i<Math.min(level,4);i++){ ctx.fillStyle = '#fff8'; ctx.fillRect(-r*0.7 + i*8, r*0.9, 6, 3); } // pips
+    ctx.restore();
+  }
+  function drawEnemy(ctx, x,y, r=14){
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#300'; ctx.beginPath(); ctx.arc(0,0,r*0.7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(0,0,r*0.42,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(r*0.15, -r*0.05, r*0.18, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  function roundedRect(ctx, x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+  }
+
+  /** Drag & drop (mouse + touch) **/
+  let mouse = {x:0,y:0};
+  function setMouseFromEvent(e){
+    const rect = canvas.getBoundingClientRect();
+    let cx, cy;
+    if(e && e.touches && e.touches[0]){ cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+    else if(e && e.changedTouches && e.changedTouches[0]){ cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+    else { cx = (e?.clientX ?? mouse.lastClientX ?? 0); cy = (e?.clientY ?? mouse.lastClientY ?? 0); }
+    mouse.lastClientX = cx; mouse.lastClientY = cy;
+    mouse.x = (cx - rect.left) * (canvas.width / rect.width);
+    mouse.y = (cy - rect.top) * (canvas.height / rect.height);
+  }
+  // keep coords updated globally (fixes drops without final move)
+  window.addEventListener('mousemove', e => {
+    setMouseFromEvent(e);
+    if (state.dragging){ state.dragging.mx = mouse.x; state.dragging.my = mouse.y; }
+  });
+  window.addEventListener('touchmove', e => {
+    setMouseFromEvent(e);
+    if (state.dragging){ state.dragging.mx = mouse.x; state.dragging.my = mouse.y; }
+  }, { passive:false });
+
+  // prevent context menu on long-press
+  canvas.addEventListener('contextmenu', e=>e.preventDefault());
+
+  // Move pointer (canvas-local)
+  canvas.addEventListener('mousemove', e=>{ setMouseFromEvent(e); if(state.dragging){ state.dragging.mx = mouse.x; state.dragging.my = mouse.y; } });
+  canvas.addEventListener('touchmove', e=>{ setMouseFromEvent(e); if(state.dragging){ state.dragging.mx = mouse.x; state.dragging.my = mouse.y; } }, {passive:false});
+
+  // Board drag start
+  function startDragBoard(){
+    const pos = screenToTile(mouse.x, mouse.y); if(!pos) return;
+    const cell = grid[pos.r][pos.c];
+    if(cell.tower){
+      state.dragging = {hero: cell.tower, from:'board', tile:pos, mx:mouse.x, my:mouse.y};
+      cell.tower = null; // lifted
+    }
+  }
+  // Board drag end
+  function endDragBoard(e){
+    if(state.dragging && state.dragging.from==='board'){
+      setMouseFromEvent(e || {});
+      const x = state.dragging.mx ?? mouse.x;
+      const y = state.dragging.my ?? mouse.y;
+      dropAt(x, y);
+    }
+  }
+
+  canvas.addEventListener('mousedown', e=>{ setMouseFromEvent(e); startDragBoard(); });
+  canvas.addEventListener('touchstart', e=>{ setMouseFromEvent(e); e.preventDefault(); startDragBoard(); }, {passive:false});
+  canvas.addEventListener('mouseup', e=>{ setMouseFromEvent(e); endDragBoard(e); });
+  canvas.addEventListener('touchend', e=>{ endDragBoard(e); });
+
+  // Bench drag handlers
+  benchEl.addEventListener('mousedown', e=>{
+    const slot = e.target.closest('.slot'); if(!slot) return;
+    const idx = +slot.dataset.index; const hero = state.bench[idx]; if(!hero) return;
+    setMouseFromEvent(e);
+    state.dragging = {hero, from:'bench', idx, mx:mouse.x, my:mouse.y};
+  });
+  benchEl.addEventListener('touchstart', e=>{
+    const slot = e.target.closest('.slot'); if(!slot) return;
+    const idx = +slot.dataset.index; const hero = state.bench[idx]; if(!hero) return;
+    setMouseFromEvent(e); e.preventDefault();
+    state.dragging = {hero, from:'bench', idx, mx:mouse.x, my:mouse.y};
+  }, {passive:false});
+
+  // Drop from bench anywhere (even if finger/mouse leaves canvas)
+  window.addEventListener('mouseup', e=>{
+    if(state.dragging && state.dragging.from==='bench'){
+      setMouseFromEvent(e || {});
+      const x = state.dragging.mx ?? mouse.x;
+      const y = state.dragging.my ?? mouse.y;
+      dropAt(x, y);
+    }
+  });
+  window.addEventListener('touchend', ()=>{
+    if(state.dragging && state.dragging.from==='bench'){
+      const x = state.dragging.mx ?? mouse.x;
+      const y = state.dragging.my ?? mouse.y;
+      dropAt(x, y);
+    }
+  });
+
+  function dropAt(x,y){
+    const drag = state.dragging; if(!drag) return;
+    const pos = screenToTile(x,y);
+
+    if(pos && !grid[pos.r][pos.c].blocked){
+      const cell = grid[pos.r][pos.c];
+      const target = cell.tower;
+
+      if(target){
+        // merge if same level
+        if(target.level === drag.hero.level){
+          target.level += 1;
+          target.dmg = Math.round(6 * Math.pow(1.8, target.level-1));
+          target.range = 90 + (target.level-1)*10;
+          target.fireRate = Math.max(280 - (target.level-1)*18, 100);
+          if(drag.from==='bench'){ state.bench[drag.idx]=null; renderBench(); }
+          // if from board, the dragged hero is consumed (do nothing else)
+        } else {
+          // not mergeable, revert to origin
+          revertDrag(); state.dragging=null; return;
+        }
+      } else {
+        // place new tower
+        cell.tower = drag.hero;
+        drag.hero.tile = pos;
+        drag.hero.x = pos.c*TILE + TILE/2;
+        drag.hero.y = pos.r*TILE + TILE/2;
+        if(drag.from==='bench'){ state.bench[drag.idx]=null; renderBench(); }
+      }
+    } else {
+      // invalid drop — revert
+      revertDrag();
+    }
+    state.dragging = null;
+  }
+
+  function revertDrag(){
+    const drag = state.dragging; if(!drag) return;
+    if(drag.from==='board' && drag.tile){
+      const {r,c} = drag.tile;
+      grid[r][c].tower = drag.hero;
+      drag.hero.tile = drag.tile;
+      drag.hero.x = c*TILE+TILE/2; drag.hero.y = r*TILE+TILE/2;
+    }
+  }
+
+  function screenToTile(x,y){
+    const c = Math.floor(x / TILE), r = Math.floor(y / TILE);
+    if(r<0||c<0||r>=ROWS||c>=COLS) return null; return {r,c};
+  }
+
+  /** Controls **/
+  buyBtn.addEventListener('click', buyHero);
+  pauseBtn.addEventListener('click', ()=>{ state.paused = !state.paused; pauseBtn.textContent = state.paused? 'Resume' : 'Pause'; });
+  restartBtn.addEventListener('click', ()=>{ resetGame(); });
+
+  window.addEventListener('keydown', e=>{
+    if(e.key==='b' || e.key==='B'){ buyHero(); }
+    if(e.key==='p' || e.key==='P'){ state.paused=!state.paused; pauseBtn.textContent = state.paused? 'Resume' : 'Pause'; }
+    if(e.key==='r' || e.key==='R'){ resetGame(); }
+  });
+
+  /** Main loop **/
+  function loop(){
+    const t = nowMs(); const dt = Math.min(50, t - lastTick); lastTick = t;
+    tick(dt); draw(); requestAnimationFrame(loop);
+  }
+
+  // Kick off
+  renderBench();
+  resetGame();
+  // give player two starters
+  state.bench[0] = makeHero(1); state.bench[1] = makeHero(1); renderBench();
+  requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

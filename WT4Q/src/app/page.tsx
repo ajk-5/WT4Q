@@ -1,19 +1,17 @@
+// app/page.tsx
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import Hero from '@/components/Hero';
-import BreakingNewsSlider from '@/components/BreakingNewsSlider';
+import BreakingCenterpiece from '@/components/BreakingCenterpiece';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Home',
   alternates: { canonical: '/' },
-  openGraph: {
-    title: 'WT4Q News',
-    url: '/',
-    type: 'website',
-  },
+  openGraph: { title: 'WT4Q News', url: '/', type: 'website' },
 };
 
 async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
@@ -39,6 +37,12 @@ async function fetchBreakingNews(): Promise<{ id: string; title: string }[]> {
   }
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
 export default async function Home() {
   const categoriesWithArticles = await Promise.all(
     CATEGORIES.map(async (c) => ({
@@ -47,20 +51,102 @@ export default async function Home() {
     }))
   );
   const breaking = await fetchBreakingNews();
+
+  // Take the first 4 categories for the rails around the centerpiece
+  const leftRail = categoriesWithArticles.slice(0, 2);
+  const rightRail = categoriesWithArticles.slice(2, 4);
+  const remaining = categoriesWithArticles.slice(4);
+  const remainingRows = chunk(remaining, 3);
+
+  const dateline = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+
   return (
     <div className={styles.newspaper}>
-      <Hero />
-      <BreakingNewsSlider articles={breaking} />
-      {categoriesWithArticles.map(({ category, articles }) => (
-        <section key={category} className={styles.section}>
-          <h2 className={styles.heading}>{category}</h2>
-          <div className={styles.grid}>
-            {articles.slice(0, 5).map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
+      {/* Masthead */}
+      <header className={styles.masthead} aria-label="Site masthead">
+        <div className={styles.mastheadInner}>
+          <div className={styles.brandBlock}>
+            <h1 className={styles.brand}>WT4Q NEWS</h1>
+            <p className={styles.tagline}>All the News That Matters</p>
           </div>
-        </section>
+          <div className={styles.dateline}>{dateline}</div>
+        </div>
+      </header>
+
+      <div className={styles.ruleThick} aria-hidden="true" />
+      <div className={styles.ruleThin} aria-hidden="true" />
+
+
+      {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
+      <div className={styles.frontPageGrid}>
+        <div className={`${styles.rail} ${styles.leftRail}`}>
+          {leftRail.map(({ category, articles }) => (
+            <section key={category} className={styles.section}>
+              <h2 className={styles.heading}>
+                <span className={styles.kicker}>{category}</span>
+              </h2>
+              <div className={styles.columnGrid}>
+                {articles.slice(0, 5).map((a) => (
+                  <ArticleCard key={a.id} article={a} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <div className={styles.centerColumn}>
+          <BreakingCenterpiece articles={breaking} />
+        </div>
+
+        <div className={`${styles.rail} ${styles.rightRail}`}>
+          {rightRail.map(({ category, articles }) => (
+            <section key={category} className={styles.section}>
+              <h2 className={styles.heading}>
+                <span className={styles.kicker}>{category}</span>
+              </h2>
+              <div className={styles.columnGrid}>
+                {articles.slice(0, 5).map((a) => (
+                  <ArticleCard key={a.id} article={a} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+
+      {/* The rest of the sections in rows (keeps vertical barres) */}
+      {remainingRows.map((row, i) => (
+        <div key={`row-${i}`} className={styles.row}>
+          {row.map(({ category, articles }) => (
+            <section key={category} className={`${styles.section} ${styles.column}`}>
+              <h2 className={styles.heading}>
+                <span className={styles.kicker}>{category}</span>
+              </h2>
+              <div className={styles.columnGrid}>
+                {articles.slice(0, 5).map((a) => (
+                  <ArticleCard key={a.id} article={a} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       ))}
+
+      <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
+      <footer className={styles.footer}>
+        <nav className={styles.footerNav}>
+          {CATEGORIES.map((c) => (
+            <Link key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
+              {c}
+            </Link>
+          ))}
+        </nav>
+      </footer>
     </div>
   );
 }
