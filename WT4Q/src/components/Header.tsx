@@ -13,7 +13,9 @@ import styles from './Header.module.css';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  // Start hidden to match the server-rendered markup and avoid hydration mismatches.
+  // The header visibility is then adjusted on the client based on the scroll position.
+  const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -28,6 +30,9 @@ export default function Header() {
       }
       lastY = y;
     };
+
+    // Run once on mount to ensure the initial visibility matches the scroll position.
+    onScroll();
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
