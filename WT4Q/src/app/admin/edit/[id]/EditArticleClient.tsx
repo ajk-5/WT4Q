@@ -173,7 +173,7 @@ export default function EditArticleClient({ id }: { id: string }) {
           className={styles.input}
         />
         <textarea
-          placeholder="Embeded code"
+          placeholder="Embedded code"
           value={embededCode}
           onChange={(e) => setEmbededCode(e.target.value)}
           rows={3}
