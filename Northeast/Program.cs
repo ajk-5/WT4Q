@@ -12,13 +12,17 @@ using Northeast.Middlewares;
 using Northeast.Repository;
 using Northeast.Utilities;
 using System.Text;
+using System.Text.Json.Serialization;
 using Northeast.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var originsPolicy = "AuthorizedApps";
 
 // --- Add Services ---
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
