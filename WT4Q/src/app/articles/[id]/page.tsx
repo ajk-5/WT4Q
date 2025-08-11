@@ -7,20 +7,19 @@ import LikeButton from '@/components/LikeButton';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
+import type { ArticleImage } from '@/lib/models';
 
 /* ---------------------- types ---------------------- */
 
 interface ArticleDetails {
   id: string;
   title: string;
-  description: string;
+  content: string;
   createdDate: string;
   isBreakingNews?: boolean;
   countryName?: string;
-  photo?: string[];           // base64 JPEGs from API
-  photoLink?: string;         // remote or relative URL
+  image?: ArticleImage;       // includes photo, photoLink, altText, caption
   embededCode?: string;
-  altText?: string;
   author?: { adminName?: string };
   comments?: Comment[];
   like?: { id: number }[];
@@ -60,7 +59,16 @@ async function fetchArticle(id: string): Promise<ArticleDetails | null> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), { cache: 'no-store' });
     if (!res.ok) return null;
-    return (await res.json()) as ArticleDetails;
+    const raw = await res.json();
+    return {
+      ...raw,
+      image: {
+        photo: raw.photo,
+        photoLink: raw.photoLink,
+        altText: raw.altText,
+        caption: raw.caption,
+      },
+    } as ArticleDetails;
   } catch {
     return null;
   }
@@ -88,12 +96,12 @@ export async function generateMetadata(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const url = new URL(`/articles/${id}`, siteUrl).toString();
 
-  const description = (article.description || '').slice(0, 160);
+  const description = (article.content || '').slice(0, 160);
 
   // Prefer a proper, reachable URL for OG (many scrapers ignore data:)
   let ogImage: string | undefined = undefined;
-  if (article.photoLink && isValidImageForNextImage(article.photoLink)) {
-    ogImage = toAbsoluteIfRelative(article.photoLink, siteUrl);
+  if (article.image?.photoLink && isValidImageForNextImage(article.image.photoLink)) {
+    ogImage = toAbsoluteIfRelative(article.image.photoLink, siteUrl);
   }
   // (If needed, you could generate and host an OG preview, then set ogImage)
 
@@ -131,12 +139,15 @@ export default async function ArticlePage(
 
   // Prefer a single image source with a safe fallback path
   const base64Image =
-    article.photo?.[0] ? `data:image/jpeg;base64,${article.photo[0]}` : undefined;
+    article.image?.photo?.[0]
+      ? `data:image/jpeg;base64,${article.image.photo[0]}`
+      : undefined;
 
   // Only use remote photoLink with <Image> if host is allowed; otherwise fall back
-  const validPhotoLinkForNext = article.photoLink && isValidImageForNextImage(article.photoLink)
-    ? article.photoLink
-    : undefined;
+  const validPhotoLinkForNext =
+    article.image?.photoLink && isValidImageForNextImage(article.image.photoLink)
+      ? article.image.photoLink
+      : undefined;
 
   // Choose what to render
   const imageSrc = validPhotoLinkForNext ?? base64Image;
@@ -170,31 +181,38 @@ export default async function ArticlePage(
           {article.countryName ? ` | ${article.countryName}` : ''}
           {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
         </p>
-        {imageSrc && (shouldUseNextImage ? (
-          <Image
+        {imageSrc && (
+          <figure className={styles.figure}>
+            {shouldUseNextImage ? (
+              <Image
             src={imageSrc}
-            alt={article.altText || article.title}
+            alt={article.image?.altText || article.title}
             className={styles.image}
             width={700}
             height={400}
             unoptimized={imageSrc.startsWith('data:')}
-          />
-        ) : (
-          <img
+              />
+            ) : (
+              <img
             src={imageSrc}
-            alt={article.altText || article.title}
+            alt={article.image?.altText || article.title}
             className={styles.image}
             width={700}
             height={400}
           />
-        ))}
+            )}
+            {article.image?.caption && (
+              <figcaption className={styles.caption}>{article.image.caption}</figcaption>
+            )}
+          </figure>
+        )}
         {article.embededCode && (
           <div
             className={styles.embed}
             dangerouslySetInnerHTML={{ __html: article.embededCode }}
           />
         )}
-        <p className={styles.content}>{article.description}</p>
+        <p className={styles.content}>{article.content}</p>
         <LikeButton articleId={id} initialCount={article.like?.length ?? 0} />
         <CommentsSection
           articleId={id}

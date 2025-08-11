@@ -1,6 +1,8 @@
 // app/page.tsx
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
+import type { BreakingArticle } from '@/components/BreakingNewsSlider';
+import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import type { Metadata } from 'next';
@@ -27,11 +29,22 @@ async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   }
 }
 
-async function fetchBreakingNews(): Promise<{ id: string; title: string }[]> {
+async function fetchBreakingNews(): Promise<BreakingArticle[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { cache: 'no-store' });
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    return (data || []).map((a: any) => ({
+      id: a.id,
+      title: a.title,
+      content: a.content,
+      image: {
+        photo: a.photo,
+        photoLink: a.photoLink,
+        altText: a.altText,
+        caption: a.caption,
+      } as ArticleImage,
+    }));
   } catch {
     return [];
   }

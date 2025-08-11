@@ -18,7 +18,7 @@ namespace Northeast.DTOs
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public string Description { get; set; }
+        public string Content { get; set; }
 
         public bool IsBreakingNews { get; set; } = false;
 
@@ -26,6 +26,7 @@ namespace Northeast.DTOs
         public string? PhotoLink { get; set; }
         public string? EmbededCode { get; set; }
         public string? AltText { get; set; }
+        public string? Caption { get; set; }
 
         public string? CountryName { get; set; }
 

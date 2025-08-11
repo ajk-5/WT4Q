@@ -19,7 +19,7 @@ namespace Northeast.Services
             var cocktail = new Cocktail
             {
                 Name = dto.Name,
-                description = dto.Description,
+                Content = dto.Content,
                 Ingridients = dto.Ingredients.Select(i => new Ingridient { Name = i.Name }).ToList(),
                 IngredientQuantities = dto.Ingredients.Select(i => new IngridientQuantity
                 {
@@ -43,7 +43,7 @@ namespace Northeast.Services
             if (cocktail == null) return;
 
             cocktail.Name = dto.Name;
-            cocktail.description = dto.Description;
+            cocktail.Content = dto.Content;
             cocktail.Ingridients = dto.Ingredients.Select(i => new Ingridient { Name = i.Name }).ToList();
             cocktail.IngredientQuantities = dto.Ingredients.Select(i => new IngridientQuantity
             {

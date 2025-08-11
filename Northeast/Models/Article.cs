@@ -22,7 +22,7 @@ namespace Northeast.Models
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]
-        public string Description { get; set; }
+        public string Content { get; set; }
 
         [DefaultValue(false)]
         public bool IsBreakingNews { get; set; } = false;
@@ -31,6 +31,7 @@ namespace Northeast.Models
         public string? PhotoLink { get; set; }
         public string? EmbededCode { get; set; }
         public string? AltText { get; set; }
+        public string? Caption { get; set; }
         public List<Comment>? Comments { get; set; }= new List<Comment>();
         public ICollection<LikeEntity>? Like { get; set; }=new List<LikeEntity>();
 

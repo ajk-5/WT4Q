@@ -18,7 +18,7 @@ namespace Northeast.Controllers
         public async Task<IActionResult> Filter(
             [FromQuery] Guid? id,
             [FromQuery] string? title,
-            [FromQuery] string? description,
+            [FromQuery] string? content,
             [FromQuery] DateTime? date,
             [FromQuery] ArticleType? type,
             [FromQuery] Category? category,
@@ -27,7 +27,7 @@ namespace Northeast.Controllers
             [FromQuery] string? countryCode,
             [FromQuery] string? keyword)
         {
-            var results = await _articleServices.FilterArticles(id, title, description, date, type, category, authorId, countryName, countryCode, keyword);
+            var results = await _articleServices.FilterArticles(id, title, content, date, type, category, authorId, countryName, countryCode, keyword);
             if (!results.Any())
             {
                 return NotFound(new { message = "No articles found" });

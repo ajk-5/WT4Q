@@ -30,7 +30,7 @@ namespace Northeast.Repository
             return await _context.Articles.AsNoTracking()
                 .Where(a =>
                     a.Title.ToLower().Contains(query) ||
-                    a.Description.ToLower().Contains(query) ||
+                    a.Content.ToLower().Contains(query) ||
                     (a.CountryName != null && a.CountryName.ToLower().Contains(query)) ||
                     (a.CountryCode != null && a.CountryCode.ToLower().Contains(query)) ||
                     (a.Keywords != null && a.Keywords.Any(k => k.ToLower().Contains(query))))
@@ -86,7 +86,7 @@ namespace Northeast.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Article>> Filter(Guid? id, string? title, string? description,
+        public async Task<IEnumerable<Article>> Filter(Guid? id, string? title, string? content,
             DateTime? date, ArticleType? type, Category? category, Guid? authorId,
             string? countryName, string? countryCode, string? keyword)
         {
@@ -103,10 +103,10 @@ namespace Northeast.Repository
                 queryable = queryable.Where(a => a.Title.ToLower().Contains(lower));
             }
 
-            if (!string.IsNullOrWhiteSpace(description))
+            if (!string.IsNullOrWhiteSpace(content))
             {
-                var lower = description.ToLower();
-                queryable = queryable.Where(a => a.Description.ToLower().Contains(lower));
+                var lower = content.ToLower();
+                queryable = queryable.Where(a => a.Content.ToLower().Contains(lower));
             }
 
             if (date.HasValue)
@@ -234,9 +234,9 @@ namespace Northeast.Repository
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(article.Description))
+            if (!string.IsNullOrWhiteSpace(article.Content))
             {
-                foreach (var t in Tokenize(article.Description))
+                foreach (var t in Tokenize(article.Content))
                 {
                     tokens.Add(t);
                 }

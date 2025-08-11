@@ -48,12 +48,13 @@ namespace Northeast.Services
                 Category= articleDto.Category,
                 CreatedDate = DateTime.UtcNow,
                 ArticleType= articleDto.ArticleType,
-                Description= articleDto.Description,
+                Content= articleDto.Content,
                 IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews,
                 Photo = articleDto.Photo ?? null,
                 PhotoLink = articleDto.PhotoLink,
                 EmbededCode = articleDto.EmbededCode,
                 AltText= articleDto.AltText ?? null,
+                Caption = articleDto.Caption ?? null,
                 Keywords=articleDto.Keyword ?? null,
 
             };
@@ -94,11 +95,11 @@ namespace Northeast.Services
             return await _articleRepository.SearchByAuthor(authorId);
         }
 
-        public async Task<IEnumerable<Article>> FilterArticles(Guid? id, string? title, string? description,
+        public async Task<IEnumerable<Article>> FilterArticles(Guid? id, string? title, string? content,
             DateTime? date, ArticleType? type, Category? category, Guid? authorId,
             string? countryName, string? countryCode, string? keyword)
         {
-            return await _articleRepository.Filter(id, title, description, date, type, category, authorId, countryName, countryCode, keyword);
+            return await _articleRepository.Filter(id, title, content, date, type, category, authorId, countryName, countryCode, keyword);
         }
 
         public async Task<IEnumerable<Article>> GetRelatedArticles(Guid articleId, int count = 5)
@@ -132,12 +133,13 @@ namespace Northeast.Services
             article.Title = articleDto.Title;
             article.Category = articleDto.Category;
             article.ArticleType = articleDto.ArticleType;
-            article.Description = articleDto.Description;
+            article.Content = articleDto.Content;
             article.IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews;
             article.Photo = articleDto.Photo;
             article.PhotoLink = articleDto.PhotoLink;
             article.EmbededCode = articleDto.EmbededCode;
             article.AltText = articleDto.AltText;
+            article.Caption = articleDto.Caption;
             article.Keywords = articleDto.Keyword ?? null;
 
             if (articleDto.ArticleType == 0)
