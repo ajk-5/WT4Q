@@ -134,12 +134,13 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-// Apply any pending migrations at startup
+// Ensure database is up to date on startup
+await app.Services.ApplyMigrationsAsync();
+
+// Seed a SuperAdmin user if credentials are provided
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
-
     var email = builder.Configuration["SuperAdmin:Email"];
     var password = builder.Configuration["SuperAdmin:Password"];
     if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
