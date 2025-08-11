@@ -14,6 +14,7 @@ import type { ArticleImage } from '@/lib/models';
 interface ArticleDetails {
   id: string;
   title: string;
+  summary?: string;
   content: string;
   createdDate: string;
   isBreakingNews?: boolean;
@@ -88,7 +89,8 @@ export async function generateMetadata(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const url = new URL(`/articles/${id}`, siteUrl).toString();
 
-  const description = (article.content || '').slice(0, 160);
+  const description =
+    article.summary || (article.content || '').slice(0, 160);
 
   // Prefer a proper, reachable URL for OG (many scrapers ignore data:)
   let ogImage: string | undefined = undefined;
@@ -137,6 +139,9 @@ export default async function ArticlePage(
           <div className={styles.breaking}>Breaking News</div>
         )}
         <h1 className={styles.title}>{article.title}</h1>
+        {article.summary && (
+          <p className={styles.summary}>{article.summary}</p>
+        )}
         <p className={styles.meta}>
           {new Date(article.createdDate).toLocaleDateString(undefined, {
             year: 'numeric',
