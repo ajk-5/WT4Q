@@ -13,14 +13,14 @@ import styles from './Header.module.css';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [hidden, setHidden] = useState(true);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
       if (y < 50) {
-        setHidden(true);
+        setHidden(false);
       } else if (y < lastY) {
         setHidden(false);
       } else if (y > lastY) {
