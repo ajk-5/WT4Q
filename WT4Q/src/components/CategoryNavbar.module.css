@@ -4,9 +4,10 @@
   gap: 1rem;
   overflow: visible;
   padding: 0.5rem 1rem;
-  font-family: 'Inter', sans-serif;
+  
   border-radius: 0 0 var(--radius) var(--radius);
-  color: #847494;
+   color: #0c0248;
+   font-family: "Georgia", "Times New Roman", serif;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   perspective: 500px;
   z-index: 0;
@@ -21,7 +22,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(202, 202, 222, 0.197);
+  background: rgba(202, 202, 222, 0);
   z-index: -1;
   border-radius: inherit;
 }
