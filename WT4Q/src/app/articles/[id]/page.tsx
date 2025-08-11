@@ -170,24 +170,24 @@ export default async function ArticlePage(
           {article.countryName ? ` | ${article.countryName}` : ''}
           {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
         </p>
-        {(() => {
-          const imageSrc =
-            article.photoLink ||
-            (article.photo?.[0]
-              ? `data:image/jpeg;base64,${article.photo[0]}`
-              : undefined);
-          if (!imageSrc) return null;
-          return (
-            <Image
-              src={imageSrc}
-              alt={article.altText || article.title}
-              className={styles.image}
-              width={700}
-              height={400}
-              unoptimized={imageSrc.startsWith('data:')}
-            />
-          );
-        })()}
+        {imageSrc && (shouldUseNextImage ? (
+          <Image
+            src={imageSrc}
+            alt={article.altText || article.title}
+            className={styles.image}
+            width={700}
+            height={400}
+            unoptimized={imageSrc.startsWith('data:')}
+          />
+        ) : (
+          <img
+            src={imageSrc}
+            alt={article.altText || article.title}
+            className={styles.image}
+            width={700}
+            height={400}
+          />
+        ))}
         {article.embededCode && (
           <div
             className={styles.embed}
@@ -195,12 +195,15 @@ export default async function ArticlePage(
           />
         )}
         <p className={styles.content}>{article.description}</p>
-        <LikeButton articleId={id} initialCount={article.like?.length || 0} />
-        <CommentsSection articleId={id} initialComments={article.comments || []} />
+        <LikeButton articleId={id} initialCount={article.like?.length ?? 0} />
+        <CommentsSection
+          articleId={id}
+          initialComments={article.comments ?? []}
+        />
       </article>
       {related.length > 0 && (
         <aside className={styles.sidebar}>
-          <h2 className={styles.relatedHeading}>Related Articles</h2>
+          <h2 className={styles.relatedHeading}>Recommended Articles</h2>
           {related.map((a) => (
             <ArticleCard key={a.id} article={a} />
           ))}
