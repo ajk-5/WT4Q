@@ -1,3 +1,5 @@
+"use client";
+
 import PrefetchLink from './PrefetchLink';
 import { CATEGORIES } from '@/lib/categories';
 import HomeIcon from './HomeIcon';
