@@ -155,60 +155,6 @@ export default async function ArticlePage(
   })();
 
   return (
-<<<<<<< HEAD
-    <div className={styles.container}>
-      {isBreakingActive && <div className={styles.breaking}>Breaking News</div>}
-
-      <h1 className={styles.title}>{article.title}</h1>
-
-      <p className={styles.meta}>
-        {new Date(article.createdDate).toLocaleDateString(undefined, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}
-        {article.countryName ? ` | ${article.countryName}` : ''}
-        {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
-      </p>
-
-      {imageSrc && (shouldUseNextImage ? (
-        <Image
-          src={imageSrc}
-          alt={article.altText || article.title}
-          className={styles.image}
-          width={700}
-          height={400}
-          unoptimized={imageSrc.startsWith('data:')}
-          // priority // uncomment if you want LCP boost
-        />
-      ) : (
-        // Plain <img> as a never-crash fallback for any unforeseen hosts
-        <img
-          src={imageSrc}
-          alt={article.altText || article.title}
-          className={styles.image}
-          width={700}
-          height={400}
-        />
-      ))}
-
-      {article.embededCode && (
-        <div
-          className={styles.embed}
-          dangerouslySetInnerHTML={{ __html: article.embededCode }}
-        />
-      )}
-
-      <p className={styles.content}>{article.description}</p>
-
-      <LikeButton articleId={id} initialCount={article.like?.length ?? 0} />
-
-      <CommentsSection
-        articleId={id}
-        initialComments={article.comments ?? []}
-      />
-
-=======
     <div className={styles.newspaper}>
       <article className={styles.main}>
         {isBreakingActive && (
@@ -252,7 +198,6 @@ export default async function ArticlePage(
         <LikeButton articleId={id} initialCount={article.like?.length || 0} />
         <CommentsSection articleId={id} initialComments={article.comments || []} />
       </article>
->>>>>>> 28fe6193bc7c305d72ede65af682fbbd85f57b7b
       {related.length > 0 && (
         <aside className={styles.sidebar}>
           <h2 className={styles.relatedHeading}>Related Articles</h2>

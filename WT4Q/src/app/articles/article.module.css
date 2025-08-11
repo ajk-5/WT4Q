@@ -1,7 +1,7 @@
 
 /* Container for the article page with a newspaper-like layout */
 .newspaper {
-  color: var(--ink);
+  color: #000;
   padding: 1.5rem clamp(1rem, 3vw, 1rem) 2rem;
   margin: 0 auto;
   max-width: 1900px;
@@ -61,11 +61,11 @@
   margin-bottom: 1rem;
   font-size: 1.25rem;
   font-weight: bold;
-  color: var(--primary);
+  color: var(--ink);
 }
 
 .breaking {
-  background: red;
+  background: rgb(8, 0, 255);
   color: #fff;
   padding: 0.25rem 0.5rem;
   font-weight: bold;
