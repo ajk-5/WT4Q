@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
-import { CATEGORIES } from '@/lib/categories';
+import { UPLOADCATEGORIES } from '@/lib/categories';
 import styles from './dashboard.module.css';
 import countries from '../../../../public/datas/Countries.json';
 
@@ -93,7 +93,7 @@ export default function DashboardClient() {
 
         const body = {
           title,
-          category: category ? CATEGORIES.indexOf(category) + 1 : 0,
+          category: category ? UPLOADCATEGORIES.indexOf(category) + 1 : 0,
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
           createdDate: new Date().toISOString(),
           description,
@@ -275,7 +275,7 @@ export default function DashboardClient() {
           <option value="" disabled>
             Select Category
           </option>
-          {CATEGORIES.map((c) => (
+          {UPLOADCATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
