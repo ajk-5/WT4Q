@@ -7,6 +7,5 @@ export const CATEGORIES = [
 
   'Business',
   'Technology',
-  'Adult',
   'Sports',
 ];

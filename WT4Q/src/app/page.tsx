@@ -1,12 +1,12 @@
 // app/page.tsx
 import ArticleCard, { Article } from '@/components/ArticleCard';
-import Hero from '@/components/Hero';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import styles from './page.module.css';
+import WeatherWidget from '@/components/WeatherWidget';
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -75,6 +75,9 @@ export default async function Home() {
             <p className={styles.tagline}>All the News That Matters</p>
           </div>
           <div className={styles.dateline}>{dateline}</div>
+          <div className={styles.weather}>
+            <WeatherWidget />
+          </div>
         </div>
       </header>
 

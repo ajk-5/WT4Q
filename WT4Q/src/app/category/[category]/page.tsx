@@ -1,5 +1,4 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
-import AgeGate from '@/components/AgeGate';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../category.module.css';
@@ -40,7 +39,7 @@ export default async function CategoryPage({
 }) {
   const { category } = await params;
   const articles = await fetchArticles(category);
-  const content = (
+  return (
     <div className={styles.container}>
       <h1 className={styles.title}>{category}</h1>
       <div className={styles.grid}>
@@ -50,10 +49,4 @@ export default async function CategoryPage({
       </div>
     </div>
   );
-
-  if (category.toLowerCase() === 'adult') {
-    return <AgeGate storageKey="adultVerified">{content}</AgeGate>;
-  }
-
-  return content;
 }
