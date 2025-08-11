@@ -40,12 +40,12 @@ namespace Northeast.Data
                 .HasForeignKey(a => a.AuthorId);
 
             modelBuilder.Entity<Article>()
-                .HasOne(a => a.Image)
+                .HasMany(a => a.Images)
                 .WithOne(i => i.Article)
-                .HasForeignKey<ArticleImage>(i => i.ArticleId);
+                .HasForeignKey(i => i.ArticleId);
 
             modelBuilder.Entity<Article>()
-                .Navigation(a => a.Image)
+                .Navigation(a => a.Images)
                 .AutoInclude();
 
             modelBuilder.Entity<Comment>()

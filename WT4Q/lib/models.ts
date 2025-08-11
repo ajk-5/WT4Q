@@ -1,5 +1,5 @@
 export interface ArticleImage {
-  photo?: string[];
+  photo?: string;
   photoLink?: string;
   altText?: string;
   caption?: string;

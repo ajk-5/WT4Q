@@ -22,7 +22,7 @@ namespace Northeast.DTOs
 
         public bool IsBreakingNews { get; set; } = false;
 
-        public ArticleImageDto? Image { get; set; }
+        public List<ArticleImageDto>? Images { get; set; }
         public string? EmbededCode { get; set; }
 
         public string? CountryName { get; set; }

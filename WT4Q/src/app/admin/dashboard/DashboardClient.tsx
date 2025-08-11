@@ -5,8 +5,6 @@ import {
   useEffect,
   FormEvent,
   useTransition,
-  useRef,
-  ChangeEvent,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -23,18 +21,16 @@ export default function DashboardClient() {
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoLink, setPhotoLink] = useState('');
+  const [images, setImages] = useState<{ file?: File; link: string; altText: string; caption: string; }[]>([
+    { link: '', altText: '', caption: '' }
+  ]);
   const [embededCode, setEmbededCode] = useState('');
-  const [altText, setAltText] = useState('');
-  const [caption, setCaption] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [isBreakingNews, setIsBreakingNews] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [articles, setArticles] = useState<{ id: string; title: string }[]>([]);
 
   useEffect(() => {
@@ -74,23 +70,39 @@ export default function DashboardClient() {
     setSuccess(null);
     startTransition(async () => {
       try {
-        const photosBase64 = photos.length
-          ? await Promise.all(
-              photos.map(
-                (file) =>
-                  new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      const result = reader.result as string;
-                      const base64 = result.split(',')[1];
-                      resolve(base64);
-                    };
-                    reader.onerror = () => reject(reader.error);
-                    reader.readAsDataURL(file);
-                  })
-              )
-            )
-          : undefined;
+        const imagesPayload = (
+          await Promise.all(
+            images.map(async (img) => {
+              if (img.file && img.link) {
+                throw new Error('Provide either a file or a link for each image');
+              }
+              if (img.file) {
+                const base64 = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const result = reader.result as string;
+                    resolve(result.split(',')[1]);
+                  };
+                  reader.onerror = () => reject(reader.error);
+                  reader.readAsDataURL(img.file!);
+                });
+                return {
+                  photo: base64,
+                  altText: img.altText || undefined,
+                  caption: img.caption || undefined,
+                };
+              }
+              if (img.link) {
+                return {
+                  photoLink: img.link,
+                  altText: img.altText || undefined,
+                  caption: img.caption || undefined,
+                };
+              }
+              return null;
+            })
+          )
+        ).filter(Boolean);
 
         const body = {
           title,
@@ -98,12 +110,7 @@ export default function DashboardClient() {
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
           createdDate: new Date().toISOString(),
           content,
-          image: {
-            photo: photosBase64,
-            photoLink: photoLink || undefined,
-            altText: altText || undefined,
-            caption: caption || undefined,
-          },
+          images: imagesPayload,
           embededCode: embededCode || undefined,
           isBreakingNews,
           countryName: countryName || undefined,
@@ -128,11 +135,8 @@ export default function DashboardClient() {
         setType('');
         setCategory('');
         setKeywords('');
-        setPhotos([]);
-        setPhotoLink('');
+        setImages([{ link: '', altText: '', caption: '' }]);
         setEmbededCode('');
-        setAltText('');
-        setCaption('');
         setCountryName('');
         setCountryCode('');
         setIsBreakingNews(false);
@@ -142,14 +146,6 @@ export default function DashboardClient() {
         else setError('Failed to publish');
       }
     });
-  };
-
-  const handlePhotoSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length) {
-      setPhotos((prev) => [...prev, ...files]);
-      e.target.value = '';
-    }
   };
 
   return (
@@ -177,50 +173,71 @@ export default function DashboardClient() {
           className={styles.textarea}
           required
         />
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handlePhotoSelect}
-          className={styles.input}
-          style={{ display: 'none' }}
-        />
+        {images.map((img, idx) => (
+          <div key={idx} className={styles.imageGroup}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setImages((prev) => {
+                  const copy = [...prev];
+                  copy[idx].file = file || undefined;
+                  return copy;
+                });
+              }}
+              className={styles.input}
+            />
+            <input
+              type="text"
+              placeholder="Link to photo"
+              value={img.link}
+              onChange={(e) =>
+                setImages((prev) => {
+                  const copy = [...prev];
+                  copy[idx].link = e.target.value;
+                  return copy;
+                })
+              }
+              className={styles.input}
+            />
+            <input
+              type="text"
+              placeholder="Alt text"
+              value={img.altText}
+              onChange={(e) =>
+                setImages((prev) => {
+                  const copy = [...prev];
+                  copy[idx].altText = e.target.value;
+                  return copy;
+                })
+              }
+              className={styles.input}
+            />
+            <input
+              type="text"
+              placeholder="Caption"
+              value={img.caption}
+              onChange={(e) =>
+                setImages((prev) => {
+                  const copy = [...prev];
+                  copy[idx].caption = e.target.value;
+                  return copy;
+                })
+              }
+              className={styles.input}
+            />
+          </div>
+        ))}
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() =>
+            setImages((prev) => [...prev, { link: '', altText: '', caption: '' }])
+          }
           className={styles.button}
         >
-          Add Photo
+          Add Image
         </button>
-        {photos.length > 0 && (
-          <ul className={styles.list}>
-            {photos.map((p, i) => (
-              <li key={i}>{p.name}</li>
-            ))}
-          </ul>
-        )}
-        <input
-          type="text"
-          placeholder="Alt text"
-          value={altText}
-          onChange={(e) => setAltText(e.target.value)}
-          className={styles.input}
-        />
-        <input
-          type="text"
-          placeholder="Caption"
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          className={styles.input}
-        />
-        <input
-          type="text"
-          placeholder="Link to photo"
-          value={photoLink}
-          onChange={(e) => setPhotoLink(e.target.value)}
-          className={styles.input}
-        />
         <textarea
           placeholder="Embedded code"
           value={embededCode}

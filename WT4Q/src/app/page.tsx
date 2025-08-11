@@ -38,7 +38,7 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
       id: a.id,
       title: a.title,
       content: a.content,
-      image: a.image as ArticleImage,
+      images: a.images as ArticleImage[],
     }));
   } catch {
     return [];

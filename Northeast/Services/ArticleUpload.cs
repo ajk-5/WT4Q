@@ -52,13 +52,13 @@ namespace Northeast.Services
                 IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews,
                 EmbededCode = articleDto.EmbededCode,
                 Keywords = articleDto.Keyword ?? null,
-                Image = articleDto.Image != null ? new ArticleImage
+                Images = articleDto.Images?.Select(img => new ArticleImage
                 {
-                    Photo = articleDto.Image.Photo,
-                    PhotoLink = articleDto.Image.PhotoLink,
-                    AltText = articleDto.Image.AltText,
-                    Caption = articleDto.Image.Caption
-                } : null,
+                    Photo = img.PhotoLink == null ? img.Photo : null,
+                    PhotoLink = img.PhotoLink,
+                    AltText = img.AltText,
+                    Caption = img.Caption
+                }).ToList(),
             };
             if (articleDto.ArticleType == 0)
             {
@@ -140,17 +140,20 @@ namespace Northeast.Services
             article.EmbededCode = articleDto.EmbededCode;
             article.Keywords = articleDto.Keyword ?? null;
 
-            if (articleDto.Image != null)
+            if (articleDto.Images != null && articleDto.Images.Any())
             {
-                article.Image ??= new ArticleImage { ArticleId = article.Id };
-                article.Image.Photo = articleDto.Image.Photo;
-                article.Image.PhotoLink = articleDto.Image.PhotoLink;
-                article.Image.AltText = articleDto.Image.AltText;
-                article.Image.Caption = articleDto.Image.Caption;
+                article.Images = articleDto.Images.Select(img => new ArticleImage
+                {
+                    ArticleId = article.Id,
+                    Photo = img.PhotoLink == null ? img.Photo : null,
+                    PhotoLink = img.PhotoLink,
+                    AltText = img.AltText,
+                    Caption = img.Caption
+                }).ToList();
             }
             else
             {
-                article.Image = null;
+                article.Images = new List<ArticleImage>();
             }
 
             if (articleDto.ArticleType == 0)
