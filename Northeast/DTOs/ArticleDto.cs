@@ -1,4 +1,4 @@
-﻿using Northeast.Models;
+using Northeast.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace Northeast.DTOs
@@ -22,11 +22,8 @@ namespace Northeast.DTOs
 
         public bool IsBreakingNews { get; set; } = false;
 
-        public List<byte[]>? Photo { get; set; }
-        public string? PhotoLink { get; set; }
+        public ArticleImageDto? Image { get; set; }
         public string? EmbededCode { get; set; }
-        public string? AltText { get; set; }
-        public string? Caption { get; set; }
 
         public string? CountryName { get; set; }
 

@@ -45,26 +45,28 @@ namespace Northeast.Services
             {
                 AuthorId = userId,
                 Title = articleDto.Title,
-                Category= articleDto.Category,
+                Category = articleDto.Category,
                 CreatedDate = DateTime.UtcNow,
-                ArticleType= articleDto.ArticleType,
-                Content= articleDto.Content,
+                ArticleType = articleDto.ArticleType,
+                Content = articleDto.Content,
                 IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews,
-                Photo = articleDto.Photo ?? null,
-                PhotoLink = articleDto.PhotoLink,
                 EmbededCode = articleDto.EmbededCode,
-                AltText= articleDto.AltText ?? null,
-                Caption = articleDto.Caption ?? null,
-                Keywords=articleDto.Keyword ?? null,
-
+                Keywords = articleDto.Keyword ?? null,
+                Image = articleDto.Image != null ? new ArticleImage
+                {
+                    Photo = articleDto.Image.Photo,
+                    PhotoLink = articleDto.Image.PhotoLink,
+                    AltText = articleDto.Image.AltText,
+                    Caption = articleDto.Image.Caption
+                } : null,
             };
             if (articleDto.ArticleType == 0)
             {
                 article.CountryName = articleDto.CountryName ?? "Global";
                 article.CountryCode = articleDto.CountryCode ?? "GL";
             }
-            await _articleRepository.Add(article);  
-            
+            await _articleRepository.Add(article);
+
         }
         public async Task<IEnumerable<Article>> getAllArticle() {
             return await _articleRepository.GetAll();
@@ -135,12 +137,21 @@ namespace Northeast.Services
             article.ArticleType = articleDto.ArticleType;
             article.Content = articleDto.Content;
             article.IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews;
-            article.Photo = articleDto.Photo;
-            article.PhotoLink = articleDto.PhotoLink;
             article.EmbededCode = articleDto.EmbededCode;
-            article.AltText = articleDto.AltText;
-            article.Caption = articleDto.Caption;
             article.Keywords = articleDto.Keyword ?? null;
+
+            if (articleDto.Image != null)
+            {
+                article.Image ??= new ArticleImage { ArticleId = article.Id };
+                article.Image.Photo = articleDto.Image.Photo;
+                article.Image.PhotoLink = articleDto.Image.PhotoLink;
+                article.Image.AltText = articleDto.Image.AltText;
+                article.Image.Caption = articleDto.Image.Caption;
+            }
+            else
+            {
+                article.Image = null;
+            }
 
             if (articleDto.ArticleType == 0)
             {
@@ -156,6 +167,7 @@ namespace Northeast.Services
 
             await _articleRepository.Update(article);
         }
+
 
         public async Task DeleteArticle(Guid Id)
         {

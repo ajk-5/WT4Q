@@ -60,15 +60,7 @@ async function fetchArticle(id: string): Promise<ArticleDetails | null> {
     const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), { cache: 'no-store' });
     if (!res.ok) return null;
     const raw = await res.json();
-    return {
-      ...raw,
-      image: {
-        photo: raw.photo,
-        photoLink: raw.photoLink,
-        altText: raw.altText,
-        caption: raw.caption,
-      },
-    } as ArticleDetails;
+    return raw as ArticleDetails;
   } catch {
     return null;
   }

@@ -53,16 +53,11 @@ export default function EditArticleClient({ id }: { id: string }) {
         setType(ARTICLE_TYPES[data.articleType] ?? '');
         setCategory(CATEGORIES[data.category - 1] ?? '');
         setCreatedDate(data.createdDate.slice(0, 16));
-        const img = data.image || {
-          photo: data.photo,
-          photoLink: data.photoLink,
-          altText: data.altText,
-          caption: data.caption,
-        };
-        setPhotoLink(img.photoLink || '');
+        const img = data.image;
+        setPhotoLink(img?.photoLink || '');
         setEmbededCode(data.embededCode || '');
-        setAltText(img.altText || '');
-        setCaption(img.caption || '');
+        setAltText(img?.altText || '');
+        setCaption(img?.caption || '');
         setCountryName(data.countryName || '');
         setCountryCode(data.countryCode || '');
         setKeywords(data.keywords ? data.keywords.join(', ') : '');
@@ -96,42 +91,44 @@ export default function EditArticleClient({ id }: { id: string }) {
             )
           : undefined;
 
-        const body = {
-          title,
-          category: category ? CATEGORIES.indexOf(category) + 1 : 0,
-          articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
-          createdDate: new Date(createdDate).toISOString(),
-          content,
-          photo: photosBase64,
-          photoLink: photoLink || undefined,
-          embededCode: embededCode || undefined,
-          altText: altText || undefined,
-          caption: caption || undefined,
-          countryName: countryName || undefined,
-          countryCode: countryCode || undefined,
-          keyword: keywords
-            .split(',')
-            .map((k) => k.trim())
-            .filter((k) => k.length > 0),
-        } as Record<string, unknown>;
+          const body = {
+            title,
+            category: category ? CATEGORIES.indexOf(category) + 1 : 0,
+            articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
+            createdDate: new Date(createdDate).toISOString(),
+            content,
+            image: {
+              photo: photosBase64,
+              photoLink: photoLink || undefined,
+              altText: altText || undefined,
+              caption: caption || undefined,
+            },
+            embededCode: embededCode || undefined,
+            countryName: countryName || undefined,
+            countryCode: countryCode || undefined,
+            keyword: keywords
+              .split(',')
+              .map((k) => k.trim())
+              .filter((k) => k.length > 0),
+          } as Record<string, unknown>;
 
-        const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(body),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.message || 'Failed to update');
+          const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(body),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.message || 'Failed to update');
+          }
+          router.push(`/articles/${id}`);
+        } catch (err) {
+          if (err instanceof Error) setError(err.message);
+          else setError('Failed to update');
         }
-        router.push(`/articles/${id}`);
-      } catch (err) {
-        if (err instanceof Error) setError(err.message);
-        else setError('Failed to update');
-      }
-    });
-  };
+      });
+    };
 
   return (
     <div className={styles.container}>

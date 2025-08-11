@@ -38,12 +38,7 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
       id: a.id,
       title: a.title,
       content: a.content,
-      image: {
-        photo: a.photo,
-        photoLink: a.photoLink,
-        altText: a.altText,
-        caption: a.caption,
-      } as ArticleImage,
+      image: a.image as ArticleImage,
     }));
   } catch {
     return [];
