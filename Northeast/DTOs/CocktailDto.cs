@@ -9,7 +9,7 @@ namespace Northeast.DTOs
     public class CocktailDto
     {
         public string Name { get; set; }
-        public string Description { get; set; }
+        public string Content { get; set; }
         public List<CocktailIngredientDto> Ingredients { get; set; } = new();
     }
 }

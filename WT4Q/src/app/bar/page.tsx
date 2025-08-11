@@ -7,7 +7,7 @@ import styles from './bar.module.css';
 interface Cocktail {
   id: number;
   name: string;
-  description: string;
+  content: string;
 }
 
 export default function BarPage() {
@@ -56,7 +56,7 @@ export default function BarPage() {
         {list.map((c) => (
           <li key={c.id} className={styles.item}>
             <h2>{c.name}</h2>
-            <p>{c.description}</p>
+            <p>{c.content}</p>
           </li>
         ))}
       </ul>
