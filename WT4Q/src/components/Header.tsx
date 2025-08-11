@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PrefetchLink from './PrefetchLink';
 import Image from 'next/image';
 import CategoryNavbar from './CategoryNavbar';
@@ -13,31 +13,13 @@ import styles from './Header.module.css';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [hidden, setHidden] = useState(true);
-
-  useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (y < 50) {
-        setHidden(true);
-      } else if (y < lastY) {
-        setHidden(false);
-      } else if (y > lastY) {
-        setHidden(true);
-      }
-      lastY = y;
-    };
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const handleNavigate = () => {
     if (window.innerWidth <= 1024) setOpen(false);
   };
 
   return (
-    <header className={`${styles.header} ${hidden ? styles.hidden : ''}`}>
+    <header className={styles.header}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
         <PrefetchLink href="/" className={styles.logo}>
