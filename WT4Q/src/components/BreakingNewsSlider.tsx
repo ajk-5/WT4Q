@@ -8,7 +8,7 @@ export interface BreakingArticle {
   id: string;
   title: string;
   content?: string;
-  image?: ArticleImage;
+  images?: ArticleImage[];
 }
 
 export default function BreakingNewsSlider({
@@ -33,10 +33,9 @@ export default function BreakingNewsSlider({
   if (articles.length === 0) return null;
 
   const current = articles[index];
-  const base64 = current?.image?.photo?.[0]
-    ? `data:image/jpeg;base64,${current.image.photo[0]}`
-    : undefined;
-  const imageSrc = current?.image?.photoLink || base64;
+  const first = current.images?.[0];
+  const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
+  const imageSrc = first?.photoLink || base64;
 
   return (
     <div className={`${styles.slider} ${className ?? ''}`.trim()}>
@@ -46,11 +45,11 @@ export default function BreakingNewsSlider({
             <figure className={styles.detailFigure}>
               <img
                 src={imageSrc}
-                alt={current.image?.altText || current.title}
+                alt={first?.altText || current.title}
                 className={styles.detailImage}
               />
-              {current.image?.caption && (
-                <figcaption className={styles.detailCaption}>{current.image.caption}</figcaption>
+              {first?.caption && (
+                <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
               )}
             </figure>
           )}

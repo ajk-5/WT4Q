@@ -18,7 +18,7 @@ interface ArticleDetails {
   createdDate: string;
   isBreakingNews?: boolean;
   countryName?: string;
-  image?: ArticleImage;       // includes photo, photoLink, altText, caption
+  images?: ArticleImage[];
   embededCode?: string;
   author?: { adminName?: string };
   comments?: Comment[];
@@ -92,8 +92,9 @@ export async function generateMetadata(
 
   // Prefer a proper, reachable URL for OG (many scrapers ignore data:)
   let ogImage: string | undefined = undefined;
-  if (article.image?.photoLink && isValidImageForNextImage(article.image.photoLink)) {
-    ogImage = toAbsoluteIfRelative(article.image.photoLink, siteUrl);
+  const firstImg = article.images?.[0];
+  if (firstImg?.photoLink && isValidImageForNextImage(firstImg.photoLink)) {
+    ogImage = toAbsoluteIfRelative(firstImg.photoLink, siteUrl);
   }
   // (If needed, you could generate and host an OG preview, then set ogImage)
 
@@ -129,34 +130,6 @@ export default async function ArticlePage(
 
   const related = await fetchRelated(id);
 
-  // Prefer a single image source with a safe fallback path
-  const base64Image =
-    article.image?.photo?.[0]
-      ? `data:image/jpeg;base64,${article.image.photo[0]}`
-      : undefined;
-
-  // Only use remote photoLink with <Image> if host is allowed; otherwise fall back
-  const validPhotoLinkForNext =
-    article.image?.photoLink && isValidImageForNextImage(article.image.photoLink)
-      ? article.image.photoLink
-      : undefined;
-
-  // Choose what to render
-  const imageSrc = validPhotoLinkForNext ?? base64Image;
-
-  // Decide whether to use <Image> (safe) or plain <img> (fallback for unexpected hosts)
-  const shouldUseNextImage = (() => {
-    if (!imageSrc) return false;
-    if (imageSrc.startsWith('data:image/')) return true; // allowed with unoptimized
-    if (imageSrc.startsWith('/')) return true;
-    try {
-      const u = new URL(imageSrc);
-      return (u.protocol === 'http:' || u.protocol === 'https:') && ALLOWED_IMAGE_HOSTS.has(u.hostname);
-    } catch {
-      return false;
-    }
-  })();
-
   return (
     <div className={styles.newspaper}>
       <article className={styles.main}>
@@ -173,30 +146,43 @@ export default async function ArticlePage(
           {article.countryName ? ` | ${article.countryName}` : ''}
           {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
         </p>
-        {imageSrc && (
-          <figure className={styles.figure}>
-            {shouldUseNextImage ? (
-              <Image
-            src={imageSrc}
-            alt={article.image?.altText || article.title}
-            className={styles.image}
-            width={700}
-            height={400}
-            unoptimized={imageSrc.startsWith('data:')}
-              />
-            ) : (
-              <img
-            src={imageSrc}
-            alt={article.image?.altText || article.title}
-            className={styles.image}
-            width={700}
-            height={400}
-          />
-            )}
-            {article.image?.caption && (
-              <figcaption className={styles.caption}>{article.image.caption}</figcaption>
-            )}
-          </figure>
+        {article.images && article.images.length > 0 && (
+          <div className={article.images.length > 1 ? styles.gallery : undefined}>
+            {article.images.map((img, idx) => {
+              const base64 = img.photo ? `data:image/jpeg;base64,${img.photo}` : undefined;
+              const validLink = img.photoLink && isValidImageForNextImage(img.photoLink)
+                ? img.photoLink
+                : undefined;
+              const src = validLink ?? base64;
+              if (!src) return null;
+              const useNext = isValidImageForNextImage(src);
+              return (
+                <figure key={idx} className={styles.figure}>
+                  {useNext ? (
+                    <Image
+                      src={src}
+                      alt={img.altText || article.title}
+                      className={styles.image}
+                      width={700}
+                      height={400}
+                      unoptimized={src.startsWith('data:')}
+                    />
+                  ) : (
+                    <img
+                      src={src}
+                      alt={img.altText || article.title}
+                      className={styles.image}
+                      width={700}
+                      height={400}
+                    />
+                  )}
+                  {img.caption && (
+                    <figcaption className={styles.caption}>{img.caption}</figcaption>
+                  )}
+                </figure>
+              );
+            })}
+          </div>
         )}
         {article.embededCode && (
           <div
