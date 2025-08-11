@@ -32,3 +32,35 @@
 .active {
   background: #fff;
 }
+
+.detail {
+  text-align: left;
+}
+
+.detailImage {
+  width: 100%;
+  height: auto;
+}
+
+.detailFigure {
+  margin: 0 0 0.5rem 0;
+}
+
+.detailCaption {
+  font-size: 0.75rem;
+  color: #555;
+  text-align: center;
+}
+
+.detailTitle {
+  margin: 0.5rem 0;
+}
+
+.snippet {
+  margin: 0.5rem 0;
+}
+
+.readMore {
+  color: var(--ink);
+  text-decoration: underline;
+}

@@ -32,6 +32,9 @@ namespace Northeast.Migrations
                     b.Property<string>("AltText")
                         .HasColumnType("text");
 
+                    b.Property<string>("Caption")
+                        .HasColumnType("text");
+
                     b.Property<int>("ArticleType")
                         .HasColumnType("integer");
 
@@ -50,7 +53,7 @@ namespace Northeast.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -92,7 +95,7 @@ namespace Northeast.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("description")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 

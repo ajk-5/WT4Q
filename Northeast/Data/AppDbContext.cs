@@ -19,6 +19,7 @@ namespace Northeast.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Article> Articles { get; set; }
+        public DbSet<ArticleImage> ArticleImages { get; set; }
         public DbSet<IdToken> IdTokens { get; set; }
         public DbSet<LikeEntity> Likes { get; set; }
         public DbSet<OTP> OTPs { get; set; }
@@ -38,6 +39,15 @@ namespace Northeast.Data
                 .WithMany(u => u.Articles)
                 .HasForeignKey(a => a.AuthorId);
 
+            modelBuilder.Entity<Article>()
+                .HasOne(a => a.Image)
+                .WithOne(i => i.Article)
+                .HasForeignKey<ArticleImage>(i => i.ArticleId);
+
+            modelBuilder.Entity<Article>()
+                .Navigation(a => a.Image)
+                .AutoInclude();
+
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)
                 .WithMany()
@@ -45,4 +55,3 @@ namespace Northeast.Data
         }
     }
 }
-

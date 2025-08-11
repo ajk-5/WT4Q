@@ -20,7 +20,7 @@ namespace Northeast.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: false)
+                    Content = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -89,12 +89,13 @@ namespace Northeast.Migrations
                     Category = table.Column<int>(type: "integer", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
                     IsBreakingNews = table.Column<bool>(type: "boolean", nullable: false),
                     Photo = table.Column<List<byte[]>>(type: "bytea[]", nullable: true),
                     PhotoLink = table.Column<string>(type: "text", nullable: true),
                     EmbededCode = table.Column<string>(type: "text", nullable: true),
                     AltText = table.Column<string>(type: "text", nullable: true),
+                    Caption = table.Column<string>(type: "text", nullable: true),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
                     CountryName = table.Column<string>(type: "text", nullable: true),
                     CountryCode = table.Column<string>(type: "text", nullable: true),

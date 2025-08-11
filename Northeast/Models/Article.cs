@@ -1,4 +1,3 @@
-﻿
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -12,7 +11,6 @@ namespace Northeast.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-
         public ArticleType ArticleType { get; set; }
 
         [Required]
@@ -22,17 +20,15 @@ namespace Northeast.Models
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]
-        public string Description { get; set; }
+        public string Content { get; set; }
 
         [DefaultValue(false)]
         public bool IsBreakingNews { get; set; } = false;
 
-        public List<byte[]>? Photo { get; set; }
-        public string? PhotoLink { get; set; }
+        public ArticleImage? Image { get; set; }
         public string? EmbededCode { get; set; }
-        public string? AltText { get; set; }
-        public List<Comment>? Comments { get; set; }= new List<Comment>();
-        public ICollection<LikeEntity>? Like { get; set; }=new List<LikeEntity>();
+        public List<Comment>? Comments { get; set; } = new List<Comment>();
+        public ICollection<LikeEntity>? Like { get; set; } = new List<LikeEntity>();
 
         public User Author { get; set; }
 
@@ -40,10 +36,10 @@ namespace Northeast.Models
         [ForeignKey(nameof(Author.Id))]
         public Guid AuthorId { get; set; }
 
-        public string? CountryName { get; set;}
+        public string? CountryName { get; set; }
 
-        public string? CountryCode { get; set;}
+        public string? CountryCode { get; set; }
 
-        public List<string>? Keywords { get; set; } 
+        public List<string>? Keywords { get; set; }
     }
 }

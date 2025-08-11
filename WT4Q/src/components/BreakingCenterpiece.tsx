@@ -19,7 +19,11 @@ export default function BreakingCenterpiece({
       </div>
 
       {/* Reuse your dynamic slider inside the big box */}
-      <BreakingNewsSlider articles={articles} className={styles.slider} />
+      <BreakingNewsSlider
+        articles={articles}
+        className={styles.slider}
+        showDetails
+      />
     </section>
   );
 }

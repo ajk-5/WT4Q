@@ -20,7 +20,7 @@ namespace Northeast.Repository
             }
             query = query.ToLower();
             return await _context.Cocktails.AsNoTracking()
-                .Where(c => c.Name.ToLower().Contains(query) || c.description.ToLower().Contains(query))
+                .Where(c => c.Name.ToLower().Contains(query) || c.Content.ToLower().Contains(query))
                 .ToListAsync();
         }
     }

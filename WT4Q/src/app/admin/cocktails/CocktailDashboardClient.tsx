@@ -11,7 +11,7 @@ interface IngredientInput {
 
 export default function CocktailDashboardClient() {
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const [ingredients, setIngredients] = useState<IngredientInput[]>([
     { name: '', quantity: '' },
   ]);
@@ -37,7 +37,7 @@ export default function CocktailDashboardClient() {
       try {
         const body = {
           name,
-          description,
+          content,
           ingredients,
         };
         const res = await fetch(API_ROUTES.COCKTAIL.CREATE, {
@@ -51,7 +51,7 @@ export default function CocktailDashboardClient() {
           throw new Error(data.message || 'Failed to publish');
         }
         setName('');
-        setDescription('');
+        setContent('');
         setIngredients([{ name: '', quantity: '' }]);
         setSuccess('Cocktail saved');
       } catch (err) {
@@ -79,9 +79,9 @@ export default function CocktailDashboardClient() {
           required
         />
         <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           rows={3}
           className={styles.textarea}
           required

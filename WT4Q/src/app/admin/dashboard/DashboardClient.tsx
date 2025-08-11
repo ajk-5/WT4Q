@@ -19,7 +19,7 @@ import countries from '../../../../public/datas/Countries.json';
 export default function DashboardClient() {
   const router = useRouter();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
@@ -27,6 +27,7 @@ export default function DashboardClient() {
   const [photoLink, setPhotoLink] = useState('');
   const [embededCode, setEmbededCode] = useState('');
   const [altText, setAltText] = useState('');
+  const [caption, setCaption] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [isBreakingNews, setIsBreakingNews] = useState(false);
@@ -96,11 +97,14 @@ export default function DashboardClient() {
           category: category ? UPLOADCATEGORIES.indexOf(category) + 1 : 0,
           articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
           createdDate: new Date().toISOString(),
-          description,
-          photo: photosBase64,
-          photoLink: photoLink || undefined,
+          content,
+          image: {
+            photo: photosBase64,
+            photoLink: photoLink || undefined,
+            altText: altText || undefined,
+            caption: caption || undefined,
+          },
           embededCode: embededCode || undefined,
-          altText: altText || undefined,
           isBreakingNews,
           countryName: countryName || undefined,
           countryCode: countryCode || undefined,
@@ -120,7 +124,7 @@ export default function DashboardClient() {
           throw new Error(data.message || 'Failed to publish');
         }
         setTitle('');
-        setDescription('');
+        setContent('');
         setType('');
         setCategory('');
         setKeywords('');
@@ -128,6 +132,7 @@ export default function DashboardClient() {
         setPhotoLink('');
         setEmbededCode('');
         setAltText('');
+        setCaption('');
         setCountryName('');
         setCountryCode('');
         setIsBreakingNews(false);
@@ -165,9 +170,9 @@ export default function DashboardClient() {
           required
         />
         <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           rows={5}
           className={styles.textarea}
           required
@@ -200,6 +205,13 @@ export default function DashboardClient() {
           placeholder="Alt text"
           value={altText}
           onChange={(e) => setAltText(e.target.value)}
+          className={styles.input}
+        />
+        <input
+          type="text"
+          placeholder="Caption"
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
           className={styles.input}
         />
         <input

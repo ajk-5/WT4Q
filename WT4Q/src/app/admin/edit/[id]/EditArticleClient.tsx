@@ -7,16 +7,16 @@ import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
 import countries from '../../../../../public/datas/Countries.json';
 import styles from '../../dashboard/dashboard.module.css';
+import type { ArticleImage } from '@/lib/models';
 
 interface ArticleDetails {
   title: string;
-  description: string;
+  content: string;
   createdDate: string;
   articleType: number;
   category: number;
-  photoLink?: string;
+  image?: ArticleImage;
   embededCode?: string;
-  altText?: string;
   countryName?: string;
   countryCode?: string;
   keywords?: string[];
@@ -25,7 +25,7 @@ interface ArticleDetails {
 export default function EditArticleClient({ id }: { id: string }) {
   const router = useRouter();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
@@ -34,6 +34,7 @@ export default function EditArticleClient({ id }: { id: string }) {
   const [photoLink, setPhotoLink] = useState('');
   const [embededCode, setEmbededCode] = useState('');
   const [altText, setAltText] = useState('');
+  const [caption, setCaption] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -48,13 +49,15 @@ export default function EditArticleClient({ id }: { id: string }) {
         if (!res.ok) throw new Error('Failed to load');
         const data: ArticleDetails = await res.json();
         setTitle(data.title);
-        setDescription(data.description);
+        setContent(data.content);
         setType(ARTICLE_TYPES[data.articleType] ?? '');
         setCategory(CATEGORIES[data.category - 1] ?? '');
         setCreatedDate(data.createdDate.slice(0, 16));
-        setPhotoLink(data.photoLink || '');
+        const img = data.image;
+        setPhotoLink(img?.photoLink || '');
         setEmbededCode(data.embededCode || '');
-        setAltText(data.altText || '');
+        setAltText(img?.altText || '');
+        setCaption(img?.caption || '');
         setCountryName(data.countryName || '');
         setCountryCode(data.countryCode || '');
         setKeywords(data.keywords ? data.keywords.join(', ') : '');
@@ -88,41 +91,44 @@ export default function EditArticleClient({ id }: { id: string }) {
             )
           : undefined;
 
-        const body = {
-          title,
-          category: category ? CATEGORIES.indexOf(category) + 1 : 0,
-          articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
-          createdDate: new Date(createdDate).toISOString(),
-          description,
-          photo: photosBase64,
-          photoLink: photoLink || undefined,
-          embededCode: embededCode || undefined,
-          altText: altText || undefined,
-          countryName: countryName || undefined,
-          countryCode: countryCode || undefined,
-          keyword: keywords
-            .split(',')
-            .map((k) => k.trim())
-            .filter((k) => k.length > 0),
-        } as Record<string, unknown>;
+          const body = {
+            title,
+            category: category ? CATEGORIES.indexOf(category) + 1 : 0,
+            articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
+            createdDate: new Date(createdDate).toISOString(),
+            content,
+            image: {
+              photo: photosBase64,
+              photoLink: photoLink || undefined,
+              altText: altText || undefined,
+              caption: caption || undefined,
+            },
+            embededCode: embededCode || undefined,
+            countryName: countryName || undefined,
+            countryCode: countryCode || undefined,
+            keyword: keywords
+              .split(',')
+              .map((k) => k.trim())
+              .filter((k) => k.length > 0),
+          } as Record<string, unknown>;
 
-        const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(body),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.message || 'Failed to update');
+          const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(body),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.message || 'Failed to update');
+          }
+          router.push(`/articles/${id}`);
+        } catch (err) {
+          if (err instanceof Error) setError(err.message);
+          else setError('Failed to update');
         }
-        router.push(`/articles/${id}`);
-      } catch (err) {
-        if (err instanceof Error) setError(err.message);
-        else setError('Failed to update');
-      }
-    });
-  };
+      });
+    };
 
   return (
     <div className={styles.container}>
@@ -144,9 +150,9 @@ export default function EditArticleClient({ id }: { id: string }) {
           className={styles.input}
         />
         <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           rows={5}
           className={styles.textarea}
           required
@@ -163,6 +169,13 @@ export default function EditArticleClient({ id }: { id: string }) {
           placeholder="Alt text"
           value={altText}
           onChange={(e) => setAltText(e.target.value)}
+          className={styles.input}
+        />
+        <input
+          type="text"
+          placeholder="Caption"
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
           className={styles.input}
         />
         <input
