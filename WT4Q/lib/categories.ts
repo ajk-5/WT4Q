@@ -4,21 +4,18 @@ export const UPLOADCATEGORIES = [
   'Crime',
   'Entertainment',
   'Business',
-  'Technology',
+  'Science and Tech',
   'Sports',
 ];
 
 export const CATEGORIES = [
-  "News",
-  "Articles",
+
   'Politics',
   'Crime',
   'Entertainment',
   'Business',
-  'Technology',
   'Sports',
-  'World',
   'Health',
-  'Science',
+  'Science and Tech',
   'Lifestyle',
 ];

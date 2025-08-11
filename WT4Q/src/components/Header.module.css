@@ -45,7 +45,7 @@
 .logoImage {
   width: clamp(4rem, 10vw, 6rem);
   height: auto;
-  border-radius: 50%;
+  border-radius: 10%;
 }
 
 .weather {

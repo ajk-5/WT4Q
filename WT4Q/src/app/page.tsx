@@ -148,7 +148,7 @@ export default async function Home() {
         </div>
       ))}
 
-      <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
+     {/* <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
       <footer className={styles.footer}>
         <nav className={styles.footerNav}>
           {CATEGORIES.map((c) => (
@@ -157,7 +157,7 @@ export default async function Home() {
             </Link>
           ))}
         </nav>
-      </footer>
+      </footer>*/}
     </div>
   );
 }

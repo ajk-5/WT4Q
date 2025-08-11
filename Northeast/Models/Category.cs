@@ -2,15 +2,11 @@
 {
     public enum Category
     {
-        News,
-        Articles,
         Politics,
         Crime,
         Enetrtainment,
         Business,
         Technology,
-        Adult,
         Sports
-
     }
 }
