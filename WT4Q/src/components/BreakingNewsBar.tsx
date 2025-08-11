@@ -4,10 +4,19 @@ import styles from './BreakingNewsBar.module.css';
 
 export default async function BreakingNewsBar() {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { cache: 'no-store' });
+    // Fetch all articles so the bar shows the latest news rather than
+    // only items flagged as "breaking".
+    const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { cache: 'no-store' });
     if (!res.ok) return null;
-    const articles: BreakingArticle[] = await res.json();
-    if (!Array.isArray(articles) || articles.length === 0) return null;
+
+    // Map the API response to the minimal shape expected by the slider.
+    const allArticles = (await res.json()) as { id: string; title: string }[];
+    const articles: BreakingArticle[] = (allArticles || []).map((a) => ({
+      id: a.id,
+      title: a.title,
+    }));
+
+    if (articles.length === 0) return null;
     return <BreakingNewsSlider articles={articles} className={styles.bar} />;
   } catch {
     return null;
