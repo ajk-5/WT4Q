@@ -1,4 +1,4 @@
-export const CATEGORIES = [
+export const UPLOADCATEGORIES = [
 
   'Politics',
   'Crime',
@@ -6,4 +6,19 @@ export const CATEGORIES = [
   'Business',
   'Technology',
   'Sports',
+];
+
+export const CATEGORIES = [
+  "NEWS",
+  "ARTICLES",
+  'Politics',
+  'Crime',
+  'Entertainment',
+  'Business',
+  'Technology',
+  'Sports',
+  'World',
+  'Health',
+  'Science',
+  'Lifestyle',
 ];
