@@ -9,8 +9,8 @@ export const UPLOADCATEGORIES = [
 ];
 
 export const CATEGORIES = [
-  "NEWS",
-  "ARTICLES",
+  "News",
+  "Articles",
   'Politics',
   'Crime',
   'Entertainment',
