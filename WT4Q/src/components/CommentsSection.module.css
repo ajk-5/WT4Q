@@ -1,69 +1,108 @@
 .section {
   margin-top: 2rem;
+  background: #f7f5ef;
+  background-image: url('/images/paper_background.webp');
+  padding: 1rem;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  font-family: "Georgia", "Times New Roman", serif;
 }
+
 .heading {
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: var(--primary);
+  color: var(--ink);
 }
+
 .commentList {
   list-style: none;
   padding: 0;
   margin-bottom: 1rem;
 }
+
 .comment {
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  background: var(--secondary);
-  color: #fff;
-  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: #f7f5ef;
+  background-image: url('/images/paper_background.webp');
+  border: 1px solid #ddd;
+  color: var(--ink);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
+
 .commentAuthor {
   font-weight: bold;
-  margin-right: 0.25rem;
+  display: block;
+  margin-bottom: 0.25rem;
 }
+
+.commentContent {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.commentActions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
 .replyButton {
   background: none;
   border: none;
-  color: inherit;
-  margin-left: 0.5rem;
+  color: var(--primary);
   cursor: pointer;
   text-decoration: underline;
   font-size: 0.875rem;
 }
+
 .reportButton {
   background: none;
   border: none;
-  margin-left: 0.5rem;
   cursor: pointer;
   padding: 0;
   display: inline-flex;
   align-items: center;
+  color: var(--primary);
 }
+
 .reportButton img {
   width: 16px;
   height: 16px;
 }
+
 .reportCount {
   margin-left: 0.25rem;
   font-size: 0.75rem;
 }
+
 .replying {
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
-  color: var(--secondary);
+  color: var(--primary);
 }
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .textarea {
   resize: vertical;
+  padding: 0.5rem;
+  font-family: "Georgia", "Times New Roman", serif;
+  background: #f7f5ef;
+  background-image: url('/images/paper_background.webp');
+  border: 1px solid #ddd;
+  color: var(--ink);
+  line-height: 1.4;
 }
+
 .button {
   align-self: flex-start;
 }
+
 .error {
   color: var(--error-red);
 }
