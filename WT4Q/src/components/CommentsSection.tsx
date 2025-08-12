@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
+import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
 import styles from './CommentsSection.module.css';
 
@@ -25,6 +26,17 @@ export default function CommentsSection({
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reported, setReported] = useState<Record<string, boolean>>({});
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [loginHref, setLoginHref] = useState('/login');
+
+  useEffect(() => {
+    fetch(API_ROUTES.USERS.ME, { credentials: 'include' })
+      .then((res) => setLoggedIn(res.ok))
+      .catch(() => setLoggedIn(false));
+    setLoginHref(
+      `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
+    );
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,7 +98,7 @@ export default function CommentsSection({
   };
 
   return (
-    <section className={styles.section}>
+    <section id="comments" className={styles.section}>
       <h2 className={styles.heading}>Comments</h2>
       {comments.length === 0 ? (
         <p>No comments yet.</p>
@@ -97,13 +109,15 @@ export default function CommentsSection({
               <span className={styles.commentAuthor}>{c.writer?.userName || 'Anonymous'}:</span>
               <p className={styles.commentContent}>{c.content}</p>
               <div className={styles.commentActions}>
-                <button
-                  type="button"
-                  className={styles.replyButton}
-                  onClick={() => setReplyTo(c.id)}
-                >
-                  Reply
-                </button>
+                {loggedIn && (
+                  <button
+                    type="button"
+                    className={styles.replyButton}
+                    onClick={() => setReplyTo(c.id)}
+                  >
+                    Reply
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.reportButton}
@@ -121,23 +135,29 @@ export default function CommentsSection({
           ))}
         </ul>
       )}
-      {replyTo && (
+      {replyTo && loggedIn && (
         <p className={styles.replying}>Replying to a comment</p>
       )}
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={3}
-          required
-          className={styles.textarea}
-          placeholder="Share your thoughts..."
-        />
-        <button type="submit" disabled={submitting} className={styles.button}>
-          Post Comment
-        </button>
-        {error && <p className={styles.error}>{error}</p>}
-      </form>
+      {loggedIn ? (
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={3}
+            required
+            className={styles.textarea}
+            placeholder="Share your thoughts..."
+          />
+          <button type="submit" disabled={submitting} className={styles.button}>
+            Post Comment
+          </button>
+          {error && <p className={styles.error}>{error}</p>}
+        </form>
+      ) : (
+        <p>
+          <Link href={loginHref}>Log in to comment</Link>
+        </p>
+      )}
     </section>
   );
 }

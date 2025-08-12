@@ -92,6 +92,16 @@
   color: var(--ink);
 }
 
+.relatedBar {
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  color: #b6b6b6;
+}
+
 .breaking {
   background: rgb(8, 0, 255);
   color: #fff;
