@@ -5,6 +5,7 @@
   margin: 1rem 0;
   border-radius: 4px;
   text-align: center;
+  position: relative;
 }
 
 .item {
@@ -66,4 +67,31 @@
   color: var(--ink);
   font-size: medium;
   text-decoration: underline;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+  padding: 0 0.25rem;
+  z-index: 1;
+}
+
+.slider:hover .arrow {
+  opacity: 1;
+}
+
+.left {
+  left: 0.25rem;
+}
+
+.right {
+  right: 0.25rem;
 }
