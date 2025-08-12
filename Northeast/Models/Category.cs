@@ -6,7 +6,10 @@
         Crime,
         Entertainment,
         Business,
+        Health,
+        lifestyle,
         Technology,
-        Sports
+        Sports,
+        Info
     }
 }

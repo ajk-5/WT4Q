@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     /// <inheritdoc />
-    public partial class new1 : Migration
+    public partial class @new : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -91,11 +91,7 @@ namespace Northeast.Migrations
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     IsBreakingNews = table.Column<bool>(type: "boolean", nullable: false),
-                    Photo = table.Column<List<byte[]>>(type: "bytea[]", nullable: true),
-                    PhotoLink = table.Column<string>(type: "text", nullable: true),
                     EmbededCode = table.Column<string>(type: "text", nullable: true),
-                    AltText = table.Column<string>(type: "text", nullable: true),
-                    Caption = table.Column<string>(type: "text", nullable: true),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
                     CountryName = table.Column<string>(type: "text", nullable: true),
                     CountryCode = table.Column<string>(type: "text", nullable: true),
@@ -207,6 +203,28 @@ namespace Northeast.Migrations
                         name: "FK_IngridientQuantities_Ingridients_IngridientID",
                         column: x => x.IngridientID,
                         principalTable: "Ingridients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ArticleImages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Photo = table.Column<byte[]>(type: "bytea", nullable: true),
+                    PhotoLink = table.Column<string>(type: "text", nullable: true),
+                    AltText = table.Column<string>(type: "text", nullable: true),
+                    Caption = table.Column<string>(type: "text", nullable: true),
+                    ArticleId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArticleImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArticleImages_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -347,6 +365,11 @@ namespace Northeast.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArticleImages_ArticleId",
+                table: "ArticleImages",
+                column: "ArticleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Articles_AuthorId",
                 table: "Articles",
                 column: "AuthorId");
@@ -447,6 +470,9 @@ namespace Northeast.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ArticleImages");
+
             migrationBuilder.DropTable(
                 name: "CommentReports");
 

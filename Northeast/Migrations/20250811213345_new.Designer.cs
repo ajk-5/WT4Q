@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250804153025_new1")]
-    partial class new1
+    [Migration("20250811213345_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,12 +32,6 @@ namespace Northeast.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AltText")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Caption")
-                        .HasColumnType("text");
-
                     b.Property<int>("ArticleType")
                         .HasColumnType("integer");
 
@@ -46,6 +40,10 @@ namespace Northeast.Migrations
 
                     b.Property<int>("Category")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("CountryCode")
                         .HasColumnType("text");
@@ -56,10 +54,6 @@ namespace Northeast.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("EmbededCode")
                         .HasColumnType("text");
 
@@ -68,12 +62,6 @@ namespace Northeast.Migrations
 
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .HasColumnType("text[]");
-
-                    b.PrimitiveCollection<List<byte[]>>("Photo")
-                        .HasColumnType("bytea[]");
-
-                    b.Property<string>("PhotoLink")
-                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -86,6 +74,34 @@ namespace Northeast.Migrations
                     b.ToTable("Articles");
                 });
 
+            modelBuilder.Entity("Northeast.Models.ArticleImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("Photo")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("PhotoLink")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.ToTable("ArticleImages");
+                });
+
             modelBuilder.Entity("Northeast.Models.Cocktail", b =>
                 {
                     b.Property<int>("Id")
@@ -94,11 +110,11 @@ namespace Northeast.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Content")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -479,6 +495,17 @@ namespace Northeast.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("Northeast.Models.ArticleImage", b =>
+                {
+                    b.HasOne("Northeast.Models.Article", "Article")
+                        .WithMany("Images")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+                });
+
             modelBuilder.Entity("Northeast.Models.Comment", b =>
                 {
                     b.HasOne("Northeast.Models.Article", "Article")
@@ -630,6 +657,8 @@ namespace Northeast.Migrations
             modelBuilder.Entity("Northeast.Models.Article", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Images");
 
                     b.Navigation("Like");
                 });

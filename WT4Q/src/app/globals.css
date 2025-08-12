@@ -1,65 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
+/* =========
+   Design Tokens
+   ========= */
 :root {
+  /* Colors */
   --background: #3c6c9c;
   --foreground: #1a1a1a;
   --primary: #2b0a86;
   --secondary: #1e1e6f;
   --accent: #e63946;
-  --ink:#000;
+  --ink: #000;
   --muted: #6c757d;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #584949;
-  }
-}
-
-html,
-body {
-  max-width: 150vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background-color: var(--background);
-  background-image: url('/images/paper_background.webp');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-position: center;
-  font-family: "Georgia", "Times New Roman", serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-main {
-  max-width: 99%;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-/* Theme */
-:root {
+  /* Theme (kept) */
   --wt4q-yellow: #ffd166;
   --wt4q-red: #ef476f;
   --wt4q-blue: #118ab2;
@@ -70,46 +24,131 @@ a {
   --text-default: #1a1a1a;
   --text-light: #6c757d;
   --error-red: #e63946;
-  --metal-gradient: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--secondary) 100%
-  );
+  --metal-gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+
+  /* Layout scale */
+  --content-max: 1200px;
+  --radius: 14px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  /* Fluid typography */
+  --font-size-base: clamp(14px, 0.9rem + 0.25vw, 18px);
+  --font-size-sm: clamp(12px, 0.8rem + 0.1vw, 16px);
+  --font-size-lg: clamp(16px, 1rem + 0.5vw, 22px);
+  --line-height: 1.6;
+
+  /* Motion */
+  --transition-fast: 120ms;
+  --shadow-elev: 0 6px 15px rgba(0,0,0,0.4);
+  --shadow-elev-lg: 0 12px 25px rgba(0,0,0,0.45);
 }
 
-.metallicBg {
-  background: var(--metal-gradient);
-  color: var(--metal-reflect);
+/* Dark scheme tweaks (kept) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #584949;
+  }
 }
 
-.rounded {
-  border-radius: 1rem;
+/* =========
+   Base / Reset
+   ========= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  background-image: url('/images/paper_background.webp');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* becomes scroll on small screens for performance */
+  background-position: center;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  max-width: 150vw;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas { max-width: 100%; height: auto; display: block; }
+
+a { color: inherit; text-decoration: none; }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--wt4q-yellow);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* =========
+   Layout
+   ========= */
+main {
+  /* Fluid container with safe gutters */
+  width: min(var(--content-max), 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto;
+  margin-block: clamp(var(--space-5), 4vw, var(--space-6));
+}
+
+/* Optional utility container (if you need it elsewhere) */
+.container {
+  width: min(var(--content-max), 100% - clamp(24px, 6vw, 64px));
+  margin-inline: auto;
+}
+
+/* =========
+   Theming helpers (kept)
+   ========= */
+.metallicBg { background: var(--metal-gradient); color: var(--metal-reflect); }
+.rounded { border-radius: 1rem; }
 
 .shinyText {
   background: var(--metal-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
 }
 
+/* =========
+   Buttons
+   ========= */
 button {
-  padding: 0.9rem;
-  font-size: 1rem;
+  padding: clamp(0.65rem, 0.6rem + 0.5vw, 0.9rem) clamp(0.9rem, 0.8rem + 0.8vw, 1.25rem);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: clamp(0.9rem, 0.85rem + 0.3vw, 1rem);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.06em;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius);
   cursor: pointer;
   background: linear-gradient(145deg, var(--primary), var(--secondary));
   color: #fff;
   box-shadow:
     inset 3px 3px 6px var(--metal-shadow),
     inset -3px -3px 6px var(--metal-reflect),
-    0 6px 15px rgba(0,0,0,0.4);
-  transition: transform 0.1s, box-shadow 0.2s;
+    var(--shadow-elev);
+  transition: transform var(--transition-fast), box-shadow 200ms;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover:not(:disabled) {
@@ -117,7 +156,7 @@ button:hover:not(:disabled) {
   box-shadow:
     inset 3px 3px 6px var(--metal-shadow),
     inset -3px -3px 6px var(--metal-reflect),
-    0 12px 25px rgba(0,0,0,0.45);
+    var(--shadow-elev-lg);
 }
 
 button:active:not(:disabled) {
@@ -128,28 +167,82 @@ button:active:not(:disabled) {
     0 4px 8px rgba(0,0,0,0.3);
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* =========
+   Purple site background variant (kept, responsive)
+   ========= */
 body.site-bg--purple {
-  /* Override your CSS vars for readability on dark purple */
   --background: #2b0a86;
   --foreground: #eef1ff;
 
-  /* Replace the paper texture with a rich purple gradient */
   background-color: var(--background);
   background-image:
     radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
     radial-gradient(1400px circle at 80% 0%, #3a17a7 0%, #2b0a86 55%, #1f085f 85%, #14043d 100%);
   background-size: cover;
-  background-attachment: fixed;
+  background-attachment: fixed; /* becomes scroll on small screens */
   background-repeat: no-repeat;
   background-position: center;
 }
 
 @media (prefers-color-scheme: dark) {
-  body.site-bg--purple {
-    --foreground: #f6f8ff;
+  body.site-bg--purple { --foreground: #f6f8ff; }
+}
+
+/* =========
+   RESPONSIVE ADAPTATIONS
+   ========= */
+
+/* Medium (≤ 1024px) */
+@media (max-width: 1024px) {
+  main { margin-block: clamp(var(--space-4), 3vw, var(--space-5)); }
+  button { letter-spacing: 0.04em; }
+}
+
+/* Small (≤ 768px) */
+@media (max-width: 768px) {
+  /* Prevent background jank on mobile */
+  body { background-attachment: scroll; background-position: top center; }
+  body.site-bg--purple { background-attachment: scroll; }
+
+  main {
+    width: min(var(--content-max), 100% - clamp(16px, 5vw, 40px));
+    margin-block: clamp(var(--space-3), 3vw, var(--space-5));
+  }
+
+  button {
+    /* easier taps on mobile; remove if not desired */
+    box-shadow:
+      inset 2px 2px 4px var(--metal-shadow),
+      inset -2px -2px 4px var(--metal-reflect),
+      0 4px 10px rgba(0,0,0,0.35);
   }
 }
+
+/* Extra-small (≤ 480px) */
+@media (max-width: 480px) {
+  :root {
+    --radius: 12px;
+  }
+
+  body {
+    font-size: clamp(14px, 3.5vw, 16px); /* ensure legibility */
+  }
+
+  main {
+    width: min(var(--content-max), 100% - clamp(12px, 4.5vw, 28px));
+  }
+
+  button {
+    padding: 0.7rem 1rem;
+    text-transform: none;   /* better readability on very small screens */
+    letter-spacing: 0.02em;
+  }
+}
+
+/* =========
+   Nice-to-haves
+   ========= */
+.metallicBg.rounded { border-radius: 1rem; }
+hr { border: 0; height: 1px; background: rgba(0,0,0,0.08); margin: var(--space-5) 0; }

@@ -48,19 +48,22 @@
 
 .detailCaption {
   font-size: 0.75rem;
-  color: #555;
+  color: #0c0c0c;
   text-align: center;
 }
 
 .detailTitle {
   margin: 0.5rem 0;
+  color: black;
 }
 
 .snippet {
   margin: 0.5rem 0;
+  font-size: large;
 }
 
 .readMore {
   color: var(--ink);
+  font-size: medium;
   text-decoration: underline;
 }

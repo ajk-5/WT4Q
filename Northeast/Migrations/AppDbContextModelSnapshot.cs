@@ -86,16 +86,15 @@ namespace Northeast.Migrations
                     b.Property<string>("Caption")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<byte[]>>("Photo")
-                        .HasColumnType("bytea[]");
+                    b.Property<byte[]>("Photo")
+                        .HasColumnType("bytea");
 
                     b.Property<string>("PhotoLink")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArticleId")
-                        .IsUnique();
+                    b.HasIndex("ArticleId");
 
                     b.ToTable("ArticleImages");
                 });
@@ -496,8 +495,8 @@ namespace Northeast.Migrations
             modelBuilder.Entity("Northeast.Models.ArticleImage", b =>
                 {
                     b.HasOne("Northeast.Models.Article", "Article")
-                        .WithOne("Image")
-                        .HasForeignKey("Northeast.Models.ArticleImage", "ArticleId")
+                        .WithMany("Images")
+                        .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -656,7 +655,7 @@ namespace Northeast.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Image");
+                    b.Navigation("Images");
 
                     b.Navigation("Like");
                 });
