@@ -14,7 +14,11 @@ interface LoginRequest {
 
 const EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
-const LoginClient: FC = () => {
+interface Props {
+  from?: string;
+}
+
+const LoginClient: FC<Props> = ({ from }) => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,12 +75,19 @@ const LoginClient: FC = () => {
     window.location.href = `${API_ROUTES.GOOGLE_SIGN_IN.AUTH}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
 
+  const fromPhotoshop = from === 'online-photoshop';
+
   return (
     <main className={styles.container}>
       <section className={styles.card} aria-labelledby="user-login-title">
         <h1 id="user-login-title" className={styles.title}>
           User Login
         </h1>
+        {fromPhotoshop && (
+          <div role="alert" className={styles.banner}>
+            Login to use free online Photoshop
+          </div>
+        )}
         {error && (
           <div role="alert" className={styles.error}>
             {error}
