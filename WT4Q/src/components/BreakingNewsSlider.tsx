@@ -22,12 +22,14 @@ export default function BreakingNewsSlider({
 }) {
   const [index, setIndex] = useState(0);
 
+  const next = () => setIndex((i) => (i + 1) % articles.length);
+  const prev = () => setIndex((i) => (i - 1 + articles.length) % articles.length);
+
   useEffect(() => {
     if (articles.length === 0) return;
-    const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % articles.length);
-    }, 5000);
+    const interval = setInterval(next, 5000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articles]);
 
   if (articles.length === 0) return null;
@@ -39,6 +41,20 @@ export default function BreakingNewsSlider({
 
   return (
     <div className={`${styles.slider} ${className ?? ''}`.trim()}>
+      <button
+        className={`${styles.arrow} ${styles.left}`}
+        onClick={prev}
+        aria-label="Previous article"
+      >
+        ‹
+      </button>
+      <button
+        className={`${styles.arrow} ${styles.right}`}
+        onClick={next}
+        aria-label="Next article"
+      >
+        ›
+      </button>
       {showDetails ? (
         <div className={styles.detail}>
           {imageSrc && (
