@@ -154,7 +154,7 @@ export default function CommentsSection({
           {error && <p className={styles.error}>{error}</p>}
         </form>
       ) : (
-        <p>
+        <p className={styles.loginPrompt}>
           <Link href={loginHref}>Log in to comment</Link>
         </p>
       )}
