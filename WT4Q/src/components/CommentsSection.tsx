@@ -95,26 +95,28 @@ export default function CommentsSection({
           {comments.map((c) => (
             <li key={c.id} className={styles.comment}>
               <span className={styles.commentAuthor}>{c.writer?.userName || 'Anonymous'}:</span>
-              {c.content}
-              <button
-                type="button"
-                className={styles.reportButton}
-                onClick={() => handleReport(c.id)}
-                disabled={reported[c.id]}
-                aria-label="Report comment"
-              >
-                <img src="/report.svg" alt="Report" />
-                {c.reportCount ? (
-                  <span className={styles.reportCount}>{c.reportCount}</span>
-                ) : null}
-              </button>
-              <button
-                type="button"
-                className={styles.replyButton}
-                onClick={() => setReplyTo(c.id)}
-              >
-                Reply
-              </button>
+              <p className={styles.commentContent}>{c.content}</p>
+              <div className={styles.commentActions}>
+                <button
+                  type="button"
+                  className={styles.replyButton}
+                  onClick={() => setReplyTo(c.id)}
+                >
+                  Reply
+                </button>
+                <button
+                  type="button"
+                  className={styles.reportButton}
+                  onClick={() => handleReport(c.id)}
+                  disabled={reported[c.id]}
+                  aria-label="Report comment"
+                >
+                  <img src="/report.svg" alt="Report" />
+                  {c.reportCount ? (
+                    <span className={styles.reportCount}>{c.reportCount}</span>
+                  ) : null}
+                </button>
+              </div>
             </li>
           ))}
         </ul>
@@ -129,6 +131,7 @@ export default function CommentsSection({
           rows={3}
           required
           className={styles.textarea}
+          placeholder="Share your thoughts..."
         />
         <button type="submit" disabled={submitting} className={styles.button}>
           Post Comment
