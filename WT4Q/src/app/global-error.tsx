@@ -1,33 +1,27 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect } from 'react';
+import HomeIcon from '../components/HomeIcon';
+import styles from './error-page.module.css';
 
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
     <html>
-      <body style={{ padding: '2rem', textAlign: 'center' }}>
-        <h2 style={{ marginBottom: '1rem' }}>Something went wrong</h2>
-        <p style={{ marginBottom: '1rem' }}>
-          An unexpected error has occurred. Please try again or contact support if the problem
-          persists.
-        </p>
-        <button
-          onClick={() => reset()}
-          style={{
-            padding: '0.5rem 1rem',
-            border: '1px solid var(--muted)',
-            borderRadius: '0.25rem',
-            background: 'var(--background)',
-            color: 'var(--foreground)',
-            cursor: 'pointer'
-          }}
-        >
-          Try again
-        </button>
+      <body className={styles.container}>
+        <div className={styles.paper}>
+          <span className={styles.heading}>Breaking News</span>
+          <h1 className={styles.headline}>Something went wrong</h1>
+          <p className={styles.message}>Sorry, an unexpected error occurred.</p>
+          <Link href="/" className={styles.homeLink}>
+            <HomeIcon className={styles.homeIcon} />
+            Back to the homepage
+          </Link>
+        </div>
       </body>
     </html>
   );

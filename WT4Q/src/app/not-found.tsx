@@ -1,21 +1,14 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect } from 'react';
 import HomeIcon from '../components/HomeIcon';
 import styles from './error-page.module.css';
 
-export default function Error({ error }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
+export default function NotFound() {
   return (
     <div className={styles.container}>
       <div className={styles.paper}>
         <span className={styles.heading}>Breaking News</span>
-        <h1 className={styles.headline}>Something went wrong</h1>
-        <p className={styles.message}>Sorry, an unexpected error occurred.</p>
+        <h1 className={styles.headline}>Page not found</h1>
+        <p className={styles.message}>Sorry, we couldn&apos;t find the page you were looking for.</p>
         <Link href="/" className={styles.homeLink}>
           <HomeIcon className={styles.homeIcon} />
           Back to the homepage
