@@ -1,0 +1,13 @@
+.root { display: flex; flex-direction: column; height: 100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #e5e5e5; }
+.title { font-size: 16px; margin: 0; }
+.main { flex: 1; display: grid; grid-template-columns: 260px 1fr 260px; min-height: 0; }
+.sidebarLeft, .sidebarRight { border-right: 1px solid #eee; padding: 8px; overflow: auto; }
+.sidebarRight { border-right: none; border-left: 1px solid #eee; }
+.stageWrap { position: relative; display: flex; align-items: center; justify-content: center; background: #fafafa; }
+.stage { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.progressCenter { position: fixed; right: 16px; bottom: 16px; width: 280px; background: rgba(0,0,0,0.75); color: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.progressItem { margin-bottom: 8px; }
+.progressLabel { font-size: 12px; margin-bottom: 4px; }
+.progressTrack { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+.progressFill { height: 100%; background: #4aa3ff; }
