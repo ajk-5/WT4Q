@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function OnlinePhotoshopPage() {
   const cookieStore = await cookies();
   if (!cookieStore.get('JwtToken')) {
-    redirect('/login');
+    redirect('/login?from=online-photoshop');
   }
   return <EditorShell />;
 }

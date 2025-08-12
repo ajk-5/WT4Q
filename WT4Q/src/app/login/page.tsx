@@ -7,10 +7,14 @@ export const metadata = {
   description: 'Sign in to your WT4Q account',
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { from?: string };
+}) {
   const cookieStore = await cookies();
   if (cookieStore.get('JwtToken')) {
     redirect('/');
   }
-  return <LoginClient />;
+  return <LoginClient from={searchParams?.from} />;
 }
