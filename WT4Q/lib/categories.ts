@@ -1,21 +1,17 @@
 export const UPLOADCATEGORIES = [
-
   'Politics',
   'Crime',
   'Entertainment',
   'Business',
-  'Science and Tech',
+  'Technology',
   'Sports',
 ];
 
 export const CATEGORIES = [
-
   'Politics',
   'Crime',
   'Entertainment',
   'Business',
+  'Technology',
   'Sports',
-  'Health',
-  'Science and Tech',
-  'Lifestyle',
 ];
