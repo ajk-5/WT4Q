@@ -6,17 +6,20 @@
     "dev": "cross-env HTTPS=true next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
-
     "next": "^15.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "turbo": "^2.5.5",
-        "html-to-image": "^1.11.11",
+    "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "fabric": "^6.0.0-beta15",
+    "zustand": "^4.5.2",
+    "lucide-react": "^0.469.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -26,6 +29,10 @@
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1.6.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/jest-dom": "^6.4.2",
+    "jsdom": "^24.0.0"
   }
 }
