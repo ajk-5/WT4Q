@@ -4,7 +4,7 @@
     {
         Politics,
         Crime,
-        Enetrtainment,
+        Entertainment,
         Business,
         Technology,
         Sports
