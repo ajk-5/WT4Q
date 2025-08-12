@@ -1,6 +1,5 @@
 // app/articles/[id]/page.tsx
 
-import ArticleCard, { Article } from '@/components/ArticleCard';
 import Image from 'next/image';
 import CommentsSection, { Comment } from '@/components/CommentsSection';
 import LikeButton from '@/components/LikeButton';
@@ -8,6 +7,7 @@ import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
 import type { ArticleImage } from '@/lib/models';
+import Link from 'next/link';
 
 /* ---------------------- types ---------------------- */
 
@@ -24,6 +24,11 @@ interface ArticleDetails {
   author?: { adminName?: string };
   comments?: Comment[];
   like?: { id: number }[];
+}
+
+interface RelatedArticle {
+  id: string;
+  title: string;
 }
 
 /* ---------------------- image utils ---------------------- */
@@ -67,11 +72,11 @@ async function fetchArticle(id: string): Promise<ArticleDetails | null> {
   }
 }
 
-async function fetchRelated(id: string): Promise<Article[]> {
+async function fetchRelated(id: string): Promise<RelatedArticle[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(id), { cache: 'no-store' });
     if (!res.ok) return [];
-    return (await res.json()) as Article[];
+    return (await res.json()) as RelatedArticle[];
   } catch {
     return [];
   }
@@ -142,18 +147,30 @@ export default async function ArticlePage(
         {article.summary && (
           <p className={styles.summary}>{article.summary}</p>
         )}
-        <p className={styles.meta}>
-          {new Date(article.createdDate).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-          {article.countryName ? ` | ${article.countryName}` : ''}
-          {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
-        </p>
-        {article.images && article.images.length > 0 && (
-          <div className={article.images.length > 1 ? styles.gallery : undefined}>
-            {article.images.map((img, idx) => {
+          <p className={styles.meta}>
+            {new Date(article.createdDate).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+            {article.countryName ? ` | ${article.countryName}` : ''}
+            {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
+          </p>
+          {related.length > 0 && (
+            <p className={styles.relatedBar}>
+              {related.map((a, i) => (
+                <span key={a.id}>
+                  <Link href={`/articles/${a.id}`}>{a.title}</Link>
+                  {i < related.length - 1 && (
+                    <span className={styles.separator}>|</span>
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
+          {article.images && article.images.length > 0 && (
+            <div className={article.images.length > 1 ? styles.gallery : undefined}>
+              {article.images.map((img, idx) => {
               const base64 = img.photo ? `data:image/jpeg;base64,${img.photo}` : undefined;
               const validLink = img.photoLink && isValidImageForNextImage(img.photoLink)
                 ? img.photoLink
@@ -202,14 +219,6 @@ export default async function ArticlePage(
           initialComments={article.comments ?? []}
         />
       </article>
-      {related.length > 0 && (
-        <aside className={styles.sidebar}>
-          <h2 className={styles.relatedHeading}>Recommended Articles</h2>
-          {related.map((a) => (
-            <ArticleCard key={a.id} article={a} />
-          ))}
-        </aside>
-      )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
