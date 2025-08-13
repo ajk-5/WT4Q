@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Northeast.DTOs;
 using Northeast.Models;
 using Northeast.Services;
+using Northeast.Repository;
+using Northeast.Utilities;
 
 
 namespace Northeast.Controllers
@@ -12,10 +14,14 @@ namespace Northeast.Controllers
     public class ArticleController : ControllerBase
     {
         private readonly ArticleServices articleUpload;
+        private readonly LikeRepository _likeRepository;
+        private readonly GetConnectedUser _connectedUser;
 
-        public ArticleController(ArticleServices _articleUpload)
+        public ArticleController(ArticleServices _articleUpload, LikeRepository likeRepository, GetConnectedUser connectedUser)
         {
             articleUpload = _articleUpload;
+            _likeRepository = likeRepository;
+            _connectedUser = connectedUser;
         }
 
         [Authorize(Policy = "AdminOnly")]
@@ -130,38 +136,51 @@ namespace Northeast.Controllers
             return Ok(new { message = "The article has been deleted" });
         }
         [Authorize]
-        [HttpPut("{Id}/Like")]
-        public async Task<IActionResult> Like([FromRoute] Guid Id, [FromBody] LikeEntity like)
+        [HttpPut("{id:guid}/like")]
+        public async Task<IActionResult> Like([FromRoute] Guid id, [FromBody] LikeRequest req)
         {
-            if (Id == Guid.Empty)
+            if (id == Guid.Empty)
             {
                 return BadRequest(new { message = "Please enter an Id" });
             }
-            var article = await articleUpload.GetArticleByID(Id);
 
-
+            var article = await articleUpload.GetArticleByGUID(id);
             if (article == null)
             {
-                return BadRequest(new { message = "Sorry, no article found with this ID" });
+                return NotFound(new { message = "Sorry, no article found with this ID" });
             }
 
-            var existingLike = await articleUpload.GetLikeByUserAndArticle(article.Id);
-
-            if (existingLike != null && like.Type == existingLike.Type)
+            var userId = _connectedUser?.Id ?? Guid.Empty;
+            if (userId == Guid.Empty)
             {
-                await articleUpload.DeleteLike(existingLike.Id);
+                return Unauthorized();
+            }
+
+            var likeType = (LikeType)req.Type;
+            var existingLike = await _likeRepository.GetLikeByUserAndArticle(userId, article.Id);
+
+            if (existingLike != null && existingLike.Type == likeType)
+            {
+                await _likeRepository.Delete(existingLike);
                 return Ok(new { message = "unliked" });
             }
-            if (existingLike != null && like.Type != existingLike.Type)
+
+            if (existingLike != null)
             {
-                await articleUpload.ModifyLike(Id, like);
+                existingLike.Type = likeType;
+                await _likeRepository.Update(existingLike);
                 return Ok(new { message = "Like changed" });
             }
-            await articleUpload.AddLike(Id, like);
 
+            var like = new LikeEntity
+            {
+                ArticleId = article.Id,
+                UserId = userId,
+                Type = likeType
+            };
+
+            await _likeRepository.Add(like);
             return Ok(new { message = "Liked" });
-
-
         }
 
         [Authorize]
