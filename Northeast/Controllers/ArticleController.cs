@@ -130,9 +130,8 @@ namespace Northeast.Controllers
             return Ok(new { message = "The article has been deleted" });
         }
         [Authorize]
-        [HttpPut("Like")]
-
-        public async Task<IActionResult> Like(Guid Id, LikeEntity like)
+        [HttpPut("{Id}/Like")]
+        public async Task<IActionResult> Like([FromRoute] Guid Id, [FromBody] LikeEntity like)
         {
             if (Id == Guid.Empty)
             {
