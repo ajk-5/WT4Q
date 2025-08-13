@@ -5,8 +5,8 @@ import type { BreakingArticle } from '@/components/BreakingNewsSlider';
 import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
+import { chunk } from '@/lib/chunk';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import styles from './page.module.css';
 import WeatherWidget from '@/components/WeatherWidget';
 
@@ -33,8 +33,8 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { cache: 'no-store' });
     if (!res.ok) return [];
-    const data = await res.json();
-    return (data || []).map((a: any) => ({
+    const data = (await res.json()) as BreakingArticle[];
+    return (data || []).map((a) => ({
       id: a.id,
       title: a.title,
       content: a.content,
@@ -43,12 +43,6 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
   } catch {
     return [];
   }
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
 }
 
 export default async function Home() {
