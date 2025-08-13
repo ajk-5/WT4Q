@@ -69,14 +69,12 @@ html {
   text-size-adjust: 100%;
 }
 
+/* =========
+   Background fix — always covers screen
+   ========= */
 body {
   color: var(--foreground);
-  background-color: var(--background);
-  background-image: url('/images/paper_background.webp');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed; /* becomes scroll on small screens for performance */
-  background-position: center;
+  background-color: var(--background); /* fallback color */
   font-family: "Georgia", "Times New Roman", serif;
   font-size: var(--font-size-base);
   line-height: var(--line-height);
@@ -84,8 +82,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
   max-width: 150vw;
   overflow-x: hidden;
+  position: relative;
+  min-height: 100svh;
+  min-height: -webkit-fill-available;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/images/paper_background.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+}
+
+/* For the purple site background variant */
+body.site-bg--purple::before {
+  background-image:
+    radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
+    radial-gradient(1400px circle at 80% 0%, #3a17a7 0%, #2b0a86 55%, #1f085f 85%, #14043d 100%),
+    url('/images/paper_background.webp');
+}
+
+/* =========
+   Images & links
+   ========= */
 img, svg, video, canvas { max-width: 100%; height: auto; display: block; }
 
 a { color: inherit; text-decoration: none; }
@@ -104,20 +128,18 @@ a:focus-visible, button:focus-visible {
    Layout
    ========= */
 main {
-  /* Fluid container with safe gutters */
   width: min(var(--content-max), 100% - clamp(24px, 6vw, 64px));
   margin-inline: auto;
   margin-block: clamp(var(--space-5), 4vw, var(--space-6));
 }
 
-/* Optional utility container (if you need it elsewhere) */
 .container {
   width: min(var(--content-max), 100% - clamp(24px, 6vw, 64px));
   margin-inline: auto;
 }
 
 /* =========
-   Theming helpers (kept)
+   Theming helpers
    ========= */
 .metallicBg { background: var(--metal-gradient); color: var(--metal-reflect); }
 .rounded { border-radius: 1rem; }
@@ -170,49 +192,20 @@ button:active:not(:disabled) {
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* =========
-   Purple site background variant (kept, responsive)
+   RESPONSIVE
    ========= */
-body.site-bg--purple {
-  --background: #2b0a86;
-  --foreground: #eef1ff;
-
-  background-color: var(--background);
-  background-image:
-    radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
-    radial-gradient(1400px circle at 80% 0%, #3a17a7 0%, #2b0a86 55%, #1f085f 85%, #14043d 100%);
-  background-size: cover;
-  background-attachment: fixed; /* becomes scroll on small screens */
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-@media (prefers-color-scheme: dark) {
-  body.site-bg--purple { --foreground: #f6f8ff; }
-}
-
-/* =========
-   RESPONSIVE ADAPTATIONS
-   ========= */
-
-/* Medium (≤ 1024px) */
 @media (max-width: 1024px) {
   main { margin-block: clamp(var(--space-4), 3vw, var(--space-5)); }
   button { letter-spacing: 0.04em; }
 }
 
-/* Small (≤ 768px) */
 @media (max-width: 768px) {
-  /* Prevent background jank on mobile */
-  body { background-attachment: scroll; background-position: top center; }
-  body.site-bg--purple { background-attachment: scroll; }
-
   main {
     width: min(var(--content-max), 100% - clamp(16px, 5vw, 40px));
     margin-block: clamp(var(--space-3), 3vw, var(--space-5));
   }
 
   button {
-    /* easier taps on mobile; remove if not desired */
     box-shadow:
       inset 2px 2px 4px var(--metal-shadow),
       inset -2px -2px 4px var(--metal-reflect),
@@ -220,15 +213,10 @@ body.site-bg--purple {
   }
 }
 
-/* Extra-small (≤ 480px) */
 @media (max-width: 480px) {
-  :root {
-    --radius: 12px;
-  }
+  :root { --radius: 12px; }
 
-  body {
-    font-size: clamp(14px, 3.5vw, 16px); /* ensure legibility */
-  }
+  body { font-size: clamp(14px, 3.5vw, 16px); }
 
   main {
     width: min(var(--content-max), 100% - clamp(12px, 4.5vw, 28px));
@@ -236,7 +224,7 @@ body.site-bg--purple {
 
   button {
     padding: 0.7rem 1rem;
-    text-transform: none;   /* better readability on very small screens */
+    text-transform: none;
     letter-spacing: 0.02em;
   }
 }
