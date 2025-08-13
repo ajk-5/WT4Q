@@ -146,19 +146,15 @@ namespace Northeast.Controllers
                 return BadRequest(new { message = "Sorry, no article found with this ID" });
             }
 
-            var Like = await articleUpload.GetLikeByUserAndArticle(article.Id);
+            var existingLike = await articleUpload.GetLikeByUserAndArticle(article.Id);
 
-
-
-            if (await articleUpload.hasLiked(Id) && like.Type == Like.Type)
+            if (existingLike != null && like.Type == existingLike.Type)
             {
-                await articleUpload.DeleteLike(Like.Id);
+                await articleUpload.DeleteLike(existingLike.Id);
                 return Ok(new { message = "unliked" });
             }
-            if (await articleUpload.hasLiked(Id) && like.Type != Like.Type)
+            if (existingLike != null && like.Type != existingLike.Type)
             {
-                Like.Type = like.Type;
-
                 await articleUpload.ModifyLike(Id, like);
                 return Ok(new { message = "Like changed" });
             }
