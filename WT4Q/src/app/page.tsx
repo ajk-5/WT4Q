@@ -146,9 +146,9 @@ export default async function Home() {
       <footer className={styles.footer}>
         <nav className={styles.footerNav}>
           {CATEGORIES.map((c) => (
-            <Link key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
+            <PrefetchLink key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
               {c}
-            </Link>
+            </PrefetchLink>
           ))}
         </nav>
       </footer>*/}

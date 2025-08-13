@@ -7,7 +7,7 @@ import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
 import type { ArticleImage } from '@/lib/models';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 
 /* ---------------------- types ---------------------- */
 
@@ -163,7 +163,7 @@ export default async function ArticlePage(
             <p className={styles.relatedBar}>
               {related.map((a, i) => (
                 <span key={a.id}>
-                  <Link href={`/articles/${a.id}`}>{a.title}</Link>
+                  <PrefetchLink href={`/articles/${a.id}`}>{a.title}</PrefetchLink>
                   {i < related.length - 1 && (
                     <span className={styles.separator}>|</span>
                   )}

@@ -7,7 +7,7 @@ import {
   useTransition,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { UPLOADCATEGORIES } from '@/lib/categories';
@@ -319,7 +319,7 @@ export default function DashboardClient() {
           {isPending ? 'Publishing...' : 'Publish'}
         </button>
       </form>
-      <Link href="/admin/cocktails" className={styles.button} style={{marginTop:'1rem'}}>Upload Cocktail</Link>
+      <PrefetchLink href="/admin/cocktails" className={styles.button} style={{marginTop:'1rem'}}>Upload Cocktail</PrefetchLink>
       <h2 className={styles.subtitle}>Your Articles</h2>
       <ul className={styles.list}>
         {articles.map((a) => (

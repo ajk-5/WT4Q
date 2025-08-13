@@ -1,6 +1,6 @@
 'use client';
 import { useState, FormEvent, useTransition } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
 import { useAdminGuard } from '@/hooks/useAdminGuard';
@@ -66,9 +66,9 @@ export default function CocktailDashboardClient() {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Cocktail Manager</h1>
-      <Link href="/admin/dashboard" className={styles.button}>
+      <PrefetchLink href="/admin/dashboard" className={styles.button}>
         Back to Dashboard
-      </Link>
+      </PrefetchLink>
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
       <form onSubmit={handleSubmit} className={styles.form}>

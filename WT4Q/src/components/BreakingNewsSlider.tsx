@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
 
@@ -75,14 +75,14 @@ export default function BreakingNewsSlider({
               {current.content.split(/\s+/).slice(0, 20).join(' ')}...
             </p>
           )}
-          <Link href={`/articles/${current.id}`} className={styles.readMore}>
+          <PrefetchLink href={`/articles/${current.id}`} className={styles.readMore}>
             Read more
-          </Link>
+          </PrefetchLink>
         </div>
       ) : (
-        <Link href={`/articles/${current.id}`} className={styles.item}>
+        <PrefetchLink href={`/articles/${current.id}`} className={styles.item}>
           {current.title}
-        </Link>
+        </PrefetchLink>
       )}
       <div className={styles.dots}>
         {articles.map((_, i) => (

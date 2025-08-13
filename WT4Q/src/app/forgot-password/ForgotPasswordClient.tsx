@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ForgotPassword.module.css';
 import { API_ROUTES } from '@/lib/api';
 
@@ -112,9 +112,9 @@ export default function ForgotPasswordClient() {
       {step === 3 && (
         <div className={styles.form}>
           {message && <p className={styles.success}>{message}</p>}
-          <Link href="/login" className={styles.link}>
+          <PrefetchLink href="/login" className={styles.link}>
             Return to login
-          </Link>
+          </PrefetchLink>
         </div>
       )}
     </main>

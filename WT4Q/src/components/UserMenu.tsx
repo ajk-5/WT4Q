@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
 import { API_ROUTES } from '@/lib/api';
@@ -44,7 +44,7 @@ export default function UserMenu() {
 
   if (!user) {
     return (
-      <Link href="/login" className={styles.loginLink}>
+      <PrefetchLink href="/login" className={styles.loginLink}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ export default function UserMenu() {
           />
         </svg>
         <span className={styles.loginText}>Sign In</span>
-      </Link>
+      </PrefetchLink>
     );
   }
 
@@ -73,9 +73,9 @@ export default function UserMenu() {
       </button>
       {open && (
         <div className={styles.dropdown}>
-          <Link href="/profile" className={styles.item} onClick={() => setOpen(false)}>
+          <PrefetchLink href="/profile" className={styles.item} onClick={() => setOpen(false)}>
             Profile
-          </Link>
+          </PrefetchLink>
           <button onClick={handleLogout} className={styles.item}>
             Logout
           </button>

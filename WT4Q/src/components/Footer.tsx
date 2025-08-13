@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -7,13 +7,13 @@ export default function Footer() {
       <div className={styles.inner}>
         &copy; {new Date().getFullYear()} WT4Q News{' '}
         <span aria-hidden="true">|</span>{' '}
-        <Link href="/terms">Terms &amp; Cookies</Link>{' '}
+        <PrefetchLink href="/terms">Terms &amp; Cookies</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
-        <Link href="/about">About</Link>{' '}
+        <PrefetchLink href="/about">About</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
-        <Link href="/contact?type=problem">Report a Problem</Link>{' '}
+        <PrefetchLink href="/contact?type=problem">Report a Problem</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
-        <Link href="/contact">Contact Us</Link>
+        <PrefetchLink href="/contact">Contact Us</PrefetchLink>
       </div>
     </footer>
   );
