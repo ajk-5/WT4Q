@@ -23,8 +23,7 @@ interface ArticleDetails {
   embededCode?: string;
   author?: { adminName?: string };
   comments?: Comment[];
-  like?: { id: number }[];
-  dislike?: { id: number }[];
+  like?: { id: number; type: number }[];
 }
 
 interface RelatedArticle {
@@ -138,6 +137,9 @@ export default async function ArticlePage(
 
   const related = await fetchRelated(id);
 
+  const likeCount = article.like?.filter((l) => l.type === 0).length ?? 0;
+  const dislikeCount = article.like?.filter((l) => l.type === 2).length ?? 0;
+
   return (
     <div className={styles.newspaper}>
       <article className={styles.main}>
@@ -216,8 +218,8 @@ export default async function ArticlePage(
         <p className={styles.content}>{article.content}</p>
         <ReactionButtons
           articleId={id}
-          initialLikes={article.like?.length ?? 0}
-          initialDislikes={article.dislike?.length ?? 0}
+          initialLikes={likeCount}
+          initialDislikes={dislikeCount}
         />
         <CommentsSection
           articleId={id}

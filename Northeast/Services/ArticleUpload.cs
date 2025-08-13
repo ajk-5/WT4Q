@@ -73,8 +73,12 @@ namespace Northeast.Services
         }
 
         public async Task<Article> GetArticleByID(Guid Id) {
-            var Article = await _articleRepository.GetByGUId(Id);
-            return Article;
+            var article = await _appDbContext.Articles
+                .AsNoTracking()
+                .Include(a => a.Like)
+                .Include(a => a.Comments)
+                .FirstOrDefaultAsync(a => a.Id == Id);
+            return article;
         }
 
         public async Task<IEnumerable<Article>> Search(string query)
