@@ -13,9 +13,11 @@ import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { UPLOADCATEGORIES } from '@/lib/categories';
 import styles from './dashboard.module.css';
 import countries from '../../../../public/datas/Countries.json';
+import { useAdminGuard } from '@/hooks/useAdminGuard';
 
 export default function DashboardClient() {
   const router = useRouter();
+  const admin = useAdminGuard();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [type, setType] = useState('');
@@ -35,12 +37,8 @@ export default function DashboardClient() {
 
   useEffect(() => {
     async function load() {
+      if (!admin?.id) return;
       try {
-        const adminRes = await fetch(API_ROUTES.ADMIN_AUTH.ME, {
-          credentials: 'include',
-        });
-        if (!adminRes.ok) return;
-        const admin = await adminRes.json();
         const res = await fetch(API_ROUTES.ARTICLE.SEARCH_BY_AUTHOR(admin.id), {
           credentials: 'include',
         });
@@ -52,7 +50,7 @@ export default function DashboardClient() {
       }
     }
     load();
-  }, []);
+  }, [admin]);
 
 
   const handleLogout = async () => {
