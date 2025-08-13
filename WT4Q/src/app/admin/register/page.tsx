@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import DashboardClient from './DashboardClient';
 import { API_ROUTES } from '@/lib/api';
+import AdminRegisterClient from './AdminRegisterClient';
 
-export default async function DashboardPage() {
+export default async function AdminRegisterPage() {
   const cookieStore = await cookies();
   if (!cookieStore.get('JwtToken')) {
     redirect('/admin-login');
@@ -15,14 +15,14 @@ export default async function DashboardPage() {
     });
     if (!res.ok) redirect('/admin-login');
     const admin = await res.json();
-    const isAdmin =
-      admin?.role === 'Admin' ||
+    const isSuperAdmin =
       admin?.role === 'SuperAdmin' ||
-      admin?.roles?.includes?.('Admin') ||
       admin?.roles?.includes?.('SuperAdmin');
-    if (!isAdmin) redirect('/admin-login');
+    if (!isSuperAdmin) {
+      redirect('/admin-login');
+    }
   } catch {
     redirect('/admin-login');
   }
-  return <DashboardClient />;
+  return <AdminRegisterClient />;
 }
