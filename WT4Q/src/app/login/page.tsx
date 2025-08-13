@@ -10,11 +10,13 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { from?: string };
+  searchParams?: Promise<{ from?: string }>;
 }) {
   const cookieStore = await cookies();
   if (cookieStore.get('JwtToken')) {
     redirect('/');
   }
-  return <LoginClient from={searchParams?.from} />;
+
+  const params = await searchParams;
+  return <LoginClient from={params?.from} />;
 }
