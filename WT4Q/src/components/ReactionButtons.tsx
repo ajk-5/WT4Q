@@ -37,30 +37,32 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
         setShowLogin(true);
         return;
       }
-      if (res.ok) {
-        const data = await res.json();
-        if (data.message === 'unliked') {
-          if (type === 0) setLikes(likes - 1);
-          else setDislikes(dislikes - 1);
-          setStatus(null);
-        } else if (data.message === 'Like changed') {
-          if (type === 0) {
-            setLikes(likes + 1);
-            setDislikes(dislikes - 1);
-            setStatus('like');
-          } else {
-            setDislikes(dislikes + 1);
-            setLikes(likes - 1);
-            setStatus('dislike');
-          }
-        } else if (data.message === 'Liked') {
-          if (type === 0) {
-            setLikes(likes + 1);
-            setStatus('like');
-          } else {
-            setDislikes(dislikes + 1);
-            setStatus('dislike');
-          }
+      if (!res.ok) {
+        const msg = await res.json().catch(() => ({}));
+        throw new Error(msg?.message || `Failed: ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.message === 'unliked') {
+        if (type === 0) setLikes(likes - 1);
+        else setDislikes(dislikes - 1);
+        setStatus(null);
+      } else if (data.message === 'Like changed') {
+        if (type === 0) {
+          setLikes(likes + 1);
+          setDislikes(dislikes - 1);
+          setStatus('like');
+        } else {
+          setDislikes(dislikes + 1);
+          setLikes(likes - 1);
+          setStatus('dislike');
+        }
+      } else if (data.message === 'Liked') {
+        if (type === 0) {
+          setLikes(likes + 1);
+          setStatus('like');
+        } else {
+          setDislikes(dislikes + 1);
+          setStatus('dislike');
         }
       }
     } catch {
@@ -97,4 +99,3 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
     </>
   );
 }
-

@@ -81,6 +81,11 @@ namespace Northeast.Services
             return article;
         }
 
+        public async Task<Article?> GetArticleByGUID(Guid id)
+        {
+            return await _articleRepository.GetByGUId(id);
+        }
+
         public async Task<IEnumerable<Article>> Search(string query)
         {
             return await _articleRepository.Search(query);
@@ -189,58 +194,35 @@ namespace Northeast.Services
         }
 
 
-        public async Task AddLike(Guid Id, LikeEntity like)
-        {  //modify and add likes 
-            var u = _connectedUser;
-
-            var userId = u.Id;
-
-            if (userId == Guid.Empty)
-            {
-                return;
-            }
-            var user = await _userRepository.GetByGUId(userId);
-
-            var Article = await _articleRepository.GetByGUId(Id);
-
-            if (!await _likeRepository.UserAlreadyLiked(userId, Article.Id))
-
-            {
-                like.Id = new int();
-                like.Article = Article;
-                like.ArticleId = Article.Id;
-                like.User = user;
-                like.UserId = userId;
-
-                await _likeRepository.Add(like);
-
-            }
-            return;
-
-
-        }
-        public async Task ModifyLike(Guid Id, LikeEntity like)
+        public async Task AddLike(Guid articleGuid, LikeEntity like)
         {
-            var u = _connectedUser;
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty) return;
 
-            var userId = u.Id;
+            var article = await _articleRepository.GetByGUId(articleGuid);
+            if (article == null) return;
 
-            if (userId == Guid.Empty)
+            if (!await _likeRepository.UserAlreadyLiked(userId, article.Id))
             {
-                return;
+                like.ArticleId = article.Id;
+                like.UserId = userId;
+                await _likeRepository.Add(like);
             }
+        }
+        public async Task ModifyLike(Guid articleGuid, LikeEntity like)
+        {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty) return;
 
-            var Article = await _articleRepository.GetByGUId(Id);
+            var article = await _articleRepository.GetByGUId(articleGuid);
+            if (article == null) return;
 
-            if (await _likeRepository.UserAlreadyLiked(userId, Article.Id))
+            var existingLike = await _likeRepository.GetLikeByUserAndArticle(userId, article.Id);
+            if (existingLike != null)
             {
-                var existingLike = await _likeRepository.GetLikeByUserAndArticle(userId, Article.Id);
-
                 existingLike.Type = like.Type;
                 await _likeRepository.Update(existingLike);
-                return;
             }
-            return;
         }
 
 
