@@ -45,10 +45,11 @@
 }
 
 .dropdown {
+  font-variant: small-caps;
   position: absolute;
   top: 110%;
   right: 0;
-  background: #191559;
+  background-image: url('/images/paper_background.webp');
   border: 1px solid var(--secondary);
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);

@@ -13,6 +13,7 @@
     "fabric": "^6.0.0-beta15",
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
+    "lint": "^0.8.19",
     "lucide-react": "^0.469.0",
     "next": "^15.4.2",
     "react": "^19.1.0",
