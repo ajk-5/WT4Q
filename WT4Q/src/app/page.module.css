@@ -1,7 +1,9 @@
 /* app/page.module.css */
 
 /* --- Palette & rhythm --- */
-:root {
+
+.newspaper {
+  /* Custom properties scoped to this layout */
   --paper: #f7f5ef00;          /* slightly warm paper */
   --ink: #111;               /* rich black */
   --muted-ink: #333;         /* text rules */
@@ -10,9 +12,7 @@
   --accent: #6a0000;         /* deep burgundy for kickers */
   --gutter: 2rem;
   --col-gap: 2.25rem;
-}
 
-.newspaper {
   background: var(--paper);
   background-image: url('/images/paper_background.webp');
   color: var(--ink);
