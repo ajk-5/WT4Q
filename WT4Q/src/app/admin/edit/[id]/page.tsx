@@ -1,16 +1,12 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import EditArticleClient from './EditArticleClient';
+import { ensureAdmin } from '@/app/admin/ensureAdmin';
 
 export default async function EditArticlePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('JwtToken')) {
-    redirect('/admin-login');
-  }
+  await ensureAdmin();
   const { id } = await params;
   return <EditArticleClient id={id} />;
 }

@@ -3,6 +3,7 @@ import { useState, FormEvent, useTransition } from 'react';
 import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
+import { useAdminGuard } from '@/hooks/useAdminGuard';
 
 interface IngredientInput {
   name: string;
@@ -10,6 +11,7 @@ interface IngredientInput {
 }
 
 export default function CocktailDashboardClient() {
+  useAdminGuard();
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
   const [ingredients, setIngredients] = useState<IngredientInput[]>([

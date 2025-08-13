@@ -8,6 +8,7 @@ import { CATEGORIES } from '@/lib/categories';
 import countries from '../../../../../public/datas/Countries.json';
 import styles from '../../dashboard/dashboard.module.css';
 import type { ArticleImage } from '@/lib/models';
+import { useAdminGuard } from '@/hooks/useAdminGuard';
 
 interface ArticleDetails {
   title: string;
@@ -24,6 +25,7 @@ interface ArticleDetails {
 
 export default function EditArticleClient({ id }: { id: string }) {
   const router = useRouter();
+  const admin = useAdminGuard();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [type, setType] = useState('');
@@ -41,6 +43,7 @@ export default function EditArticleClient({ id }: { id: string }) {
 
   useEffect(() => {
     async function load() {
+      if (!admin) return;
       try {
         const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), {
           credentials: 'include',
@@ -71,7 +74,7 @@ export default function EditArticleClient({ id }: { id: string }) {
       }
     }
     load();
-  }, [id]);
+  }, [id, admin]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
