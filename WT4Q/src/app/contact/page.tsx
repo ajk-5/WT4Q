@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { Suspense, useEffect, useState, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_ROUTES } from "@/lib/api";
 
-export default function ContactPage() {
+function ContactForm() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
@@ -50,7 +50,10 @@ export default function ContactPage() {
   return (
     <main style={{ padding: "1rem" }}>
       <h1>Contact Us</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "400px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "400px" }}
+      >
         {!connected && (
           <input
             type="email"
@@ -71,5 +74,13 @@ export default function ContactPage() {
         {status && <p>{status}</p>}
       </form>
     </main>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContactForm />
+    </Suspense>
   );
 }
