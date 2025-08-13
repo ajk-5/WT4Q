@@ -22,10 +22,10 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
     setLoginHref(`/login?returnUrl=${encodeURIComponent(window.location.href + '#reactions')}`);
   }, []);
 
-  const send = async (type: 0 | 1) => {
+  const send = async (type: 0 | 2) => {
     try {
       const res = await fetch(
-        `${API_ROUTES.ARTICLE.LIKE}?ArticleId=${articleId}`,
+        `${API_ROUTES.ARTICLE.LIKE}?Id=${articleId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
           👍 <span className={styles.count}>{likes}</span>
         </button>
         <button
-          onClick={() => send(1)}
+          onClick={() => send(2)}
           className={styles.button}
           aria-pressed={status === 'dislike'}
         >
