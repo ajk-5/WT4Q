@@ -7,10 +7,11 @@
   align-items: center;
   justify-content: center;
   background: var(--metal-base);
-  background-image:
-    url('/images/wt4q-logo.png'),
-    radial-gradient(circle at center, rgba(255,255,255,0.6), transparent 70%);
-  background-repeat: no-repeat;
+   font-variant: small-caps;
+ 
+    background-image: url('/images/paper_background.webp');
+
+  background-repeat: cover;
   background-position: center top 20px;
   background-size: 300px auto;
   padding: 1rem;
@@ -19,7 +20,9 @@
 /* Card: deep bevel effect, no border to impede clicks */
 .card {
   position: relative;
-  background: var(--metal-base);
+  background: #e0dada00; /*var(--metal-base);
+   /*background-image: url('/images/paper_background.webp');*/
+  color: black;
   border-radius: 24px;
   padding: 3rem;
   width: 100%;
@@ -49,7 +52,8 @@
   font-size: 2.25rem;
   font-weight: 700;
   text-align: center;
-  background: linear-gradient(
+  font-variant: small-caps;
+ /* background: linear-gradient(
     90deg,
     var(--wt4q-yellow) 0%,
     var(--wt4q-red)    30%,
@@ -57,7 +61,7 @@
     var(--wt4q-green)  100%
   );
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;*/
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
