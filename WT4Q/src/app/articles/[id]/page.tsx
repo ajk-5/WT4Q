@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import CommentsSection, { Comment } from '@/components/CommentsSection';
-import LikeButton from '@/components/LikeButton';
+import ReactionButtons from '@/components/ReactionButtons';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
@@ -24,6 +24,7 @@ interface ArticleDetails {
   author?: { adminName?: string };
   comments?: Comment[];
   like?: { id: number }[];
+  dislike?: { id: number }[];
 }
 
 interface RelatedArticle {
@@ -213,7 +214,11 @@ export default async function ArticlePage(
           />
         )}
         <p className={styles.content}>{article.content}</p>
-        <LikeButton articleId={id} initialCount={article.like?.length ?? 0} />
+        <ReactionButtons
+          articleId={id}
+          initialLikes={article.like?.length ?? 0}
+          initialDislikes={article.dislike?.length ?? 0}
+        />
         <CommentsSection
           articleId={id}
           initialComments={article.comments ?? []}
