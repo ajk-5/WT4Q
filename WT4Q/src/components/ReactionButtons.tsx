@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES } from '@/lib/api';
 import styles from './ReactionButtons.module.css';
 
@@ -92,7 +92,7 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
         <div className={styles.overlay} onClick={() => setShowLogin(false)}>
           <div className={styles.prompt} onClick={(e) => e.stopPropagation()}>
             <p>Login to react</p>
-            <Link href={loginHref}>Go to login</Link>
+            <PrefetchLink href={loginHref}>Go to login</PrefetchLink>
           </div>
         </div>
       )}

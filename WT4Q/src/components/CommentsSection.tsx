@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES } from '@/lib/api';
 import styles from './CommentsSection.module.css';
 
@@ -155,7 +155,7 @@ export default function CommentsSection({
         </form>
       ) : (
         <p className={styles.loginPrompt}>
-          <Link href={loginHref}>Log in to comment</Link>
+          <PrefetchLink href={loginHref}>Log in to comment</PrefetchLink>
         </p>
       )}
     </section>

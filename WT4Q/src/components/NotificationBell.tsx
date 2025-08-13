@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import PrefetchLink from "@/components/PrefetchLink";
 import { API_ROUTES } from "@/lib/api";
 import styles from "./NotificationBell.module.css";
 
@@ -24,10 +24,10 @@ export default function NotificationBell() {
   }, []);
 
   return (
-    <Link href="/notifications" className={styles.bell} aria-label="Notifications">
+    <PrefetchLink href="/notifications" className={styles.bell} aria-label="Notifications">
       <span>🔔</span>
       {unread > 0 && <span className={styles.badge}>{unread}</span>}
-    </Link>
+    </PrefetchLink>
   );
 }
 

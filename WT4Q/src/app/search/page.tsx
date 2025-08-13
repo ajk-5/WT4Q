@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import styles from './search.module.css';
@@ -63,9 +63,9 @@ function SearchContent() {
           Search
         </button>
       </form>
-      <Link href="/search/advanced" className={styles.advancedLink}>
+      <PrefetchLink href="/search/advanced" className={styles.advancedLink}>
         Advanced search
-      </Link>
+      </PrefetchLink>
       <div className={styles.results}>
         {results.map((a) => (
           <ArticleCard key={a.id} article={a} />

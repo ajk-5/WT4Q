@@ -1,7 +1,7 @@
 'use client';
 import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import Image from 'next/image';
 import styles from './Login.module.css';
 import Button from '@/components/Button';
@@ -141,9 +141,9 @@ const LoginClient: FC<Props> = ({ from }) => {
               </button>
             </div>
             <p className={styles.forgot}>
-              <Link href="/forgot-password" className={styles.switchLink}>
+              <PrefetchLink href="/forgot-password" className={styles.switchLink}>
                 Forgot password?
-              </Link>
+              </PrefetchLink>
             </p>
           </div>
 
@@ -167,9 +167,9 @@ const LoginClient: FC<Props> = ({ from }) => {
         </Button>
         <p className={styles.switch}>
           Don&apos;t have an account?{' '}
-          <Link href="/register" className={styles.switchLink}>
+          <PrefetchLink href="/register" className={styles.switchLink}>
             Register
-          </Link>
+          </PrefetchLink>
         </p>
       </section>
     </main>

@@ -1,7 +1,7 @@
 'use client';
 import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import Image from 'next/image';
 import styles from './Register.module.css';
 import Button from '@/components/Button';
@@ -213,9 +213,9 @@ const Register: FC = () => {
         </Button>
         <p className={styles.switch}>
           Already have an account?{' '}
-          <Link href="/login" className={styles.switchLink}>
+          <PrefetchLink href="/login" className={styles.switchLink}>
             Sign In
-          </Link>
+          </PrefetchLink>
         </p>
       </section>
     </main>

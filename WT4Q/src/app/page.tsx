@@ -6,7 +6,6 @@ import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import styles from './page.module.css';
 import WeatherWidget from '@/components/WeatherWidget';
 
@@ -152,9 +151,9 @@ export default async function Home() {
       <footer className={styles.footer}>
         <nav className={styles.footerNav}>
           {CATEGORIES.map((c) => (
-            <Link key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
+            <PrefetchLink key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
               {c}
-            </Link>
+            </PrefetchLink>
           ))}
         </nav>
       </footer>*/}

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import HomeIcon from '../components/HomeIcon';
 import styles from './error-page.module.css';
 
@@ -9,10 +9,10 @@ export default function NotFound() {
         <span className={styles.heading}>Breaking News</span>
         <h1 className={styles.headline}>Page not found</h1>
         <p className={styles.message}>Sorry, we couldn&apos;t find the page you were looking for.</p>
-        <Link href="/" className={styles.homeLink}>
+        <PrefetchLink href="/" className={styles.homeLink}>
           <HomeIcon className={styles.homeIcon} />
           Back to the homepage
-        </Link>
+        </PrefetchLink>
       </div>
     </div>
   );
