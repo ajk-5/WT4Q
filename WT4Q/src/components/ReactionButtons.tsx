@@ -38,14 +38,29 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
         return;
       }
       if (res.ok) {
-        if (type === 0) {
-          setLikes(likes + (status === 'like' ? -1 : 1));
-          if (status === 'dislike') setDislikes(dislikes - 1);
-          setStatus(status === 'like' ? null : 'like');
-        } else {
-          setDislikes(dislikes + (status === 'dislike' ? -1 : 1));
-          if (status === 'like') setLikes(likes - 1);
-          setStatus(status === 'dislike' ? null : 'dislike');
+        const data = await res.json();
+        if (data.message === 'unliked') {
+          if (type === 0) setLikes(likes - 1);
+          else setDislikes(dislikes - 1);
+          setStatus(null);
+        } else if (data.message === 'Like changed') {
+          if (type === 0) {
+            setLikes(likes + 1);
+            setDislikes(dislikes - 1);
+            setStatus('like');
+          } else {
+            setDislikes(dislikes + 1);
+            setLikes(likes - 1);
+            setStatus('dislike');
+          }
+        } else if (data.message === 'Liked') {
+          if (type === 0) {
+            setLikes(likes + 1);
+            setStatus('like');
+          } else {
+            setDislikes(dislikes + 1);
+            setStatus('dislike');
+          }
         }
       }
     } catch {

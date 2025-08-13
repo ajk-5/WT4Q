@@ -209,7 +209,6 @@ namespace Northeast.Services
                 like.Id = new int();
                 like.Article = Article;
                 like.ArticleId = Article.Id;
-                like.Type = like.Type;
                 like.User = user;
                 like.UserId = userId;
 
@@ -235,10 +234,10 @@ namespace Northeast.Services
 
             if (await _likeRepository.UserAlreadyLiked(userId, Article.Id))
             {
-                var Like = await _likeRepository.GetLikeByUserAndArticle(userId, Article.Id);
+                var existingLike = await _likeRepository.GetLikeByUserAndArticle(userId, Article.Id);
 
-                Like.Type = like.Type;
-                await _likeRepository.Update(like);
+                existingLike.Type = like.Type;
+                await _likeRepository.Update(existingLike);
                 return;
             }
             return;
