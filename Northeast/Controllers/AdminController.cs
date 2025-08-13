@@ -51,9 +51,9 @@ namespace Northeast.Controllers
             }
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true, // Prevents JavaScript access
-                Secure = true,   // Required when SameSite=None
-                SameSite = SameSiteMode.None, // allows cross-site cookies; use Strict/Lax to mitigate CSRF
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
 
@@ -70,8 +70,8 @@ namespace Northeast.Controllers
             {
                 Response.Cookies.Delete("JwtToken", new CookieOptions
                 {
-                    Secure = true,
-                    SameSite = SameSiteMode.None
+                    Secure = Request.IsHttps,
+                    SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax
                 });
             }
 
