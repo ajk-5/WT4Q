@@ -5,6 +5,7 @@ using Northeast.Models;
 using Northeast.Services;
 using Northeast.Repository;
 using Northeast.Utilities;
+using System.Linq;
 
 
 namespace Northeast.Controllers
@@ -16,12 +17,18 @@ namespace Northeast.Controllers
         private readonly ArticleServices articleUpload;
         private readonly LikeRepository _likeRepository;
         private readonly GetConnectedUser _connectedUser;
+        private readonly IArticleRecommendationService _recommendations;
 
-        public ArticleController(ArticleServices _articleUpload, LikeRepository likeRepository, GetConnectedUser connectedUser)
+        public ArticleController(
+            ArticleServices _articleUpload,
+            LikeRepository likeRepository,
+            GetConnectedUser connectedUser,
+            IArticleRecommendationService recommendations)
         {
             articleUpload = _articleUpload;
             _likeRepository = likeRepository;
             _connectedUser = connectedUser;
+            _recommendations = recommendations;
         }
 
         [Authorize(Policy = "AdminOnly")]
@@ -89,13 +96,21 @@ namespace Northeast.Controllers
                 return BadRequest(new { message = "Please enter an Id" });
             }
 
-            var recommendations = await articleUpload.GetRelatedArticles(id, count);
-            if (!recommendations.Any())
+            var results = await _recommendations.GetRecommendationsAsync(id, count);
+            if (!results.Any())
             {
                 return NotFound(new { message = "No related articles found" });
             }
 
-            return Ok(recommendations);
+            var dto = results.Select(a => new ArticleRecommendationDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Category = a.Category,
+                ArticleType = a.ArticleType
+            });
+
+            return Ok(dto);
         }
         [Authorize(Policy = "AdminOnly")]
         [HttpPut]
