@@ -15,13 +15,19 @@ export default function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form} role="search">
+    <form
+      onSubmit={handleSubmit}
+      className={styles.form}
+      role="search"
+      suppressHydrationWarning
+    >
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search..."
         className={styles.input}
+        suppressHydrationWarning
       />
       <button type="submit" className={styles.button} aria-label="search">
         🔍
