@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Northeast.Services;
+using Northeast.Services.Similarity;
 using Northeast.Data;
 using Northeast.Interface;
 using Northeast.Middlewares;
@@ -54,6 +55,9 @@ builder.Services.AddScoped<LoginHistoryRepository>();
 builder.Services.AddScoped<PageVisitRepository>();
 builder.Services.AddScoped<NotificationRepository>();
 builder.Services.AddScoped<CommentReportRepository>();
+builder.Services.AddScoped<ITokenizationService, TokenizationService>();
+builder.Services.AddScoped<ISimilarityService, SimilarityService>();
+builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>
