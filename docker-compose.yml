@@ -1,12 +1,13 @@
-
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: {POSTGRES_USER}
-      POSTGRES_PASSWORD: {POSTGRES_PASSWORD}
-      POSTGRES_DB: {DATABASE_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -17,14 +18,26 @@ services:
   webapi:
     build: ./Northeast
     restart: always
-    user: "1654:1654"
-    volumes:
-      - ./Northeast:/app/src
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${DATABASE_NAME};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
-      - "5000:8080"
-    command: ["dotnet", "Northeast.dll"]
+      - "8080:8080"
+
+  frontend:
+    build: ./WT4Q
+    restart: always
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://server.wt4q.com
+      NEXT_PUBLIC_SITE_URL: https://www.wt4q.com
+    depends_on:
+      - webapi
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

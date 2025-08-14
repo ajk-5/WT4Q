@@ -15,7 +15,8 @@ async function fetchUrls(): Promise<string[]> {
 }
 
 export async function GET() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
   const articlePaths = await fetchUrls();
   const pages = ['/', '/search', '/terms', '/profile'];
   const urls = [...pages, ...articlePaths];

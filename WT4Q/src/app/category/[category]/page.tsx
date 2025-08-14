@@ -18,7 +18,8 @@ async function fetchArticles(cat: string): Promise<Article[]> {
 
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
   const { category } = await params;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
   const url = `${siteUrl}/category/${encodeURIComponent(category)}`;
   const title = `${category} - WT4Q`;
   return {
