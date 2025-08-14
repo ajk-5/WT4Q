@@ -7,7 +7,7 @@ type Board = number[][];
 type Direction = "left" | "right" | "up" | "down";
 
 const SIZE = 4;
-const TARGET_MERGES = 2000;
+const TARGET_MERGES = 2048;
 const LOCAL_BEST_KEY = "merge2048_best";
 
 /* --------------------------- Board utilities --------------------------- */
