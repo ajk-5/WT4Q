@@ -91,7 +91,8 @@ export async function generateMetadata(
   const article = await fetchArticle(id);
   if (!article) return {};
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
   const url = new URL(`/articles/${id}`, siteUrl).toString();
 
   const description =

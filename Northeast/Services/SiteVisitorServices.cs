@@ -29,7 +29,7 @@ namespace Northeast.Services
         {
             var ipAddress = _getConnectedUser.GetUserIP();
             
-            // Fallback in case of localhost (will return the server's location)
+            // Fallback if running on a loopback address (will return the server's location)
             if (string.IsNullOrWhiteSpace(ipAddress) || ipAddress == "::1" || ipAddress == "127.0.0.1")
             {
 

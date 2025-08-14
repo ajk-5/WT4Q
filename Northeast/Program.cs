@@ -122,7 +122,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(originsPolicy, policy =>
     {
-        policy.WithOrigins("https://localhost:7122", "http://localhost:3000", "https://localhost:3000", "http://localhost:3001", "https://localhost:3001")
+        policy.WithOrigins(
+            "https://www.wt4q.com",
+            "https://wt4q.com"
+        )
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
