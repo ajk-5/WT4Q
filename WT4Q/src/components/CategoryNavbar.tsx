@@ -44,13 +44,6 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
           >
             Mememaker
           </PrefetchLink>
-          <PrefetchLink
-            href="/tools/online-photoshop"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            Free Online Photoshop
-          </PrefetchLink>
 
         </div>
       </div>
