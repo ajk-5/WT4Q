@@ -11,7 +11,3 @@ namespace Northeast.DTOs
         public ArticleType ArticleType { get; set; }
     }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> fa3c5afb51c7e07155f6288f29fc3139a1758083
