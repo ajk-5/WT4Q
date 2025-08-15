@@ -45,6 +45,10 @@ namespace Northeast.Data
                 .HasForeignKey(i => i.ArticleId);
 
             modelBuilder.Entity<Article>()
+                .HasIndex(a => a.Title)
+                .IsUnique();
+
+            modelBuilder.Entity<Article>()
                 .Navigation(a => a.Images)
                 .AutoInclude();
 
