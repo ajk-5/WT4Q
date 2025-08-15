@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Northeast.Data;
 using Northeast.Models;
 
@@ -11,20 +12,14 @@ namespace Northeast.Services
     public class AutoArticleWriterService : BackgroundService
     {
         private readonly ILogger<AutoArticleWriterService> _log;
-        private readonly AuthorResolver _author;
-        private readonly ArticleFactory _factory;
-        private readonly AppDbContext _db;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly Random _rng = new();
 
         public AutoArticleWriterService(ILogger<AutoArticleWriterService> log,
-            AuthorResolver author,
-            ArticleFactory factory,
-            AppDbContext db)
+            IServiceScopeFactory scopeFactory)
         {
             _log = log;
-            _author = author;
-            _factory = factory;
-            _db = db;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,12 +42,17 @@ namespace Northeast.Services
 
         private async Task TickAsync(CancellationToken ct)
         {
-            var authorId = await _author.GetAuthorIdAsync(ct);
+            using var scope = _scopeFactory.CreateScope();
+            var author = scope.ServiceProvider.GetRequiredService<AuthorResolver>();
+            var factory = scope.ServiceProvider.GetRequiredService<ArticleFactory>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var authorId = await author.GetAuthorIdAsync(ct);
             var cats = Enum.GetValues(typeof(Category)).Cast<Category>().ToArray();
             var category = cats[_rng.Next(cats.Length)];
-            var article = await _factory.FromRandomCategoryAsync(authorId, category, ct);
-            _db.Set<Article>().Add(article);
-            await _db.SaveChangesAsync(ct);
+            var article = await factory.FromRandomCategoryAsync(authorId, category, ct);
+            db.Set<Article>().Add(article);
+            await db.SaveChangesAsync(ct);
         }
     }
 }

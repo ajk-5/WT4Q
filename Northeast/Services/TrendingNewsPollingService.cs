@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Northeast.Clients;
 using Northeast.Data;
 using Northeast.Models;
@@ -14,25 +15,13 @@ namespace Northeast.Services
     public class TrendingNewsPollingService : BackgroundService
     {
         private readonly ILogger<TrendingNewsPollingService> _log;
-        private readonly NewsRssClient _rss;
-        private readonly AuthorResolver _author;
-        private readonly ArticleFactory _factory;
-        private readonly AppDbContext _db;
-        private readonly Deduplication _dedup;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public TrendingNewsPollingService(ILogger<TrendingNewsPollingService> log,
-            NewsRssClient rss,
-            AuthorResolver author,
-            ArticleFactory factory,
-            AppDbContext db,
-            Deduplication dedup)
+            IServiceScopeFactory scopeFactory)
         {
             _log = log;
-            _rss = rss;
-            _author = author;
-            _factory = factory;
-            _db = db;
-            _dedup = dedup;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -55,21 +44,28 @@ namespace Northeast.Services
 
         private async Task TickAsync(CancellationToken ct)
         {
-            var items = await _rss.GetTrendingAsync(ct);
+            using var scope = _scopeFactory.CreateScope();
+            var rss = scope.ServiceProvider.GetRequiredService<NewsRssClient>();
+            var author = scope.ServiceProvider.GetRequiredService<AuthorResolver>();
+            var factory = scope.ServiceProvider.GetRequiredService<ArticleFactory>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var dedup = scope.ServiceProvider.GetRequiredService<Deduplication>();
+
+            var items = await rss.GetTrendingAsync(ct);
             if (items.Count == 0) return;
-            var authorId = await _author.GetAuthorIdAsync(ct);
+            var authorId = await author.GetAuthorIdAsync(ct);
 
             foreach (var item in items.Take(12))
             {
                 var category = InferCategory(item);
-                if (await _dedup.ExistsAsync(item.Title, item.Url, ct))
+                if (await dedup.ExistsAsync(item.Title, item.Url, ct))
                     continue;
 
-                var article = await _factory.FromTrendingAsync(authorId, category, item.Title, item.Source, item.Url, item.Summary, ct);
-                _db.Set<Article>().Add(article);
+                var article = await factory.FromTrendingAsync(authorId, category, item.Title, item.Source, item.Url, item.Summary, ct);
+                db.Set<Article>().Add(article);
             }
 
-            await _db.SaveChangesAsync(ct);
+            await db.SaveChangesAsync(ct);
         }
 
         private static Category InferCategory(TrendingItem it)
