@@ -10,3 +10,4 @@ namespace Northeast.DTOs
         public Category Category { get; set; }
         public ArticleType ArticleType { get; set; }
     }
+}
