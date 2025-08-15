@@ -33,20 +33,27 @@ namespace Northeast.Clients
         /// </summary>
         public async Task<string> GenerateAsync(string prompt, CancellationToken ct = default)
         {
+            var modelPath = _opt.Model.StartsWith("models/")
+                ? _opt.Model
+                : $"models/{_opt.Model}";  // handles both "gemini-2.5-pro" and "models/gemini-2.5-pro"
+
             var body = new
             {
-                contents = new[]
-                {
-                    new { parts = new[] { new { text = prompt } } }
-                },
+                contents = new[] { new { parts = new[] { new { text = prompt } } } },
                 generationConfig = new
                 {
                     temperature = _opt.Temperature,
                     maxOutputTokens = _opt.MaxOutputTokens
+                },
+                // NEW: thinkingConfig is supported for 2.5 models.
+                // For Pro, thinking cannot be disabled; pick a reasonable budget to control cost.
+                thinkingConfig = new
+                {
+                    thinkingBudget = 2048  // try 1024–4096 for paraphrasing/news; Pro allows up to ~32k
                 }
             };
 
-            var url = $"{_opt.Model}:generateContent?key={_opt.ApiKey}";
+            var url = $"{modelPath}:generateContent?key={_opt.ApiKey}";
             using var resp = await _http.PostAsJsonAsync(url, body, ct);
             resp.EnsureSuccessStatusCode();
 
