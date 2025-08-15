@@ -23,13 +23,16 @@ services:
         condition: service_healthy
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
+      - dpkeys:/keys
+      - certs:/certs:ro
     # Wait until Postgres:5432 is accepting TCP, then run the API
     command: ["/wait-for-it.sh", "postgres:5432", "--", "dotnet", "Northeast.dll"]
     env_file:
       - .env
     # Use *your .env* to fill these values
     environment:
-
+      ASPNETCORE_URLS: http://+:8080
+      DP_CERT_PASSWORD: ${DP_CERT_PASSWORD}
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${DATABASE_NAME};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
       - "8081:8080"
@@ -48,3 +51,5 @@ services:
 
 volumes:
   postgres_data:
+  dpkeys:
+  certs:

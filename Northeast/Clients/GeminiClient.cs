@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Northeast.Clients
 {
@@ -20,12 +21,16 @@ namespace Northeast.Clients
     {
         private readonly HttpClient _http;
         private readonly GeminiOptions _opt;
+        private readonly ILogger<GeminiClient> _logger;
 
-        public GeminiClient(HttpClient http, IOptions<GeminiOptions> opt)
+        public GeminiClient(HttpClient http, IOptions<GeminiOptions> opt, ILogger<GeminiClient> logger)
         {
             _http = http;
             _opt = opt.Value;
+            _logger = logger;
             _http.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
+            _http.DefaultRequestHeaders.Remove("x-goog-api-key");
+            _http.DefaultRequestHeaders.Add("x-goog-api-key", _opt.ApiKey);
         }
 
         /// <summary>
@@ -53,12 +58,17 @@ namespace Northeast.Clients
                 }
             };
 
-            var url = $"{modelPath}:generateContent?key={_opt.ApiKey}";
+            var url = $"{modelPath}:generateContent";
             using var resp = await _http.PostAsJsonAsync(url, body, ct);
-            resp.EnsureSuccessStatusCode();
+            var respBody = await resp.Content.ReadAsStringAsync(ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogError("Gemini error {Status}: {Body}", (int)resp.StatusCode, respBody);
+                throw new HttpRequestException($"Gemini {resp.StatusCode}: {respBody}");
+            }
 
-            var json = await resp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
-            var text = json
+            var json = JsonDocument.Parse(respBody);
+            var text = json.RootElement
                 .GetProperty("candidates")[0]
                 .GetProperty("content")
                 .GetProperty("parts")[0]
