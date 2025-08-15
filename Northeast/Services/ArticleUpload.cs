@@ -61,10 +61,10 @@ namespace Northeast.Services
                 }).ToList(),
             };
             if (articleDto.ArticleType == 0)
-            {
-                article.CountryName = articleDto.CountryName ?? "Global";
-                article.CountryCode = articleDto.CountryCode ?? "GL";
-            }
+        {
+            article.CountryName = articleDto.CountryName;
+            article.CountryCode = articleDto.CountryCode;
+        }
             await _articleRepository.Add(article);
 
         }
@@ -168,8 +168,8 @@ namespace Northeast.Services
             if (articleDto.ArticleType == 0)
             {
 
-                article.CountryName = articleDto.CountryName ?? "Global";
-                article.CountryCode = articleDto.CountryCode ?? "GL";
+                article.CountryName = articleDto.CountryName;
+                article.CountryCode = articleDto.CountryCode;
             }
             else
             {
