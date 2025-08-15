@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.DataProtection;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.EntityFrameworkCore;
 using Northeast.Services;
 using Northeast.Services.Similarity;
@@ -14,6 +17,7 @@ using Northeast.Middlewares;
 using Northeast.Repository;
 using Northeast.Utilities;
 using System.Text;
+using System.IO;
 using System.Text.Json.Serialization;
 using Northeast.Models;
 
@@ -60,8 +64,18 @@ builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
-builder.Services.AddHttpClient<GeminiClient>();
-builder.Services.AddHttpClient<NewsRssClient>();
+builder.Services.AddHttpClient<GeminiClient>()
+    .AddStandardResilienceHandler(o =>
+    {
+        o.Retry.MaxRetryAttempts = 3;
+        o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+    });
+builder.Services.AddHttpClient<NewsRssClient>()
+    .AddStandardResilienceHandler(o =>
+    {
+        o.Retry.MaxRetryAttempts = 3;
+        o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+    });
 builder.Services.AddScoped<Deduplication>();
 builder.Services.AddScoped<AuthorResolver>();
 builder.Services.AddScoped<ArticleFactory>();
@@ -151,6 +165,17 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto
                              | ForwardedHeaders.XForwardedHost;
 });
+
+var dataProtection = builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/keys"));
+var certPath = "/certs/dp-protect.pfx";
+var certPwd = builder.Configuration["DP_CERT_PASSWORD"];
+if (File.Exists(certPath) && !string.IsNullOrEmpty(certPwd))
+{
+    var cert = new X509Certificate2(certPath, certPwd,
+        X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+    dataProtection.ProtectKeysWithCertificate(cert);
+}
 
 var app = builder.Build();
 
