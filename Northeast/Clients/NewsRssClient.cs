@@ -1,6 +1,7 @@
 using System.ServiceModel.Syndication;
 using System.Xml;
 using Northeast.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace Northeast.Clients
 {
@@ -10,6 +11,7 @@ namespace Northeast.Clients
     public class NewsRssClient
     {
         private readonly HttpClient _http;
+        private readonly ILogger<NewsRssClient> _logger;
 
         // Global trending feeds.
         private static readonly string[] Feeds = new[]
@@ -19,7 +21,11 @@ namespace Northeast.Clients
             "https://apnews.com/apf-topnews?output=rss"
         };
 
-        public NewsRssClient(HttpClient http) => _http = http;
+        public NewsRssClient(HttpClient http, ILogger<NewsRssClient> logger)
+        {
+            _http = http;
+            _logger = logger;
+        }
 
         public async Task<IReadOnlyList<TrendingItem>> GetTrendingAsync(CancellationToken ct)
         {
@@ -27,32 +33,39 @@ namespace Northeast.Clients
 
             foreach (var feedUrl in Feeds)
             {
-                using var stream = await _http.GetStreamAsync(feedUrl, ct);
-                using var reader = XmlReader.Create(stream);
-                var feed = SyndicationFeed.Load(reader);
-                if (feed == null) continue;
-
-                foreach (var e in feed.Items)
+                try
                 {
-                    var link = e.Links?.FirstOrDefault()?.Uri?.ToString() ?? string.Empty;
-                    var title = HtmlText.Strip(e.Title?.Text ?? string.Empty);
-                    var summary = HtmlText.Strip(e.Summary?.Text ?? string.Empty);
-                    var published = e.PublishDate.UtcDateTime == default ? DateTime.UtcNow : e.PublishDate.UtcDateTime;
-                    var source = feed.Title?.Text ?? "Unknown";
+                    using var stream = await _http.GetStreamAsync(feedUrl, ct);
+                    using var reader = XmlReader.Create(stream);
+                    var feed = SyndicationFeed.Load(reader);
+                    if (feed == null) continue;
 
-                    if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(link))
-                        continue;
-
-                    items.Add(new TrendingItem
+                    foreach (var e in feed.Items)
                     {
-                        Title = title,
-                        Url = link,
-                        Summary = summary,
-                        Source = source,
-                        PublishedUtc = published,
-                        CountryName = null,
-                        CountryCode = null
-                    });
+                        var link = e.Links?.FirstOrDefault()?.Uri?.ToString() ?? string.Empty;
+                        var title = HtmlText.Strip(e.Title?.Text ?? string.Empty);
+                        var summary = HtmlText.Strip(e.Summary?.Text ?? string.Empty);
+                        var published = e.PublishDate.UtcDateTime == default ? DateTime.UtcNow : e.PublishDate.UtcDateTime;
+                        var source = feed.Title?.Text ?? "Unknown";
+
+                        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(link))
+                            continue;
+
+                        items.Add(new TrendingItem
+                        {
+                            Title = title,
+                            Url = link,
+                            Summary = summary,
+                            Source = source,
+                            PublishedUtc = published,
+                            CountryName = null,
+                            CountryCode = null
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to fetch feed {Feed}", feedUrl);
                 }
             }
 
