@@ -18,7 +18,7 @@ namespace Northeast.Clients
         {
             "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
             "https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en",
-            "https://apnews.com/apf-topnews?output=rss"
+            "https://news.google.com/rss/search?q=site:apnews.com&hl=en-US&gl=US&ceid=US:en"
         };
 
         public NewsRssClient(HttpClient http, ILogger<NewsRssClient> logger)
@@ -35,12 +35,23 @@ namespace Northeast.Clients
             {
                 try
                 {
-                    using var stream = await _http.GetStreamAsync(feedUrl, ct);
+                    using var resp = await _http.GetAsync(feedUrl, ct);
+                    if (!resp.IsSuccessStatusCode) continue;
+
+                    var mediaType = resp.Content.Headers.ContentType?.MediaType;
+                    if (mediaType != null && mediaType.Contains("html", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning("Feed at {Feed} is HTML. Skipping.", feedUrl);
+                        continue;
+                    }
+
                     var xmlSettings = new XmlReaderSettings
                     {
                         DtdProcessing = DtdProcessing.Ignore,
                         XmlResolver = null
                     };
+
+                    using var stream = await resp.Content.ReadAsStreamAsync(ct);
                     using var reader = XmlReader.Create(stream, xmlSettings);
                     var feed = SyndicationFeed.Load(reader);
                     if (feed == null) continue;
@@ -67,6 +78,10 @@ namespace Northeast.Clients
                             CountryCode = null
                         });
                     }
+                }
+                catch (XmlException)
+                {
+                    _logger.LogWarning("Feed at {Feed} is not valid XML/RSS. Skipping.", feedUrl);
                 }
                 catch (Exception ex)
                 {

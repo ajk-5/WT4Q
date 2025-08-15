@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.DataProtection;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Data;
@@ -67,10 +68,17 @@ builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemi
 builder.Services.AddHttpClient<GeminiClient>()
     .AddStandardResilienceHandler(o =>
     {
-        o.Retry.MaxRetryAttempts = 3;
+        o.Retry.ShouldHandle = args =>
+            ValueTask.FromResult(
+                args.Outcome.Exception is HttpRequestException ||
+                (args.Outcome.Result?.StatusCode is >= HttpStatusCode.InternalServerError));
         o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
     });
-builder.Services.AddHttpClient<NewsRssClient>()
+builder.Services.AddHttpClient<NewsRssClient>(client =>
+    {
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NewsBot/1.0)");
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8");
+    })
     .AddStandardResilienceHandler(o =>
     {
         o.Retry.MaxRetryAttempts = 3;
