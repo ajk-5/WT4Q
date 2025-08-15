@@ -17,7 +17,7 @@ namespace Northeast.Clients
         private static readonly string[] Feeds = new[]
         {
             "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
-            "https://feeds.reuters.com/reuters/topNews",
+            "https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en",
             "https://apnews.com/apf-topnews?output=rss"
         };
 
@@ -36,7 +36,12 @@ namespace Northeast.Clients
                 try
                 {
                     using var stream = await _http.GetStreamAsync(feedUrl, ct);
-                    using var reader = XmlReader.Create(stream);
+                    var xmlSettings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Ignore,
+                        XmlResolver = null
+                    };
+                    using var reader = XmlReader.Create(stream, xmlSettings);
                     var feed = SyndicationFeed.Load(reader);
                     if (feed == null) continue;
 

@@ -49,13 +49,8 @@ namespace Northeast.Clients
                 {
                     temperature = _opt.Temperature,
                     maxOutputTokens = _opt.MaxOutputTokens
-                },
-                // NEW: thinkingConfig is supported for 2.5 models.
-                // For Pro, thinking cannot be disabled; pick a reasonable budget to control cost.
-                thinkingConfig = new
-                {
-                    thinkingBudget = 2048  // try 1024–4096 for paraphrasing/news; Pro allows up to ~32k
                 }
+                // thinkingConfig is not supported by the REST endpoint; use SDKs if needed.
             };
 
             var url = $"{modelPath}:generateContent";
