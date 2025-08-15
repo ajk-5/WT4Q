@@ -12,7 +12,7 @@ namespace Northeast.Clients
     public class GeminiOptions
     {
         public string ApiKey { get; set; } = string.Empty;
-        public string Model { get; set; } = "models/gemini-2.0-flash";
+        public string Model { get; set; } = "gemini-2.5-pro";
         public double Temperature { get; set; } = 0.7;
         public int MaxOutputTokens { get; set; } = 1024;
     }
@@ -29,8 +29,6 @@ namespace Northeast.Clients
             _opt = opt.Value;
             _logger = logger;
             _http.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
-            _http.DefaultRequestHeaders.Remove("x-goog-api-key");
-            _http.DefaultRequestHeaders.Add("x-goog-api-key", _opt.ApiKey);
         }
 
         /// <summary>
@@ -53,7 +51,7 @@ namespace Northeast.Clients
                 // thinkingConfig is not supported by the REST endpoint; use SDKs if needed.
             };
 
-            var url = $"{modelPath}:generateContent";
+            var url = $"{modelPath}:generateContent?key={_opt.ApiKey}";
             using var resp = await _http.PostAsJsonAsync(url, body, ct);
             var respBody = await resp.Content.ReadAsStringAsync(ct);
             if (!resp.IsSuccessStatusCode)
