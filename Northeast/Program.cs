@@ -1,4 +1,5 @@
 ﻿using MaxMind.GeoIP2;
+using Northeast.Clients;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,6 +59,14 @@ builder.Services.AddScoped<CommentReportRepository>();
 builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.AddHttpClient<GeminiClient>();
+builder.Services.AddHttpClient<NewsRssClient>();
+builder.Services.AddScoped<Deduplication>();
+builder.Services.AddScoped<AuthorResolver>();
+builder.Services.AddScoped<ArticleFactory>();
+builder.Services.AddHostedService<TrendingNewsPollingService>();
+builder.Services.AddHostedService<AutoArticleWriterService>();
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>

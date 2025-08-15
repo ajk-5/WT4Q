@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Production"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://server.wt4q.com"
+      "applicationUrl": "http://localhost:7122"
     },
     "https": {
       "commandName": "Project",
