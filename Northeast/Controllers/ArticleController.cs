@@ -40,6 +40,10 @@ namespace Northeast.Controllers
                 await articleUpload.Publish(article);
                 return Ok(article);
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Internal error while publishing article", error = ex.Message });
@@ -130,8 +134,19 @@ namespace Northeast.Controllers
             {
                 return NotFound(new { message = "Sorry, there is no Articles with this ID" });
             }
-            await articleUpload.ModifyArticle(Id, Article);
-            return Ok(article);
+            try
+            {
+                await articleUpload.ModifyArticle(Id, Article);
+                return Ok(article);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal error while editing article", error = ex.Message });
+            }
         }
 
         [Authorize(Policy = "AdminOnly")]

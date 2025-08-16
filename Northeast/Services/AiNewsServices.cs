@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Northeast.Data;
 using Northeast.Models;
+using Northeast.Utilities;
 
 namespace Northeast.Services;
 
@@ -284,6 +285,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
             if (!titles.Add(d.Title)) { _log.LogDebug("Duplicate title skipped: {Title}", d.Title); continue; }
+            if (HtmlText.CountWords(d.ArticleHtml) < 50) { _log.LogDebug("AI content too short for title {Title}", d.Title); continue; }
 
             var category = ParseCategory(d.Category);
 
@@ -443,7 +445,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || !titles.Add(d.Title)) continue;
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml) || !titles.Add(d.Title) || HtmlText.CountWords(d.ArticleHtml) < 50) continue;
 
             var article = new Article
             {

@@ -38,7 +38,12 @@ namespace Northeast.Services
         }
         public async Task Publish(ArticleDto articleDto)
         {
-           var u = _connectedUser;
+            if (HtmlText.CountWords(articleDto.Content) < 50)
+            {
+                throw new ArgumentException("Article content must be at least 50 words long.");
+            }
+
+            var u = _connectedUser;
             Guid userId = u.Id;
 
             Article article = new Article()
@@ -61,13 +66,14 @@ namespace Northeast.Services
                 }).ToList(),
             };
             if (articleDto.ArticleType == 0)
-        {
-            article.CountryName = articleDto.CountryName;
-            article.CountryCode = articleDto.CountryCode;
-        }
+            {
+                article.CountryName = articleDto.CountryName;
+                article.CountryCode = articleDto.CountryCode;
+            }
             await _articleRepository.Add(article);
 
         }
+
         public async Task<IEnumerable<Article>> getAllArticle() {
             return await _articleRepository.GetAll();
         }
@@ -135,6 +141,11 @@ namespace Northeast.Services
 
         public async Task ModifyArticle(Guid id, ArticleDto articleDto)
         {
+            if (HtmlText.CountWords(articleDto.Content) < 50)
+            {
+                throw new ArgumentException("Article content must be at least 50 words long.");
+            }
+
             var article = await _articleRepository.GetByGUId(id);
             if (article == null)
             {
