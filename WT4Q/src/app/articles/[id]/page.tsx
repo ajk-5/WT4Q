@@ -140,6 +140,8 @@ export default async function ArticlePage(
 
   const likeCount = article.like?.filter((l) => l.type === 0).length ?? 0;
   const dislikeCount = article.like?.filter((l) => l.type === 2).length ?? 0;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
 
   return (
     <div className={styles.newspaper}>
@@ -164,10 +166,8 @@ export default async function ArticlePage(
           <div className={article.images.length > 1 ? styles.gallery : undefined}>
             {article.images.map((img, idx) => {
               const base64 = img.photo ? `data:image/jpeg;base64,${img.photo}` : undefined;
-              const validLink = img.photoLink && isValidImageForNextImage(img.photoLink)
-                ? img.photoLink
-                : undefined;
-              const src = validLink ?? base64;
+              const link = img.photoLink ? toAbsoluteIfRelative(img.photoLink, siteUrl) : undefined;
+              const src = link ?? base64;
               if (!src) return null;
               const useNext = isValidImageForNextImage(src);
               return (
