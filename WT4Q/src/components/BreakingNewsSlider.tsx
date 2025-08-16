@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
+import { stripHtml, truncateWords } from '@/lib/text';
 
 export interface BreakingArticle {
   id: string;
@@ -38,6 +39,9 @@ export default function BreakingNewsSlider({
   const first = current.images?.[0];
   const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
   const imageSrc = first?.photoLink || base64;
+  const snippet = current.content
+    ? truncateWords(stripHtml(current.content))
+    : undefined;
 
   return (
     <div className={`${styles.slider} ${className ?? ''}`.trim()}>
@@ -70,12 +74,7 @@ export default function BreakingNewsSlider({
             </figure>
           )}
           <h3 className={styles.detailTitle}>{current.title}</h3>
-          {current.content && (
-            <div
-              className={styles.snippet}
-              dangerouslySetInnerHTML={{ __html: current.content }}
-            />
-          )}
+          {snippet && <p className={styles.snippet}>{snippet}</p>}
           <PrefetchLink href={`/articles/${current.id}`} className={styles.readMore}>
             Read more
           </PrefetchLink>
