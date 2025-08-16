@@ -7,12 +7,16 @@
   border-radius: 4px;
   text-align: center;
   position: relative;
+
   overflow: hidden;
 }
 
 .itemWrapper {
   overflow: hidden;
-}
+
+  font-family: "Georgia", "Times New Roman", serif;
+
+
 
 .item {
   display: inline-block;
@@ -77,6 +81,7 @@
   margin: 0.5rem 0;
   color: black;
   overflow-wrap: anywhere;
+  
 }
 
 .snippet {

@@ -1,31 +1,79 @@
 import styles from './page.module.css';
 
 export const metadata = {
-  title: 'Terms & Cookie Policy',
+  title: 'Terms of Service & Cookie Policy',
 };
 
 export default function TermsPage() {
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Terms and Conditions &amp; Cookie Policy</h1>
+      <h1 className={styles.title}>Terms of Service &amp; Cookie Policy</h1>
       <p>
-        By using WT4Q you agree to the following terms. These summaries are
-        provided for convenience and do not replace the full policy.
+        Welcome to the summary of WT4Q&apos;s Terms of Service and Cookie Policy.
+        Visiting or using the site means you agree to the rules described here.
+        This page highlights key points in plain language, but it is not a legal
+        document. For the full text, please read the{' '}
+        <a href="/TERMS_AND_COOKIE_POLICY.md">policy document</a>.
       </p>
-      <h2 className={styles.heading}>Terms of Use</h2>
-      <ul>
-        <li>Content is for informational purposes only and may change.</li>
-        <li>You agree not to use the service for unlawful activities.</li>
-        <li>WT4Q may modify or discontinue the service without notice.</li>
-        <li>The service is provided &quot;as is&quot; without warranties.</li>
-      </ul>
-      <h2 className={styles.heading}>Cookie Policy</h2>
+      <h2 className={styles.heading}>Terms of Service Highlights</h2>
       <p>
-        WT4Q uses essential cookies for basic functionality and optional
-        analytics cookies to improve the site. On your first visit you can
-        accept, manage or refuse these cookies via the banner shown at the
-        bottom of the page. You can update your preference at any time by
-        clearing browser storage.
+        WT4Q is a community-driven project intended for informational and
+        entertainment purposes. To keep things running smoothly we ask that you
+        follow these guidelines:
+      </p>
+      <ul>
+        <li>Use WT4Q only in ways that are lawful and respectful of others.</li>
+        <li>Keep your login credentials secure and do not share accounts.</li>
+        <li>Your submissions remain yours, but you grant us permission to publish them.</li>
+        <li>Do not post material that is defamatory, discriminatory, or misleading.</li>
+        <li>We may remove content or suspend accounts that violate these rules.</li>
+        <li>External links are offered for convenience; we do not control those sites.</li>
+        <li>Features may change or disappear as we improve the service.</li>
+        <li>WT4Q is provided “as is,” without warranties about accuracy or availability.</li>
+        <li>We are not liable for damages that result from your use of the site.</li>
+        <li>Local laws govern these terms, and continued use after updates signifies acceptance.</li>
+        <li>You are responsible for ensuring your contributions do not infringe intellectual property rights.</li>
+        <li>If you stop using the service, obligations incurred while active, such as granted licenses, remain in effect.</li>
+      </ul>
+      <p>
+        These points summarize your responsibilities and ours, but they cannot
+        replace the precision of the full policy. If a disagreement arises, the
+        written document will prevail.
+      </p>
+      <p>
+        Features occasionally rely on third-party services like mapping or video
+        hosts. Those services operate under their own terms, and your use of
+        them is at your discretion. We aim to select reputable partners but
+        cannot guarantee their performance or policies.
+      </p>
+      <h2 className={styles.heading}>Cookie Policy Summary</h2>
+      <p>
+        Cookies are small files that help us remember preferences and measure how
+        the site is used. We use three main types:
+      </p>
+      <ul>
+        <li>Essential cookies maintain security and core features like logins.</li>
+        <li>Preference cookies store settings such as display options or saved locations.</li>
+        <li>Analytics cookies collect anonymous statistics after you give consent.</li>
+      </ul>
+      <p>
+        A banner on your first visit lets you accept or reject analytics cookies.
+        You can revisit that banner, adjust your browser settings, or clear stored
+        data to change your choice at any time. Refusing essential cookies may
+        limit functionality. Learn more in the{' '}
+        <a href="/TERMS_AND_COOKIE_POLICY.md">full policy</a>.
+      </p>
+      <p>
+        We update our terms occasionally as laws change or new features launch.
+        When we do, we post the revision date prominently. Continuing to use WT4Q
+        after revisions means you agree to the updated rules, so check back
+        periodically to stay informed.
+      </p>
+      <p>
+        If you have questions about any of these terms or how we handle cookies,
+        please email <a href="mailto:privacy@wt4q.example.com">privacy@wt4q.example.com</a>
+        or use the contact page. We value transparency and are happy to explain
+        our practices.
       </p>
     </div>
   );
