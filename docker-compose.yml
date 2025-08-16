@@ -35,7 +35,7 @@ services:
       DP_CERT_PASSWORD: ${DP_CERT_PASSWORD}
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${DATABASE_NAME};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
-      - "8081:8080"
+      - "7122:8080"
 
   frontend:
     build: ./WT4Q
