@@ -163,7 +163,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "https://www.wt4q.com",
-            "https://wt4q.com"
+            "https://wt4q.com",
+            "http://localhost:3000"
         )
               .AllowAnyMethod()
               .AllowAnyHeader()
