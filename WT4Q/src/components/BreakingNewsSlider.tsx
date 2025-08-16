@@ -71,9 +71,10 @@ export default function BreakingNewsSlider({
           )}
           <h3 className={styles.detailTitle}>{current.title}</h3>
           {current.content && (
-            <p className={styles.snippet}>
-              {current.content.split(/\s+/).slice(0, 20).join(' ')}...
-            </p>
+            <div
+              className={styles.snippet}
+              dangerouslySetInnerHTML={{ __html: current.content }}
+            />
           )}
           <PrefetchLink href={`/articles/${current.id}`} className={styles.readMore}>
             Read more
