@@ -91,7 +91,21 @@ builder.Services.AddHttpClient<NewsRssClient>(client =>
 builder.Services.AddScoped<Deduplication>();
 builder.Services.AddScoped<AuthorResolver>();
 builder.Services.AddScoped<ArticleFactory>();
-builder.Services.AddAiNews(o => builder.Configuration.GetSection("AiNews").Bind(o));
+builder.Services.AddAiNews(o =>
+{
+    o.ApiKey = builder.Configuration["AiNews:ApiKey"]
+               ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
+               ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+    o.Model = builder.Configuration["AiNews:Model"] ?? "gemini-2.5-pro";
+    o.TrendingInterval = TimeSpan.FromMinutes(5);
+    o.RandomInterval = TimeSpan.FromMinutes(5);
+    o.MaxTrendingPerTick = 3;
+    o.Creativity = 0.9;
+    o.MinWordCount = 260;
+
+    if (string.IsNullOrWhiteSpace(o.ApiKey))
+        throw new InvalidOperationException("AiNews:ApiKey is missing. Set it in configuration or as an environment variable.");
+});
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>
