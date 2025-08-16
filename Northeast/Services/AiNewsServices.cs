@@ -86,8 +86,8 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
     public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        // Endpoint: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key=API_KEY
-        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={Uri.EscapeDataString(_opts.ApiKey)}";
+        // Endpoint: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
         var payload = new
         {
@@ -117,11 +117,30 @@ public sealed class GeminiRestClient : IGenerativeTextClient
         {
             Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
         };
+        req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
 
         using var res = await _http.SendAsync(req, ct);
-        res.EnsureSuccessStatusCode();
+        var body = await res.Content.ReadAsStringAsync(ct);
+        if (!res.IsSuccessStatusCode)
+        {
+            string reason = body;
+            try
+            {
+                using var errDoc = JsonDocument.Parse(body);
+                if (errDoc.RootElement.TryGetProperty("error", out var err))
+                {
+                    var code = err.TryGetProperty("code", out var c) ? c.GetRawText() : "?";
+                    var msg = err.TryGetProperty("message", out var m) ? m.GetString() : "?";
+                    reason = $"code={code}, message={msg}";
+                }
+            }
+            catch { }
 
-        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
+            _log.LogError("Gemini call failed: {Status}. Reason: {Reason}", (int)res.StatusCode, reason);
+            res.EnsureSuccessStatusCode();
+        }
+
+        using var doc = JsonDocument.Parse(body);
         // pull first candidate text
         var text = doc.RootElement
             .GetProperty("candidates")[0]
