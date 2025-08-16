@@ -23,13 +23,13 @@ public sealed class AiNewsOptions
     public string Model { get; set; } = "gemini-2.5-pro";
 
     /// <summary>How often to poll and publish AI-generated trending news.</summary>
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(1);
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>How often to write a random category article.</summary>
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(1);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>Max items to attempt per trending tick.</summary>
-    public int MaxTrendingPerTick { get; set; } = 3;
+    public int MaxTrendingPerTick { get; set; } = 5;
 
     /// <summary>Temperature-style creativity control (0..2); 0.7–1.0 reads more human.</summary>
     public double Creativity { get; set; } = 0.9;

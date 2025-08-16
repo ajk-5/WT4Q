@@ -99,7 +99,7 @@ builder.Services.AddAiNews(o =>
     o.Model = builder.Configuration["AiNews:Model"] ?? "gemini-2.5-pro";
     o.TrendingInterval = TimeSpan.FromMinutes(5);
     o.RandomInterval = TimeSpan.FromMinutes(5);
-    o.MaxTrendingPerTick = 3;
+    o.MaxTrendingPerTick = 5;
     o.Creativity = 0.9;
     o.MinWordCount = 260;
 
