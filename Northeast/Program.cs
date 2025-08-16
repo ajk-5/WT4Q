@@ -91,8 +91,7 @@ builder.Services.AddHttpClient<NewsRssClient>(client =>
 builder.Services.AddScoped<Deduplication>();
 builder.Services.AddScoped<AuthorResolver>();
 builder.Services.AddScoped<ArticleFactory>();
-builder.Services.AddHostedService<TrendingNewsPollingService>();
-builder.Services.AddHostedService<AutoArticleWriterService>();
+builder.Services.AddAiNews(o => builder.Configuration.GetSection("AiNews").Bind(o));
 
 // --- Configure Authentication ---
 builder.Services.AddAuthentication(options =>
