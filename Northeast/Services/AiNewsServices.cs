@@ -40,6 +40,46 @@ public sealed class AiNewsOptions
 }
 #endregion
 
+#region Image filtering helper
+internal static class AiImageFilter
+{
+    public static List<ArticleImage>? SelectRelevantImages(AiArticleDraft draft)
+    {
+        if (draft.Images is null || draft.Images.Count == 0) return null;
+
+        var keywords = draft.Keywords?
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => k.Trim().ToLowerInvariant())
+            .ToList() ?? new List<string>();
+
+        if (keywords.Count == 0 && !string.IsNullOrWhiteSpace(draft.Title))
+        {
+            keywords = draft.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(k => k.Trim().ToLowerInvariant()).ToList();
+        }
+
+        var filtered = draft.Images
+            .Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink) && ImageMatches(i, keywords))
+            .Take(2)
+            .Select(i => new ArticleImage
+            {
+                PhotoLink = i.PhotoLink,
+                AltText = i.AltText,
+                Caption = i.Caption
+            })
+            .ToList();
+
+        return filtered.Count > 0 ? filtered : null;
+    }
+
+    private static bool ImageMatches(AiImage img, List<string> keywords)
+    {
+        var text = ((img.AltText ?? string.Empty) + " " + (img.Caption ?? string.Empty)).ToLowerInvariant();
+        return keywords.Any(k => text.Contains(k));
+    }
+}
+#endregion
+
 #region DTOs used for Gemini JSON output
 public sealed class AiArticleDraft
 {
@@ -300,12 +340,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
                 CountryName = d.CountryName, // null for global
                 CountryCode = d.CountryCode, // null for global
                 Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = d.Images?.Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink)).Select(i => new ArticleImage
-                {
-                    PhotoLink = i.PhotoLink,
-                    AltText = i.AltText,
-                    Caption = i.Caption
-                }).ToList() ?? new List<ArticleImage>()
+                Images = AiImageFilter.SelectRelevantImages(d)
             };
 
             toAdd.Add(article);
@@ -458,12 +493,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 CountryName = d.CountryName,
                 CountryCode = d.CountryCode,
                 Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = d.Images?.Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink)).Select(i => new ArticleImage
-                {
-                    PhotoLink = i.PhotoLink,
-                    AltText = i.AltText,
-                    Caption = i.Caption
-                }).ToList() ?? new List<ArticleImage>()
+                Images = AiImageFilter.SelectRelevantImages(d)
             };
 
             db.Set<Article>().Add(article);
