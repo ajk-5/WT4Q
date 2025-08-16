@@ -35,24 +35,10 @@ namespace Northeast.Clients
             {
                 try
                 {
-                    using var resp = await _http.GetAsync(feedUrl, ct);
-                    if (!resp.IsSuccessStatusCode) continue;
 
-                    var mediaType = resp.Content.Headers.ContentType?.MediaType;
-                    if (mediaType != null && mediaType.Contains("html", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _logger.LogWarning("Feed at {Feed} is HTML. Skipping.", feedUrl);
-                        continue;
-                    }
+                    using var stream = await _http.GetStreamAsync(feedUrl, ct);
+                    using var reader = XmlReader.Create(stream);
 
-                    var xmlSettings = new XmlReaderSettings
-                    {
-                        DtdProcessing = DtdProcessing.Ignore,
-                        XmlResolver = null
-                    };
-
-                    using var stream = await resp.Content.ReadAsStreamAsync(ct);
-                    using var reader = XmlReader.Create(stream, xmlSettings);
                     var feed = SyndicationFeed.Load(reader);
                     if (feed == null) continue;
 
@@ -79,13 +65,15 @@ namespace Northeast.Clients
                         });
                     }
                 }
-                catch (XmlException)
+
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {
-                    _logger.LogWarning("Feed at {Feed} is not valid XML/RSS. Skipping.", feedUrl);
+                    throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    _logger.LogWarning(ex, "Failed to fetch feed {Feed}", feedUrl);
+                    // Ignore failures for individual feeds so remaining feeds can still be parsed.
+
                 }
             }
 
