@@ -7,7 +7,7 @@
  word-wrap: normal;
 
   min-height: 10rem;
-  max-width: 30%;
+ 
   display: grid;
   align-content: start;
   gap: .75rem;
