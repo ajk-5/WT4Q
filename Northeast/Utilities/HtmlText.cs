@@ -23,5 +23,12 @@ namespace Northeast.Utilities
             s = Regex.Replace(s, "[^a-z0-9]+", "-");
             return s.Trim('-');
         }
+
+        public static int CountWords(string? text)
+        {
+            var stripped = Strip(text);
+            if (string.IsNullOrWhiteSpace(stripped)) return 0;
+            return stripped.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        }
     }
 }
