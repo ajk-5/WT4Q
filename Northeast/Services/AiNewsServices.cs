@@ -201,7 +201,7 @@ Return the same JSON shape as above with a single item in 'items'. Titles must b
 }
 #endregion
 
-#region Service: AI Trending News every 5 minutes
+#region Service: AI Trending News every 1 minutes
 /// <summary>
 /// Uses Gemini 2.5 Pro to synthesize trending news (no external sources), every N minutes.
 /// Saves to DB and prevents repeats by checking recent titles and enforcing uniqueness.
