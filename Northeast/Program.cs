@@ -11,6 +11,7 @@ using Microsoft.Extensions.Http.Resilience;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Data;
@@ -36,6 +37,11 @@ builder.Services.AddSwaggerGen();
 
 // --- DbContext ---
 builder.Services.AddDbContext<AppDbContext>();
+
+builder.Services.Configure<HostOptions>(options =>
+{
+    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
 
 // --- Register Application Services ---
 builder.Services.AddScoped<UserRegistration>();

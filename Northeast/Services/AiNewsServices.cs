@@ -286,6 +286,10 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
                 catch (Exception ex) { _log.LogError(ex, "AI trending tick failed."); }
             }
         }
+        catch (OperationCanceledException)
+        {
+            // Expected when the service is stopping
+        }
         finally
         {
             timer.Dispose();
@@ -452,6 +456,10 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { _log.LogError(ex, "AI random writer tick failed."); }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when the service is stopping
         }
         finally
         {
