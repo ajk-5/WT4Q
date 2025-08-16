@@ -26,7 +26,7 @@ namespace Northeast.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var timer = new PeriodicTimer(TimeSpan.FromMinutes(5));
+            var timer = new PeriodicTimer(TimeSpan.FromMinutes(3));
             _log.LogInformation("TrendingNewsPollingService started.");
             while (!stoppingToken.IsCancellationRequested)
             {

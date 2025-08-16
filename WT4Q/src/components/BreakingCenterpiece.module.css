@@ -4,7 +4,10 @@
   box-shadow: inset 0 0 0 1px var(--thin-rule, #2c1616);
     color: #000000;
   padding: 1.25rem 1.25rem 1rem;
-  min-height: 5rem;
+ word-wrap: normal;
+
+  min-height: 10rem;
+  max-width: 30%;
   display: grid;
   align-content: start;
   gap: .75rem;

@@ -23,10 +23,10 @@ public sealed class AiNewsOptions
     public string Model { get; set; } = "gemini-2.5-pro";
 
     /// <summary>How often to poll and publish AI-generated trending news.</summary>
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>How often to write a random category article.</summary>
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>Max items to attempt per trending tick.</summary>
     public int MaxTrendingPerTick { get; set; } = 3;
