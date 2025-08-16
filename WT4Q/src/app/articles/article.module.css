@@ -95,11 +95,14 @@
 .relatedBar {
   margin: 1rem 0;
   font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.separator {
-  margin: 0 0.5rem;
-  color: #b6b6b6;
+/* Style links within the related articles bar */
+.relatedBar a {
+  font-variant: small-caps;
 }
 
 .breaking {

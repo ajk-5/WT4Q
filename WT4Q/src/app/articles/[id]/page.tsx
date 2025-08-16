@@ -160,21 +160,9 @@ export default async function ArticlePage(
             {article.countryName ? ` | ${article.countryName}` : ''}
             {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
           </p>
-          {related.length > 0 && (
-            <p className={styles.relatedBar}>
-              {related.map((a, i) => (
-                <span key={a.id}>
-                  <PrefetchLink href={`/articles/${a.id}`}>{a.title}</PrefetchLink>
-                  {i < related.length - 1 && (
-                    <span className={styles.separator}>|</span>
-                  )}
-                </span>
-              ))}
-            </p>
-          )}
-          {article.images && article.images.length > 0 && (
-            <div className={article.images.length > 1 ? styles.gallery : undefined}>
-              {article.images.map((img, idx) => {
+        {article.images && article.images.length > 0 && (
+          <div className={article.images.length > 1 ? styles.gallery : undefined}>
+            {article.images.map((img, idx) => {
               const base64 = img.photo ? `data:image/jpeg;base64,${img.photo}` : undefined;
               const validLink = img.photoLink && isValidImageForNextImage(img.photoLink)
                 ? img.photoLink
@@ -230,6 +218,18 @@ export default async function ArticlePage(
           initialComments={article.comments ?? []}
         />
       </article>
-      </div>
-    );
-  }
+      {related.length > 0 && (
+        <aside className={styles.sidebar}>
+          <h2 className={styles.relatedHeading}>Related Articles</h2>
+          <div className={styles.relatedBar}>
+            {related.map((a) => (
+              <PrefetchLink key={a.id} href={`/articles/${a.id}`}>
+                {a.title}
+              </PrefetchLink>
+            ))}
+          </div>
+        </aside>
+      )}
+    </div>
+  );
+}
