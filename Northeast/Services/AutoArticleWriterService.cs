@@ -26,17 +26,33 @@ namespace Northeast.Services
         {
             var timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
             _log.LogInformation("AutoArticleWriterService started.");
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    await TickAsync(stoppingToken);
+                    try
+                    {
+                        await TickAsync(stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, "Auto writer tick failed.");
+                    }
+                    try
+                    {
+                        await timer.WaitForNextTickAsync(stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when the service is stopping
+                        break;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _log.LogError(ex, "Auto writer tick failed.");
-                }
-                await timer.WaitForNextTickAsync(stoppingToken);
+            }
+            finally
+            {
+                timer.Dispose();
+                _log.LogInformation("AutoArticleWriterService stopping.");
             }
         }
 
