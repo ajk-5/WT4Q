@@ -9,17 +9,18 @@ export default function AboutPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>About WT4Q</h1>
       <p>
-        WT4Q delivers reliable local and global coverage with a focus on
-        accuracy, context, and community impact.
+        WT4Q is an independent project dedicated to delivering timely local and
+        global news with clear context and a focus on community impact.
       </p>
       <p>
-        In addition to news reporting, the site offers live weather updates,
-        handy utilities, and a growing collection of casual games to keep you
-        informed and entertained.
+        Beyond reporting, we provide real-time weather updates, practical
+        utilities, and light‑hearted games that make the site a useful companion
+        throughout your day.
       </p>
       <p>
-        We welcome feedback and story ideas from our readers. Visit the contact
-        page to share your thoughts and help us improve WT4Q.
+        Our small team believes that informed communities are strong communities.
+        We welcome tips, corrections, and ideas from readers—visit the contact
+        page to reach out and help us grow WT4Q.
       </p>
     </div>
   );

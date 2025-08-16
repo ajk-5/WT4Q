@@ -1,26 +1,32 @@
-# Terms and Conditions & Cookie Policy
+# Terms of Service and Cookie Policy
 
-This document describes the terms of use for the WT4Q application and how we handle cookies in accordance with EU Regulation RSPD. By using this service you agree to these terms.
+_Last updated: August 16, 2025_
 
-## Terms of Use
+WT4Q provides news, weather updates, utilities, and casual games. By accessing or using WT4Q you agree to the following Terms of Service and Cookie Policy.
 
-1. Content is provided for informational purposes only and may change without notice.
-2. You agree not to use the service for unlawful activities.
-3. WT4Q may modify or discontinue the service at any time without notice.
-4. The service is provided "as is" without warranties of any kind.
+## Terms of Service
+
+- **Use of the Service.** You agree to use WT4Q only for lawful purposes and in accordance with applicable laws and regulations.
+- **No Warranty.** Content is provided for general information only and is supplied "as is" without warranties or guarantees of any kind.
+- **Modifications.** We may update, suspend, or discontinue any part of the service at any time without notice.
+- **Limitation of Liability.** WT4Q and its contributors are not liable for any damages resulting from your use of the service.
+- **Intellectual Property.** All content and materials remain the property of their respective owners.
 
 ## Cookie Policy
 
-WT4Q uses cookies to enhance the user experience. Cookies are small text files stored on your device. According to EU Regulation RSPD you have the right to know how cookies are used and to give or withdraw consent.
-On your first visit a banner appears allowing you to accept, manage or refuse non-essential cookies.
+WT4Q uses cookies and similar technologies to operate the site and to understand how it is used in accordance with EU Regulation RSPD.
 
-### Types of Cookies We Use
+### What Are Cookies?
 
-- **Essential Cookies** – Necessary for basic site functionality such as navigation and access to secure areas.
-- **Analytics Cookies** – Help us understand how the service is used so we can improve the experience.
+Cookies are small text files placed on your device by your web browser.
 
-### Your Choices
+### Cookies We Use
 
-You can use the on-site cookie banner to accept all cookies, refuse analytics cookies or manage your preferences. You may also use your web browser settings to delete or block cookies; however some features of WT4Q may not function properly if you do so.
+- **Essential Cookies** – Required for core functionality such as authentication and security.
+- **Analytics Cookies** – Optional cookies that help us measure traffic and improve the service.
 
-For more details or requests related to your personal data under EU Regulation RSPD, please contact us at `privacy@wt4q.example.com`.
+### Managing Cookies
+
+On your first visit you will see a banner that lets you accept all cookies or reject analytics cookies. You can change your preference at any time by revisiting the banner or adjusting your browser settings. Blocking essential cookies may prevent parts of the site from working properly.
+
+For questions about these terms or our use of cookies, contact us at `privacy@wt4q.example.com`.
