@@ -6,27 +6,22 @@ WT4Q provides news, weather updates, utilities, and casual games. By accessing o
 
 ## Terms of Service
 
-- **Use of the Service.** You agree to use WT4Q only for lawful purposes and in accordance with applicable laws and regulations.
-- **No Warranty.** Content is provided for general information only and is supplied "as is" without warranties or guarantees of any kind.
-- **Modifications.** We may update, suspend, or discontinue any part of the service at any time without notice.
-- **Limitation of Liability.** WT4Q and its contributors are not liable for any damages resulting from your use of the service.
-- **Intellectual Property.** All content and materials remain the property of their respective owners.
+WT4Q is a free community resource. You may browse the site without registering. If you create an account or submit content, you are responsible for keeping your credentials secure and for any activity occurring under your name. You agree to use the service only in ways that comply with applicable laws and that respect others.
+
+Content on WT4Q is offered for general information and entertainment. We do our best to ensure accuracy, yet the material is provided "as is" and may be incomplete or out of date. We reserve the right to modify, suspend, or discontinue any feature at any time. Links to external websites are provided for convenience; WT4Q does not control those sites and is not responsible for their content or practices.
+
+You retain ownership of your submissions but grant WT4Q a non-exclusive, royalty-free license to publish, store, and display them. We may remove or edit contributions that violate our guidelines, are unlawful, or are otherwise inappropriate. Users who repeatedly violate the rules may be barred from the service without notice.
+
+WT4Q and its contributors shall not be liable for direct, indirect, incidental, or consequential damages arising from your use of the site. To the fullest extent permitted by law, our total liability is limited to the amount you paid, if any, to access the service. These terms are governed by the laws of your jurisdiction, and any disputes will be handled in local courts. If a provision is deemed unenforceable, the remaining sections remain in effect.
 
 ## Cookie Policy
 
-WT4Q uses cookies and similar technologies to operate the site and to understand how it is used in accordance with EU Regulation RSPD.
+Cookies are small text files stored on your device to help websites remember preferences and understand how visitors interact with them. WT4Q uses cookies sparingly and strives to be transparent about their purpose.
 
-### What Are Cookies?
+- **Essential cookies** maintain core functionality such as session management, authentication, and security. They enable you to stay logged in and keep forms working properly. Blocking these cookies may break parts of the site.
+- **Preference cookies** remember settings like display options or saved locations for weather forecasts. Disabling them will reset those choices each visit.
+- **Analytics cookies** collect aggregated data about traffic patterns, popular stories, and technical performance. The information helps us fix errors and improve navigation. These cookies do not identify individuals and are used only after you give consent.
 
-Cookies are small text files placed on your device by your web browser.
+On your first visit a banner requests your permission for non-essential cookies. You can change your decision at any time by returning to the banner, adjusting your browser settings, or clearing stored cookies. Some browsers offer built-in "do not track" signals; while we respect them, certain third-party services may not.
 
-### Cookies We Use
-
-- **Essential Cookies** – Required for core functionality such as authentication and security.
-- **Analytics Cookies** – Optional cookies that help us measure traffic and improve the service.
-
-### Managing Cookies
-
-On your first visit you will see a banner that lets you accept all cookies or reject analytics cookies. You can change your preference at any time by revisiting the banner or adjusting your browser settings. Blocking essential cookies may prevent parts of the site from working properly.
-
-For questions about these terms or our use of cookies, contact us at `privacy@wt4q.example.com`.
+From time to time we may update this policy to reflect technical or legal changes. Continued use of WT4Q after an update signifies acceptance of the revised policy. If you have questions about our terms or cookie practices, contact `privacy@wt4q.example.com`.
