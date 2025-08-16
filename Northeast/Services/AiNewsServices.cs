@@ -47,19 +47,23 @@ internal static class AiImageFilter
     {
         if (draft.Images is null || draft.Images.Count == 0) return null;
 
-        var keywords = draft.Keywords?
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .Select(k => k.Trim().ToLowerInvariant())
-            .ToList() ?? new List<string>();
+        // derive simple subject tokens from the title (drop anything after ':' or '-')
+        var subject = draft.Title ?? string.Empty;
+        var splitIndex = subject.IndexOfAny(new[] { ':', '-' });
+        if (splitIndex > 0)
+            subject = subject[..splitIndex];
 
-        if (keywords.Count == 0 && !string.IsNullOrWhiteSpace(draft.Title))
-        {
-            keywords = draft.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Select(k => k.Trim().ToLowerInvariant()).ToList();
-        }
+        var subjectWords = subject
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Trim().ToLowerInvariant())
+            .Where(w => !StopWords.Contains(w))
+            .ToList();
 
         var filtered = draft.Images
-            .Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink) && ImageMatches(i, keywords))
+            .AsEnumerable()
+            .Reverse() // prefer latest images if the list is chronological
+            .Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink) && ImageMatches(i, subjectWords))
+
             .Take(2)
             .Select(i => new ArticleImage
             {
@@ -72,10 +76,16 @@ internal static class AiImageFilter
         return filtered.Count > 0 ? filtered : null;
     }
 
-    private static bool ImageMatches(AiImage img, List<string> keywords)
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "the", "a", "an", "of", "in", "to", "for", "and"
+    };
+
+    private static bool ImageMatches(AiImage img, List<string> subjectWords)
     {
         var text = ((img.AltText ?? string.Empty) + " " + (img.Caption ?? string.Empty)).ToLowerInvariant();
-        return keywords.Any(k => text.Contains(k));
+        return subjectWords.Any(k => text.Contains(k));
+
     }
 }
 #endregion
