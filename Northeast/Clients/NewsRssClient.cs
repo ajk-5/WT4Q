@@ -1,6 +1,7 @@
 using System.ServiceModel.Syndication;
 using System.Xml;
 using Northeast.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace Northeast.Clients
 {
@@ -10,16 +11,21 @@ namespace Northeast.Clients
     public class NewsRssClient
     {
         private readonly HttpClient _http;
+        private readonly ILogger<NewsRssClient> _logger;
 
         // Global trending feeds.
         private static readonly string[] Feeds = new[]
         {
             "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
-            "https://feeds.reuters.com/reuters/topNews",
-            "https://apnews.com/apf-topnews?output=rss"
+            "https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=site:apnews.com&hl=en-US&gl=US&ceid=US:en"
         };
 
-        public NewsRssClient(HttpClient http) => _http = http;
+        public NewsRssClient(HttpClient http, ILogger<NewsRssClient> logger)
+        {
+            _http = http;
+            _logger = logger;
+        }
 
         public async Task<IReadOnlyList<TrendingItem>> GetTrendingAsync(CancellationToken ct)
         {
@@ -29,8 +35,10 @@ namespace Northeast.Clients
             {
                 try
                 {
+
                     using var stream = await _http.GetStreamAsync(feedUrl, ct);
                     using var reader = XmlReader.Create(stream);
+
                     var feed = SyndicationFeed.Load(reader);
                     if (feed == null) continue;
 
@@ -57,6 +65,7 @@ namespace Northeast.Clients
                         });
                     }
                 }
+
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {
                     throw;
@@ -64,6 +73,7 @@ namespace Northeast.Clients
                 catch (Exception)
                 {
                     // Ignore failures for individual feeds so remaining feeds can still be parsed.
+
                 }
             }
 

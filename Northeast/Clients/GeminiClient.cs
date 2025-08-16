@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Northeast.Clients
 {
@@ -11,7 +12,7 @@ namespace Northeast.Clients
     public class GeminiOptions
     {
         public string ApiKey { get; set; } = string.Empty;
-        public string Model { get; set; } = "models/gemini-2.0-flash";
+        public string Model { get; set; } = "gemini-2.5-pro";
         public double Temperature { get; set; } = 0.7;
         public int MaxOutputTokens { get; set; } = 1024;
     }
@@ -20,11 +21,13 @@ namespace Northeast.Clients
     {
         private readonly HttpClient _http;
         private readonly GeminiOptions _opt;
+        private readonly ILogger<GeminiClient> _logger;
 
-        public GeminiClient(HttpClient http, IOptions<GeminiOptions> opt)
+        public GeminiClient(HttpClient http, IOptions<GeminiOptions> opt, ILogger<GeminiClient> logger)
         {
             _http = http;
             _opt = opt.Value;
+            _logger = logger;
             _http.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
         }
 
@@ -44,21 +47,21 @@ namespace Northeast.Clients
                 {
                     temperature = _opt.Temperature,
                     maxOutputTokens = _opt.MaxOutputTokens
-                },
-                // NEW: thinkingConfig is supported for 2.5 models.
-                // For Pro, thinking cannot be disabled; pick a reasonable budget to control cost.
-                thinkingConfig = new
-                {
-                    thinkingBudget = 2048  // try 1024–4096 for paraphrasing/news; Pro allows up to ~32k
                 }
+                // thinkingConfig is not supported by the REST endpoint; use SDKs if needed.
             };
 
             var url = $"{modelPath}:generateContent?key={_opt.ApiKey}";
             using var resp = await _http.PostAsJsonAsync(url, body, ct);
-            resp.EnsureSuccessStatusCode();
+            var respBody = await resp.Content.ReadAsStringAsync(ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogError("Gemini error {Status}: {Body}", (int)resp.StatusCode, respBody);
+                throw new HttpRequestException($"Gemini {resp.StatusCode}: {respBody}");
+            }
 
-            var json = await resp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
-            var text = json
+            var json = JsonDocument.Parse(respBody);
+            var text = json.RootElement
                 .GetProperty("candidates")[0]
                 .GetProperty("content")
                 .GetProperty("parts")[0]

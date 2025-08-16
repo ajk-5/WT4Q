@@ -1,3 +1,4 @@
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -7,21 +8,15 @@ const nextConfig: NextConfig = {
   // ✅ Allow remote images for <Image />
   images: {
     // Simple allow-list (keep in sync with any hosts you actually use)
-    domains: [
-      "encrypted-tbn0.gstatic.com",
-      // "cdn.yoursite.com",
-      // "images.unsplash.com",
-    ],
 
-    // Or (optionally) use remotePatterns for tighter control
-    // remotePatterns: [
-    //   {
-    //     protocol: "https",
-    //     hostname: "encrypted-tbn0.gstatic.com",
-    //     pathname: "/images/**",
-    //   },
-    // ],
-
+     remotePatterns: [
+       {
+         protocol: "https",
+         hostname: "**",
+  },
+     ],
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     formats: ["image/avif", "image/webp"],
   },
 
