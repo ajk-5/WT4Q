@@ -11,6 +11,9 @@
 .item {
   display: block;
   font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dots {
@@ -56,11 +59,13 @@
 .detailTitle {
   margin: 0.5rem 0;
   color: black;
+  overflow-wrap: anywhere;
 }
 
 .snippet {
   margin: 0.5rem 0;
   font-size: large;
+  overflow-wrap: anywhere;
 }
 
 .readMore {

@@ -119,6 +119,11 @@ a:focus-visible, button:focus-visible {
   border-radius: 8px;
 }
 
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-variant: small-caps;
+}
+
 /* Reduce motion preference */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
