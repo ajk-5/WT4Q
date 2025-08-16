@@ -1,4 +1,4 @@
-export function truncateWords(text: string, count = 20): string {
+export function truncateWords(text = '', count = 20): string {
   const words = text.trim().split(/\s+/);
   if (words.length <= count) {
     return text.trim();
