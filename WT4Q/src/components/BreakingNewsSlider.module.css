@@ -6,6 +6,8 @@
   border-radius: 4px;
   text-align: center;
   position: relative;
+  font-family: "Georgia", "Times New Roman", serif;
+
 }
 
 .item {
@@ -60,6 +62,7 @@
   margin: 0.5rem 0;
   color: black;
   overflow-wrap: anywhere;
+  
 }
 
 .snippet {

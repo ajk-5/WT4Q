@@ -1,10 +1,10 @@
 .card {
   display: block;
-  padding: 0.5rem;
+  padding: 0.2rem;
   margin: 1rem 0;
   border-radius: 0.75rem;
   background: #ffffff00;
-  font-family: inherit;
+  font-family: "Georgia", "Times New Roman", serif;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.211);
   transition: transform 0.3s, box-shadow 0.3s;
   border: 2px solid transparent;
@@ -20,8 +20,8 @@
 }
 
 .title {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
   font-weight: bold;
   background: var(--metal-gradient);
   -webkit-background-clip: text;
@@ -30,7 +30,7 @@
 
 .summary {
   font-size: 1rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
   color: var(--muted);
 }
 
