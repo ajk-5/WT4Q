@@ -12,7 +12,7 @@ namespace Northeast.Clients
     public class GeminiOptions
     {
         public string ApiKey { get; set; } = string.Empty;
-        public string Model { get; set; } = "gemini-2.5-pro";
+        public string Model { get; set; } = "gemini-1.5-flash-latest";
         public double Temperature { get; set; } = 0.7;
         public int MaxOutputTokens { get; set; } = 1024;
     }
@@ -61,14 +61,21 @@ namespace Northeast.Clients
             }
 
             var json = JsonDocument.Parse(respBody);
-            var text = json.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
-                .GetString();
+            if (json.RootElement.TryGetProperty("candidates", out var candidates)
+                && candidates.ValueKind == JsonValueKind.Array && candidates.GetArrayLength() > 0)
+            {
+                var candidate = candidates[0];
+                if (candidate.TryGetProperty("content", out var content)
+                    && content.TryGetProperty("parts", out var parts)
+                    && parts.ValueKind == JsonValueKind.Array && parts.GetArrayLength() > 0)
+                {
+                    var text = parts[0].GetProperty("text").GetString();
+                    return text ?? string.Empty;
+                }
+            }
 
-            return text ?? string.Empty;
+            _logger.LogError("Gemini response missing text: {Body}", respBody);
+            return string.Empty;
         }
     }
 }

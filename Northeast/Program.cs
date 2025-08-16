@@ -10,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Microsoft.Extensions.Options;
 using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Data;
@@ -64,7 +65,10 @@ builder.Services.AddScoped<CommentReportRepository>();
 builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
-builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.AddOptions<GeminiOptions>()
+    .Bind(builder.Configuration.GetSection("Gemini"))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<GeminiOptions>, GeminiOptionsValidator>();
 builder.Services.AddHttpClient<GeminiClient>()
     .AddStandardResilienceHandler(o =>
     {
