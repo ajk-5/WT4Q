@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
 import { stripHtml, truncateWords } from '@/lib/text';
+import { API_ROUTES } from '@/lib/api';
 
 export interface BreakingArticle {
   id: string;
@@ -13,18 +14,38 @@ export interface BreakingArticle {
 }
 
 export default function BreakingNewsSlider({
-  articles,
+  articles: initialArticles = [],
   className,
   showDetails = false,
 }: {
-  articles: BreakingArticle[];
+  articles?: BreakingArticle[];
   className?: string;
   showDetails?: boolean;
 }) {
+  const [articles, setArticles] = useState<BreakingArticle[]>(initialArticles);
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const textRef = useRef<HTMLSpanElement>(null);
 
-  const next = () => setIndex((i) => (i + 1) % articles.length);
-  const prev = () => setIndex((i) => (i - 1 + articles.length) % articles.length);
+  const next = () => {
+    setDirection('next');
+    setIndex((i) => (i + 1) % articles.length);
+  };
+  const prev = () => {
+    setDirection('prev');
+    setIndex((i) => (i - 1 + articles.length) % articles.length);
+  };
+
+  useEffect(() => {
+    if (initialArticles.length === 0) {
+      fetch(API_ROUTES.ARTICLE.GET_ALL)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: { id: string; title: string }[]) =>
+          setArticles(data.map((a) => ({ id: a.id, title: a.title })))
+        )
+        .catch(() => setArticles([]));
+    }
+  }, [initialArticles]);
 
   useEffect(() => {
     if (articles.length === 0) return;
@@ -32,6 +53,20 @@ export default function BreakingNewsSlider({
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articles]);
+
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    const container = el.parentElement as HTMLElement;
+    const offset = el.scrollWidth - container.clientWidth;
+    if (offset > 0) {
+      el.style.setProperty('--scroll-distance', `-${offset}px`);
+      el.style.setProperty('--scroll-duration', `${offset / 50}s`); // 50px/sec
+      el.classList.add(styles.marquee);
+    } else {
+      el.classList.remove(styles.marquee);
+    }
+  }, [index, articles]);
 
   if (articles.length === 0) return null;
 
@@ -80,9 +115,15 @@ export default function BreakingNewsSlider({
           </PrefetchLink>
         </div>
       ) : (
-        <PrefetchLink href={`/articles/${current.id}`} className={styles.item}>
-          {current.title}
-        </PrefetchLink>
+        <div
+          className={`${styles.itemWrapper} ${
+            direction === 'next' ? styles.slideLeft : styles.slideRight
+          }`}
+        >
+          <PrefetchLink href={`/articles/${current.id}`} className={styles.item}>
+            <span ref={textRef}>{current.title}</span>
+          </PrefetchLink>
+        </div>
       )}
       <div className={styles.dots}>
         {articles.map((_, i) => (
