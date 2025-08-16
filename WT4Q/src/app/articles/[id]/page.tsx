@@ -216,7 +216,10 @@ export default async function ArticlePage(
             dangerouslySetInnerHTML={{ __html: article.embededCode }}
           />
         )}
-        <p className={styles.content}>{article.content}</p>
+        <div
+          className={styles.content}
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
         <ReactionButtons
           articleId={id}
           initialLikes={likeCount}
