@@ -97,8 +97,8 @@ builder.Services.AddAiNews(o =>
                ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     o.Model = builder.Configuration["AiNews:Model"] ?? "gemini-2.5-pro";
-    o.TrendingInterval = TimeSpan.FromMinutes(3);
-    o.RandomInterval = TimeSpan.FromMinutes(3);
+    o.TrendingInterval = TimeSpan.FromMinutes(10);
+    o.RandomInterval = TimeSpan.FromMinutes(10);
     o.MaxTrendingPerTick = 3;
     o.Creativity = 0.9;
     o.MinWordCount = 260;

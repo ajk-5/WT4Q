@@ -1,6 +1,6 @@
 
 export const API_BASE_URL =
-  process.env.BACKEND_BASE_URL || 'http://localhost:7122';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7122';
 
 export const API_ROUTES = {
   ADMIN_AUTH: {

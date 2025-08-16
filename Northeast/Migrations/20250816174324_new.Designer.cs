@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250815204309_Baseline")]
-    partial class Baseline
+    [Migration("20250816174324_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
