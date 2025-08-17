@@ -65,6 +65,11 @@ export default function RootLayout({
             gtag('config', 'G-0NKNBEMWC2');
           `}
         </Script>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2858608482723109"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PageVisitReporter />
