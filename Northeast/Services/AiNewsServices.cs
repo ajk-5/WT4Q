@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,18 @@ public sealed class AiNewsOptions
 
     /// <summary>Minimum words for the article body.</summary>
     public int MinWordCount { get; set; } = 260;
+
+    /// <summary>Discard anything older than this many days.</summary>
+    public int MaxAgeDays { get; set; } = 60;
+
+    /// <summary>Hours window to auto-flag breaking news.</summary>
+    public int BreakingWindowHours { get; set; } = 24;
+
+    /// <summary>Fetch real headlines before prompting the model.</summary>
+    public bool UseExternalNews { get; set; } = true;
+
+    /// <summary>Fetch real images from APIs instead of relying on the model.</summary>
+    public bool UseExternalImages { get; set; } = true;
 }
 #endregion
 
@@ -63,7 +76,7 @@ internal static class AiImageFilter
         var filtered = draft.Images
             .AsEnumerable()
             .Reverse() // prefer latest images if the list is chronological
-            .Where(i => IsValidHttpUrl(i.PhotoLink) && ImageMatches(i, subjectWords))
+            .Where(i => ImageMatches(i, subjectWords))
             .Take(2)
             .Select(i => new ArticleImage
             {
@@ -81,15 +94,21 @@ internal static class AiImageFilter
         "the", "a", "an", "of", "in", "to", "for", "and"
     };
 
+    private static readonly string[] AllowedHosts =
+    {
+        "images.unsplash.com", "unsplash.com", "pexels.com", "images.pexels.com", "pixabay.com",
+        "upload.wikimedia.org", "commons.wikimedia.org", "wikimedia.org", "wikipedia.org"
+    };
+
     private static bool ImageMatches(AiImage img, List<string> subjectWords)
     {
         var text = ((img.AltText ?? string.Empty) + " " + (img.Caption ?? string.Empty)).ToLowerInvariant();
-        foreach (var word in subjectWords)
-        {
-            if (!Regex.IsMatch(text, $@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase))
-                return false;
-        }
-        return true;
+        var hits = subjectWords.Count(w => Regex.IsMatch(text, $@"\b{Regex.Escape(w)}\b", RegexOptions.IgnoreCase));
+        if (hits < Math.Min(2, Math.Max(1, subjectWords.Count / 2))) return false;
+
+        if (!IsValidHttpUrl(img.PhotoLink)) return false;
+        var host = new Uri(img.PhotoLink!).Host.Replace("www.", "");
+        return AllowedHosts.Any(h => host.EndsWith(h, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool IsValidHttpUrl(string? url)
@@ -108,6 +127,9 @@ public sealed class AiArticleDraft
     [JsonPropertyName("countryCode")] public string? CountryCode { get; set; } // null for global
     [JsonPropertyName("keywords")] public List<string>? Keywords { get; set; }
     [JsonPropertyName("images")] public List<AiImage>? Images { get; set; }
+    [JsonPropertyName("eventDateUtc")] public DateTimeOffset? EventDateUtc { get; set; }
+    [JsonPropertyName("isBreaking")] public bool? IsBreaking { get; set; }
+    [JsonPropertyName("breakingReason")] public string? BreakingReason { get; set; }
 }
 
 public sealed class AiImage
@@ -221,39 +243,39 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 #region Prompt builder
 public static class AiNewsPrompt
 {
-    public static string BuildSystem(AiNewsOptions o, IEnumerable<string> recentTitles) => $@"You are a senior news editor. Write like a human journalist. Never mention you are an AI.
-Tone: clear, calm, concise. No fluff, no cliches, no self-references.
-Rules:
-- Only output strict JSON (UTF-8) and nothing else.
-- Each article body must be a single <div> with semantic sub-headings (<h2>/<h3>), short paragraphs, and a final section called 'What happens next'.
-- Minimum {o.MinWordCount} words per article body.
-- Paraphrase ideas; avoid generic phrasing and avoid plagiarism.
-- Include 3–6 royalty-free image links (Unsplash, Pexels, Pixabay, Wikimedia Commons, etc.) with good alt text and short captions.
-- Prefer links (do not embed data URLs). No copyrighted or watermarked sources.
-- Use simple words but professional style. Make it feel human-written.
-- No sources, no URLs other than image links. No disclaimers.
-- If the scope is global, set countryName = null and countryCode = null.
-- Use 5–12 relevant SEO keywords.
-- Do not repeat topics. Here are recent titles to avoid (case-insensitive):\n{string.Join("; ", recentTitles.Take(50))}";
+    public static string BuildSystem(AiNewsOptions o, IEnumerable<string> recentTitles) => $@"You are a senior news editor.
+Tone: clear, calm, concise. No fluff or clichés. Never mention you are an AI.
 
-    public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"Find the top {count} trending topics right now. Cover diverse categories if possible.
-Return JSON with this exact shape:
+HARD RULES:
+- Output STRICT JSON (UTF-8) only.
+- Every item MUST include an ISO-8601 UTC ""eventDateUtc"" (e.g., 2025-08-17T11:02:00Z).
+- Only cover events from the last {o.MaxAgeDays} days. If you are unsure the event is within this window, OMIT it.
+- ""isBreaking"": true only if eventDateUtc is within the last {o.BreakingWindowHours} hours OR it impacts public safety (e.g., natural disasters, major outages, terror alerts).
+- Body: one <div> with <h2>/<h3> subheads, short paragraphs, final section 'What happens next'.
+- Minimum {o.MinWordCount} words.
+- Use 5–12 relevant SEO keywords.
+- IMAGES: Provide 0–6 tentative descriptors (no copyrighted/watermarked). If unsure, return an empty list; do NOT guess.
+
+    Do NOT repeat topics. Recent titles to avoid:\n{string.Join("; ", recentTitles.Take(50))}";
+
+    public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"Return JSON:
 {{
   ""items"": [
     {{
-      ""title"": ""...unique headline..."",
+      ""title"": ""unique, specific headline"",
       ""category"": ""Politics|Crime|Entertainment|Business|Health|Lifestyle|Technology|Sports|Info"",
-      ""articleHtml"": ""<div>...sub-headings...</div>"",
+      ""articleHtml"": ""<div>...content...</div>"",
       ""countryName"": null | ""France"" | ""United States"" | ...,
       ""countryCode"": null | ""FR"" | ""US"" | ...,
       ""keywords"": [""kw1"", ""kw2"", ...],
-      ""images"": [
-         {{ ""photoLink"": ""https://..."", ""altText"": ""..."", ""caption"": ""..."" }}
-      ]
+      ""images"": [{{ ""altText"": ""short description"", ""caption"": """", ""photoLink"": null }}],
+      ""eventDateUtc"": ""YYYY-MM-DDTHH:mm:ssZ"",
+      ""isBreaking"": true|false,
+      ""breakingReason"": null | ""why""
     }}
   ]
 }}
-Constraints: No duplicate titles. Titles must be fresh and specific.";
+Constraints: Cover only events in the last {o.MaxAgeDays} days. Return fewer than {count} if fewer qualify.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"Write one fresh piece in category '{category}'. It may be newsy or analysis.
 Return the same JSON shape as above with a single item in 'items'. Titles must be unique vs recent list.";
@@ -320,6 +342,14 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
         var user = AiNewsPrompt.BuildTrendingUser(_opts, Math.Max(1, _opts.MaxTrendingPerTick));
 
+        if (_opts.UseExternalNews)
+        {
+            var fetcher = scope.ServiceProvider.GetRequiredService<INewsFetcher>();
+            var headlines = await fetcher.FetchAsync(_opts.MaxTrendingPerTick * 3, ct);
+            var context = string.Join("\n", headlines.Select(h => $"{h.PublishedUtc:O} | {h.Title} | {h.Url}"));
+            user = "Using ONLY these headlines (date | title | url):\n" + context + "\n\n" + user;
+        }
+
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = DeserializeSafe(json);
 
@@ -342,27 +372,42 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var toAdd = new List<Article>();
+        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
+        var now = DateTimeOffset.UtcNow;
+        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
+            if (d.EventDateUtc is null) continue;
+            if (now - d.EventDateUtc.Value > maxAge) continue;
             if (!titles.Add(d.Title)) { _log.LogDebug("Duplicate title skipped: {Title}", d.Title); continue; }
             if (HtmlText.CountWords(d.ArticleHtml) < 50) { _log.LogDebug("AI content too short for title {Title}", d.Title); continue; }
 
-            var category = ParseCategory(d.Category);
+            List<ArticleImage>? images = null;
+            if (_opts.UseExternalImages)
+            {
+                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
+            }
+            else
+            {
+                images = AiImageFilter.SelectRelevantImages(d);
+            }
+
+            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
 
             var article = new Article
             {
                 AuthorId = adminId.Value,
                 ArticleType = ArticleType.News,
-                Category = category,
+                Category = ParseCategory(d.Category),
                 Title = d.Title.Trim(),
                 Content = EnsureHtmlDiv(d.ArticleHtml, _opts.MinWordCount),
-                IsBreakingNews = false,
+                IsBreakingNews = isBreaking,
                 CountryName = d.CountryName, // null for global
                 CountryCode = d.CountryCode, // null for global
                 Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = AiImageFilter.SelectRelevantImages(d)
+                Images = (images is { Count: > 0 }) ? images : null,
             };
 
             toAdd.Add(article);
@@ -493,6 +538,14 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
         var user = AiNewsPrompt.BuildRandomUser(_opts, category);
 
+        if (_opts.UseExternalNews)
+        {
+            var fetcher = scope.ServiceProvider.GetRequiredService<INewsFetcher>();
+            var headlines = await fetcher.FetchAsync(_opts.MaxTrendingPerTick * 3, ct);
+            var context = string.Join("\n", headlines.Select(h => $"{h.PublishedUtc:O} | {h.Title} | {h.Url}"));
+            user = "Using ONLY these headlines (date | title | url):\n" + context + "\n\n" + user;
+        }
+
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
         if (batch.Items.Count == 0) return;
@@ -504,9 +557,29 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
+        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
+        var now = DateTimeOffset.UtcNow;
+        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
+
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml) || !titles.Add(d.Title) || HtmlText.CountWords(d.ArticleHtml) < 50) continue;
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
+            if (d.EventDateUtc is null) continue;
+            if (now - d.EventDateUtc.Value > maxAge) continue;
+            if (!titles.Add(d.Title)) continue;
+            if (HtmlText.CountWords(d.ArticleHtml) < 50) continue;
+
+            List<ArticleImage>? images = null;
+            if (_opts.UseExternalImages)
+            {
+                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
+            }
+            else
+            {
+                images = AiImageFilter.SelectRelevantImages(d);
+            }
+
+            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
 
             var article = new Article
             {
@@ -515,11 +588,11 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 Category = ParseCategory(d.Category),
                 Title = d.Title.Trim(),
                 Content = EnsureHtmlDiv(d.ArticleHtml, _opts.MinWordCount),
-                IsBreakingNews = false,
+                IsBreakingNews = isBreaking,
                 CountryName = d.CountryName,
                 CountryCode = d.CountryCode,
                 Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = AiImageFilter.SelectRelevantImages(d)
+                Images = (images is { Count: > 0 }) ? images : null,
             };
 
             db.Set<Article>().Add(article);
@@ -548,6 +621,8 @@ public static class AiNewsRegistration
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.Timeout = TimeSpan.FromSeconds(60);
         });
+        services.AddHttpClient<IImagePicker, WikimediaImagePicker>();
+        services.AddHttpClient<INewsFetcher, BingNewsFetcher>();
         services.AddHostedService<AiTrendingNewsPollingService>();
         services.AddHostedService<AiRandomArticleWriterService>();
         return services;
