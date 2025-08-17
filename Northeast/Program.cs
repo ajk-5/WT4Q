@@ -219,7 +219,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedProto |
         ForwardedHeaders.XForwardedHost;
 
-    options.KnownProxies.Add(IPAddress.Parse("127.0.0.1"));
+    // Trust forwarded headers from any proxy in front of the app.
+    // The reverse proxy is responsible for sanitizing the headers.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.ForwardLimit = 2; // defensive cap on the number of entries
 });
 
 var dataProtection = builder.Services.AddDataProtection()
