@@ -16,13 +16,13 @@ export const API_ROUTES = {
   },
 
   USERS: {
-    GET_ALL: `${API_BASE_URL}/User`,
-    GET_BY_EMAIL: (email: string) => `${API_BASE_URL}/User/${email}`,
-    ME: `${API_BASE_URL}/User/me`,
-    UPDATE: `${API_BASE_URL}/User`,
-    DELETE: `${API_BASE_URL}/User`,
+    GET_ALL: `${API_BASE_URL}/api/User`,
+    GET_BY_EMAIL: (email: string) => `${API_BASE_URL}/api/User/${email}`,
+    ME: `${API_BASE_URL}/api/User/me`,
+    UPDATE: `${API_BASE_URL}/api/User`,
+    DELETE: `${API_BASE_URL}/api/User`,
     ACTIVITY: `${API_BASE_URL}/User/activity`,
-    CHANGE_PASSWORD: `${API_BASE_URL}/User/password`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/api/User/password`,
   },
 
   ARTICLE: {

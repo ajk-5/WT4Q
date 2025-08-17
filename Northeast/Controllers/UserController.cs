@@ -9,7 +9,7 @@ using Northeast.Utilities;
 namespace Northeast.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _appDbContext;
