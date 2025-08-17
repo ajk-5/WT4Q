@@ -1,4 +1,3 @@
-
 .slider {
   background:#c6bbbb00;
   color: #0000006d;
@@ -7,34 +6,16 @@
   border-radius: 4px;
   text-align: center;
   position: relative;
-
-  overflow: hidden;
-}
-
-.itemWrapper {
-  overflow: hidden;
-
   font-family: "Georgia", "Times New Roman", serif;
 
-
+}
 
 .item {
-  display: inline-block;
+  display: block;
   font-weight: bold;
   white-space: nowrap;
-}
-
-.marquee {
-  animation: marquee var(--scroll-duration) linear forwards;
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(var(--scroll-distance));
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dots {
@@ -106,13 +87,9 @@
   font-size: 1.25rem;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
+  transition: opacity 0.3s;
   padding: 0 0.25rem;
   z-index: 1;
-}
-
-.arrow:active {
-  transform: translateY(-50%) scale(0.9);
 }
 
 .slider:hover .arrow {
@@ -125,30 +102,4 @@
 
 .right {
   right: 0.25rem;
-}
-
-.slideLeft {
-  animation: slideLeft 0.3s ease;
-}
-
-.slideRight {
-  animation: slideRight 0.3s ease;
-}
-
-@keyframes slideLeft {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideRight {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
 }

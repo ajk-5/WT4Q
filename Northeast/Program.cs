@@ -23,6 +23,8 @@ using System.Text;
 using System.IO;
 using System.Text.Json.Serialization;
 using Northeast.Models;
+using Microsoft.AspNetCore.Authentication;            // optional
+using System.Threading.Tasks;                        // for Task
 
 var builder = WebApplication.CreateBuilder(args);
 var originsPolicy = "AuthorizedApps";
@@ -85,10 +87,10 @@ builder.Services.AddHttpClient<GeminiClient>()
         o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
     });
 builder.Services.AddHttpClient<NewsRssClient>(client =>
-    {
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NewsBot/1.0)");
-        client.DefaultRequestHeaders.Accept.ParseAdd("application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8");
-    })
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NewsBot/1.0)");
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8");
+})
     .AddStandardResilienceHandler(o =>
     {
         o.Retry.MaxRetryAttempts = 3;
@@ -117,21 +119,45 @@ builder.Services.AddAiNews(o =>
 builder.Services.AddAuthentication(options =>
 {
     // Default to JWT for API requests and use cookies to persist tokens.
-    // Avoid redirecting API calls to Google when not authenticated.
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
-    // Important for external OAuth flows: allow cross-site cookies
+    // Important for cross-site flows: allow cross-site cookies
     options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ?
-        CookieSecurePolicy.None : CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.None
+        : CookieSecurePolicy.Always;
+
+    // Prevent redirects on API routes (return 401/403 instead)
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = ctx =>
+        {
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = ctx =>
+        {
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddJwtBearer(options =>
 {
-    // Basic JWT settings
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -141,7 +167,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 
     // Optionally read JWT from a cookie named "JwtToken"
@@ -156,26 +182,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddGoogle(options =>
 {
-    // Pull from appsettings or user-secrets
     options.ClientId = builder.Configuration["Google:ClientId"];
     options.ClientSecret = builder.Configuration["Google:ClientSecret"];
-
-    // Must match exactly what's in Google Cloud Console "Authorized redirect URI"
-    // Using a single endpoint: /api/GoogleSignIn/google-auth
     options.CallbackPath = "/api/GoogleSignIn/google-response";
-
-    // Store external login info in the same cookie scheme
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
-// --- Configure Authorization ---
+// --- Authorization ---
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "SuperAdmin"));
     options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SuperAdmin"));
 });
 
-// --- Configure CORS ---
+// --- CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(originsPolicy, policy =>
@@ -185,17 +205,21 @@ builder.Services.AddCors(options =>
             "https://wt4q.com",
             "http://localhost:3000"
         )
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
     });
 });
 
-// --- Configure Forwarded Headers (if behind a proxy) ---
+// --- Forwarded Headers (trust NGINX) ---
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto
-                             | ForwardedHeaders.XForwardedHost;
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+
+    options.KnownProxies.Add(IPAddress.Parse("127.0.0.1"));
 });
 
 var dataProtection = builder.Services.AddDataProtection()
@@ -239,23 +263,19 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// --- Middleware Pipeline ---
+// --- Pipeline ---
+// Must be BEFORE HttpsRedirection/Auth so the app sees the original scheme/host.
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        // Note: Social login flows often fail if tested inside Swagger UI
         c.OAuthUsePkce();
     });
 }
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
-
-// Enforce global cookie policy (SameSite=None, Secure in production)
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.None,
@@ -263,13 +283,15 @@ app.UseCookiePolicy(new CookiePolicyOptions
 });
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
+// CORS before auth so 401/403 still include CORS headers
 app.UseCors(originsPolicy);
-
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 await app.RunAsync();

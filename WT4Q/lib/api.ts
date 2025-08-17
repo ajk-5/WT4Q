@@ -1,6 +1,6 @@
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7122';
+  process.env.NEXT_PUBLIC_API_URL || 'https://server.wt4q.com';
 
 export const API_ROUTES = {
   ADMIN_AUTH: {
