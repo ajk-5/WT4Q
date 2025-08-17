@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { API_ROUTES } from '@/lib/api';
+import { CATEGORIES } from '@/lib/categories';
 
 export const dynamic = 'force-static';
 
@@ -8,18 +9,32 @@ async function fetchUrls(): Promise<string[]> {
     const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { cache: 'no-store' });
     if (!res.ok) return [];
     const articles: { id: string }[] = await res.json();
-    return articles.map(a => `/articles/${a.id}`);
+    return articles.map((a) => `/articles/${a.id}`);
   } catch {
     return [];
   }
+}
+
+function getCategoryPaths(): string[] {
+  return CATEGORIES.map((c) => `/category/${encodeURIComponent(c)}`);
 }
 
 export async function GET() {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
   const articlePaths = await fetchUrls();
-  const pages = ['/', '/search', '/terms', '/profile'];
-  const urls = [...pages, ...articlePaths];
+  const categoryPaths = getCategoryPaths();
+  const pages = [
+    '/',
+    '/about',
+    '/contact',
+    '/games',
+    '/tools',
+    '/search',
+    '/terms',
+    '/weather',
+  ];
+  const urls = [...pages, ...categoryPaths, ...articlePaths];
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
     urls.map(p => `\n  <url><loc>${siteUrl}${p}</loc></url>`).join('') +
