@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
@@ -13,55 +13,111 @@ export interface BreakingArticle {
   images?: ArticleImage[];
 }
 
-export default function BreakingNewsSlider({
-  articles: initialArticles = [],
-  className,
-  showDetails = false,
-}: {
+type Props = {
+  /** If provided (non-empty), component will NOT fetch. */
   articles?: BreakingArticle[];
   className?: string;
   showDetails?: boolean;
-}) {
-  const [articles, setArticles] = useState<BreakingArticle[]>(initialArticles);
+};
+
+const ROTATE_MS = 5000;
+
+export default function BreakingNewsSlider({
+  articles: initialArticles,
+  className,
+  showDetails = false,
+}: Props) {
+  // initialize from props once; if props later become non-empty, we sync via an effect below
+  const [articles, setArticles] = useState<BreakingArticle[]>(() => initialArticles ?? []);
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
+
+  // prevent duplicate fetch in React 18 dev Strict Mode
+  const fetchedOnceRef = useRef(false);
+  // used for marquee calc
   const textRef = useRef<HTMLSpanElement>(null);
 
+  // 👇 key: stable boolean, not the array reference
+  const needFetch = useMemo(
+    () => !(initialArticles && initialArticles.length > 0),
+    [initialArticles?.length],
+  );
+
   const next = () => {
+    if (articles.length < 2) return;
     setDirection('next');
     setIndex((i) => (i + 1) % articles.length);
   };
+
   const prev = () => {
+    if (articles.length < 2) return;
     setDirection('prev');
     setIndex((i) => (i - 1 + articles.length) % articles.length);
   };
 
+  // If parent later provides articles (SSR/CSR timing), sync them in once.
   useEffect(() => {
-    if (initialArticles.length === 0) {
-      fetch(API_ROUTES.ARTICLE.GET_ALL)
-        .then((r) => (r.ok ? r.json() : []))
-        .then((data: { id: string; title: string }[]) =>
-          setArticles(data.map((a) => ({ id: a.id, title: a.title })))
-        )
-        .catch(() => setArticles([]));
+    if (initialArticles && initialArticles.length > 0) {
+      setArticles(initialArticles);
+      setIndex(0);
     }
-  }, [initialArticles]);
+  }, [initialArticles?.length]);
 
+  // Fetch when we weren't given any articles
   useEffect(() => {
-    if (articles.length === 0) return;
-    const interval = setInterval(next, 5000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articles]);
+    if (!needFetch) return;
+    if (fetchedOnceRef.current) return;
+    fetchedOnceRef.current = true;
 
+    const ac = new AbortController();
+    (async () => {
+      const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, {
+        signal: ac.signal,
+        // If your API lives on another subdomain and uses cookie auth, uncomment:
+        // credentials: 'include',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        // don’t silently loop on 4xx/5xx
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data: { id: string; title: string }[] = await res.json();
+      setArticles(data.map((a) => ({ id: a.id, title: a.title })));
+      setIndex(0);
+    })().catch((err: any) => {
+      if (err?.name !== 'AbortError') {
+        // Optional: keep empty to render null, or set a fallback message article
+        setArticles([]);
+      }
+    });
+
+    return () => ac.abort();
+  }, [needFetch]);
+
+  // Clamp index if list shrinks
+  useEffect(() => {
+    if (index >= articles.length) setIndex(0);
+  }, [articles.length, index]);
+
+  // Auto-rotate only with 2+ items
+  useEffect(() => {
+    if (articles.length < 2) return;
+    const t = setInterval(next, ROTATE_MS);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articles.length]);
+
+  // Marquee if title overflows
   useEffect(() => {
     const el = textRef.current;
-    if (!el) return;
-    const container = el.parentElement as HTMLElement;
+    const container = el?.parentElement as HTMLElement | null;
+    if (!el || !container) return;
+
     const offset = el.scrollWidth - container.clientWidth;
     if (offset > 0) {
       el.style.setProperty('--scroll-distance', `-${offset}px`);
-      el.style.setProperty('--scroll-duration', `${offset / 50}s`); // 50px/sec
+      el.style.setProperty('--scroll-duration', `${offset / 50}s`); // ~50px/sec
       el.classList.add(styles.marquee);
     } else {
       el.classList.remove(styles.marquee);
@@ -74,9 +130,7 @@ export default function BreakingNewsSlider({
   const first = current.images?.[0];
   const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
   const imageSrc = first?.photoLink || base64;
-  const snippet = current.content
-    ? truncateWords(stripHtml(current.content))
-    : undefined;
+  const snippet = current.content ? truncateWords(stripHtml(current.content)) : undefined;
 
   return (
     <div className={`${styles.slider} ${className ?? ''}`.trim()}>
@@ -84,16 +138,20 @@ export default function BreakingNewsSlider({
         className={`${styles.arrow} ${styles.left}`}
         onClick={prev}
         aria-label="Previous article"
+        type="button"
       >
         ‹
       </button>
+
       <button
         className={`${styles.arrow} ${styles.right}`}
         onClick={next}
         aria-label="Next article"
+        type="button"
       >
         ›
       </button>
+
       {showDetails ? (
         <div className={styles.detail}>
           {imageSrc && (
@@ -102,6 +160,8 @@ export default function BreakingNewsSlider({
                 src={imageSrc}
                 alt={first?.altText || current.title}
                 className={styles.detailImage}
+                loading="lazy"
+                decoding="async"
               />
               {first?.caption && (
                 <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
@@ -125,10 +185,15 @@ export default function BreakingNewsSlider({
           </PrefetchLink>
         </div>
       )}
-      <div className={styles.dots}>
+
+      <div className={styles.dots} role="tablist" aria-label="Breaking news">
         {articles.map((_, i) => (
           <button
             key={i}
+            type="button"
+            role="tab"
+            aria-selected={i === index}
+            aria-label={`Show item ${i + 1}`}
             className={`${styles.dot} ${i === index ? styles.active : ''}`}
             onClick={() => setIndex(i)}
           />
