@@ -2,24 +2,35 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AnchorHTMLAttributes } from 'react';
+import React, { AnchorHTMLAttributes, useRef } from 'react';
 
 interface PrefetchLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
 }
 
-export default function PrefetchLink({ href, onMouseEnter, children, ...props }: PrefetchLinkProps) {
+/**
+ * Prefetch once on hover. We disable Link's built-in viewport prefetch
+ * to avoid repeated fetches when lists re-render.
+ */
+export default function PrefetchLink({
+  href,
+  onMouseEnter,
+  children,
+  ...props
+}: PrefetchLinkProps) {
   const router = useRouter();
+  const didPrefetch = useRef(false);
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    router.prefetch(href);
-    if (onMouseEnter) {
-      onMouseEnter(e);
+  const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!didPrefetch.current) {
+      router.prefetch(href);
+      didPrefetch.current = true; // one-shot per mount
     }
+    onMouseEnter?.(e);
   };
 
   return (
-    <Link href={href} {...props} onMouseEnter={handleMouseEnter}>
+    <Link href={href} prefetch={false} onMouseEnter={handleMouseEnter} {...props}>
       {children}
     </Link>
   );

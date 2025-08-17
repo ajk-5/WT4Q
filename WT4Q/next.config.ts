@@ -1,20 +1,12 @@
-
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // If you serve _next/static from a CDN
+  poweredByHeader: false,
   assetPrefix: process.env.CDN_URL || undefined,
 
-  // ✅ Allow remote images for <Image />
   images: {
-    // Simple allow-list (keep in sync with any hosts you actually use)
-
-     remotePatterns: [
-       {
-         protocol: "https",
-         hostname: "**",
-  },
-     ],
+    // ⚠️ Ideally list real hosts; wildcard is ok while developing
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     formats: ["image/avif", "image/webp"],
@@ -22,25 +14,25 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
-      // Long cache for build assets
+      // Build assets: cache hard for a year
       {
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=0, immutable",
-          },
-        ],
+        source: "/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
-      // Default cache for app routes
+      // Next/Image optimizer responses (safe daily cache)
       {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
-          },
-        ],
+        source: "/_next/image",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, must-revalidate" }],
+      },
+      // API responses: never cached by browser (prevents “infinite” revalidation)
+      {
+        source: "/api/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      // HTML & everything else: don’t cache in browser
+      {
+        source: "/:path*",
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
     ];
   },
