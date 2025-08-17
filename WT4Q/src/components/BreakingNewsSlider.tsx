@@ -85,8 +85,8 @@ export default function BreakingNewsSlider({
       const data: { id: string; title: string }[] = await res.json();
       setArticles(data.map((a) => ({ id: a.id, title: a.title })));
       setIndex(0);
-    })().catch((err: any) => {
-      if (err?.name !== 'AbortError') {
+    })().catch((err: unknown) => {
+      if (!(err instanceof Error) || err.name !== 'AbortError') {
         // Optional: keep empty to render null, or set a fallback message article
         setArticles([]);
       }
