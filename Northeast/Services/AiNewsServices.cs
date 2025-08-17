@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,8 +63,7 @@ internal static class AiImageFilter
         var filtered = draft.Images
             .AsEnumerable()
             .Reverse() // prefer latest images if the list is chronological
-            .Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink) && ImageMatches(i, subjectWords))
-
+            .Where(i => IsValidHttpUrl(i.PhotoLink) && ImageMatches(i, subjectWords))
             .Take(2)
             .Select(i => new ArticleImage
             {
@@ -84,9 +84,17 @@ internal static class AiImageFilter
     private static bool ImageMatches(AiImage img, List<string> subjectWords)
     {
         var text = ((img.AltText ?? string.Empty) + " " + (img.Caption ?? string.Empty)).ToLowerInvariant();
-        return subjectWords.Any(k => text.Contains(k));
-
+        foreach (var word in subjectWords)
+        {
+            if (!Regex.IsMatch(text, $@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase))
+                return false;
+        }
+        return true;
     }
+
+    private static bool IsValidHttpUrl(string? url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var u) &&
+           (u.Scheme == Uri.UriSchemeHttp || u.Scheme == Uri.UriSchemeHttps);
 }
 #endregion
 
