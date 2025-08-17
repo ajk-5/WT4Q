@@ -28,19 +28,11 @@ namespace Northeast.Services
         public async Task<Visitors> VisitorLog()
         {
             var ipAddress = _getConnectedUser.GetUserIP();
-            
-            // Fallback if running on a loopback address (will return the server's location)
-            if (string.IsNullOrWhiteSpace(ipAddress) || ipAddress == "::1" || ipAddress == "127.0.0.1")
-            {
 
-                ipAddress = await _httpClient.GetStringAsync("https://api64.ipify.org");
-
-            }
-            if (!IPAddress.TryParse(ipAddress, out _))
+            if (!IPAddress.TryParse(ipAddress ?? string.Empty, out _))
             {
                 return null;
             }
-    
 
             var apiUrl = $"https://ipinfo.io/{ipAddress}/json";
 

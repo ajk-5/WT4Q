@@ -2,6 +2,8 @@
 using Northeast.Models;
 using Northeast.Repository;
 using System.Security.Claims;
+using System.Linq;
+using System.Net;
 
 namespace Northeast.Utilities
 {
@@ -60,9 +62,19 @@ namespace Northeast.Utilities
                 return null;
             }
 
-            var ipAddress = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
-                            httpContext.Connection.RemoteIpAddress?.ToString();
-            return ipAddress;
+            // Prefer headers added by proxies/CDNs, falling back to the connection IP.
+            var ip = httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+                     ?? httpContext.Request.Headers["True-Client-IP"].FirstOrDefault()
+                     ?? httpContext.Request.Headers["X-Real-IP"].FirstOrDefault()
+                     ?? httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
+                     ?? httpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (IPAddress.TryParse(ip ?? string.Empty, out var addr))
+            {
+                return addr.MapToIPv4().ToString();
+            }
+
+            return null;
         }
     }
 }
