@@ -50,8 +50,8 @@ function iconFromSymbol(symbol: string | null, className: string): ReactElement 
   return <WeatherIcon code={3} isDay={isDay} className={className} />;
 }
 
-export default function WeatherPage() {
-  const [city, setCity] = useState('');
+export default function WeatherPage({ initialCity }: { initialCity?: string }) {
+  const [city, setCity] = useState(initialCity || '');
   const [weather, setWeather] = useState<Weather | null>(null);
   const [forecast, setForecast] = useState<ForecastEntry[]>([]);
   const [error, setError] = useState('');
@@ -149,6 +149,13 @@ export default function WeatherPage() {
       setForecast([]);
     }
   };
+
+  useEffect(() => {
+    if (initialCity) {
+      setCity(initialCity);
+      void loadCity(initialCity);
+    }
+  }, [initialCity]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
