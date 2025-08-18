@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import styles from '../article.module.css';
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
+import LocalArticleSection from '@/components/LocalArticleSection';
 
 /* ---------------------- types ---------------------- */
 
@@ -21,9 +22,9 @@ interface ArticleDetails {
   countryName?: string;
   images?: ArticleImage[];
   embededCode?: string;
-  author?: { adminName?: string };
   comments?: Comment[];
   like?: { id: number; type: number }[];
+  views?: number;
 }
 
 interface RelatedArticle {
@@ -154,14 +155,16 @@ export default async function ArticlePage(
           <p className={styles.summary}>{article.summary}</p>
         )}
           <p className={styles.meta}>
-            {new Date(article.createdDate).toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-            {article.countryName ? ` | ${article.countryName}` : ''}
-            {article.author?.adminName ? ` – ${article.author.adminName}` : ''}
-          </p>
+          {new Date(article.createdDate).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+          {article.countryName ? ` | ${article.countryName}` : ''}
+          {typeof article.views === 'number'
+            ? ` | ${article.views.toLocaleString()} views`
+            : ''}
+        </p>
         {article.images && article.images.length > 0 && (
           <div className={article.images.length > 1 ? styles.gallery : undefined}>
             {article.images.map((img, idx) => {
@@ -230,6 +233,7 @@ export default async function ArticlePage(
           </div>
         </aside>
       )}
+      <LocalArticleSection />
     </div>
   );
 }
