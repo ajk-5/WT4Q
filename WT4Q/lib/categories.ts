@@ -4,7 +4,7 @@ export const UPLOADCATEGORIES = [
   'Entertainment',
   'Business',
   'Health',
-  'lifestyle',
+  'Lifestyle',
   'Technology',
   'Sports',
   'Info'
@@ -16,7 +16,7 @@ export const CATEGORIES = [
   'Entertainment',
   'Business',
     'Health',
-    'lifestyle',
+    'Lifestyle',
   'Technology',
   'Sports',
   'Info'
