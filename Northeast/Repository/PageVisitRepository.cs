@@ -20,5 +20,10 @@ namespace Northeast.Repository
                 .OrderByDescending(p => p.VisitTime)
                 .FirstOrDefaultAsync();
         }
+
+        public Task<int> CountVisitsAsync(string pageUrl)
+        {
+            return _context.PageVisits.CountAsync(p => p.PageUrl == pageUrl);
+        }
     }
 }

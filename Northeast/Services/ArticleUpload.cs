@@ -23,8 +23,9 @@ namespace Northeast.Services
         private readonly NotificationRepository _notificationRepository;
         private readonly CommentReportRepository _commentReportRepository;
         private readonly AppDbContext _appDbContext;
+        private readonly PageVisitRepository _pageVisitRepository;
 
-        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository, CommentReportRepository commentReportRepository, AppDbContext appDbContext) {
+        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository, CommentReportRepository commentReportRepository, AppDbContext appDbContext, PageVisitRepository pageVisitRepository) {
 
             _connectedUser = connectedUser;
             _articleRepository= articleRepository;
@@ -34,7 +35,24 @@ namespace Northeast.Services
             _notificationRepository = notificationRepository;
             _commentReportRepository = commentReportRepository;
             _appDbContext = appDbContext;
+            _pageVisitRepository = pageVisitRepository;
 
+        }
+
+        private async Task SetViewsAsync(Article article)
+        {
+            if (article != null)
+            {
+                article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Id}");
+            }
+        }
+
+        private async Task SetViewsAsync(IEnumerable<Article> articles)
+        {
+            foreach (var a in articles)
+            {
+                await SetViewsAsync(a);
+            }
         }
         public async Task Publish(ArticleDto articleDto)
         {
@@ -75,7 +93,9 @@ namespace Northeast.Services
         }
 
         public async Task<IEnumerable<Article>> getAllArticle() {
-            return await _articleRepository.GetAll();
+            var articles = await _articleRepository.GetAll();
+            await SetViewsAsync(articles);
+            return articles;
         }
 
         public async Task<Article> GetArticleByID(Guid Id) {
@@ -84,6 +104,7 @@ namespace Northeast.Services
                 .Include(a => a.Like)
                 .Include(a => a.Comments)
                 .FirstOrDefaultAsync(a => a.Id == Id);
+            await SetViewsAsync(article);
             return article;
         }
 
@@ -94,38 +115,52 @@ namespace Northeast.Services
 
         public async Task<IEnumerable<Article>> Search(string query)
         {
-            return await _articleRepository.Search(query);
+            var results = await _articleRepository.Search(query);
+            await SetViewsAsync(results);
+            return results;
         }
 
         public async Task<IEnumerable<Article>> Search(string? title, string? keyword, DateTime? date, ArticleType? type, Category? category)
         {
-            return await _articleRepository.Search(title, keyword, date, type, category);
+            var results = await _articleRepository.Search(title, keyword, date, type, category);
+            await SetViewsAsync(results);
+            return results;
         }
 
         public async Task<IEnumerable<Article>> SearchByArticleType(ArticleType type)
         {
-            return await _articleRepository.SearchByArticleType(type);
+            var results = await _articleRepository.SearchByArticleType(type);
+            await SetViewsAsync(results);
+            return results;
         }
 
         public async Task<IEnumerable<Article>> SearchByAuthor(Guid authorId)
         {
-            return await _articleRepository.SearchByAuthor(authorId);
+            var results = await _articleRepository.SearchByAuthor(authorId);
+            await SetViewsAsync(results);
+            return results;
         }
 
         public async Task<IEnumerable<Article>> FilterArticles(Guid? id, string? title, string? content,
             DateTime? date, ArticleType? type, Category? category, Guid? authorId,
             string? countryName, string? countryCode, string? keyword)
         {
-            return await _articleRepository.Filter(id, title, content, date, type, category, authorId, countryName, countryCode, keyword);
+            var results = await _articleRepository.Filter(id, title, content, date, type, category, authorId, countryName, countryCode, keyword);
+            await SetViewsAsync(results);
+            return results;
         }
 
         public async Task<IEnumerable<Article>> GetRelatedArticles(Guid articleId, int count = 5)
         {
-            return await _articleRepository.GetRecommendedArticles(articleId, count);
+            var results = await _articleRepository.GetRecommendedArticles(articleId, count);
+            await SetViewsAsync(results);
+            return results;
         }
         public async Task<IEnumerable<Article>> GetBreakingNews()
         {
-            return await _articleRepository.GetBreakingNews();
+            var results = await _articleRepository.GetBreakingNews();
+            await SetViewsAsync(results);
+            return results;
         }
         public async Task<LikeEntity> GetLikeByUserAndArticle(Guid ArticleId)
         {
