@@ -171,18 +171,13 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
     public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        // Endpoint: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
         var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
         var payload = new
         {
             contents = new[]
             {
-                new
-                {
-                    role = "user",
-                    parts = new object[] { new { text = userPrompt } }
-                }
+                new { role = "user", parts = new object[] { new { text = userPrompt } } }
             },
             systemInstruction = new
             {
@@ -194,7 +189,20 @@ public sealed class GeminiRestClient : IGenerativeTextClient
                 temperature,
                 candidateCount = 1,
                 stopSequences = Array.Empty<string>(),
-                responseMimeType = "application/json"
+                // Strongly hint JSON-only output
+                responseMimeType = "application/json",
+                // (Optional but recommended) enforce a schema to reduce surprises:
+                // responseSchema = new {
+                //     type = "OBJECT",
+                //     properties = new {
+                //         items = new {
+                //             type = "ARRAY",
+                //             items = new {
+                //                 type = "OBJECT"
+                //             }
+                //         }
+                //     }
+                // }
             }
         };
 
@@ -206,40 +214,96 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
         using var res = await _http.SendAsync(req, ct);
         var body = await res.Content.ReadAsStringAsync(ct);
+
         if (!res.IsSuccessStatusCode)
         {
-            string reason = body;
-            try
-            {
-                using var errDoc = JsonDocument.Parse(body);
-                if (errDoc.RootElement.TryGetProperty("error", out var err))
-                {
-                    var code = err.TryGetProperty("code", out var c) ? c.GetRawText() : "?";
-                    var msg = err.TryGetProperty("message", out var m) ? m.GetString() : "?";
-                    reason = $"code={code}, message={msg}";
-                }
-            }
-            catch { }
-
-            _log.LogError("Gemini call failed: {Status}. Reason: {Reason}", (int)res.StatusCode, reason);
+            // keep your existing error extraction if you like
             res.EnsureSuccessStatusCode();
         }
 
         using var doc = JsonDocument.Parse(body);
-        // pull first candidate text
-        var text = doc.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
-            .GetString();
+        var root = doc.RootElement;
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (!root.TryGetProperty("candidates", out var candidates) ||
+            candidates.ValueKind != JsonValueKind.Array ||
+            candidates.GetArrayLength() == 0)
         {
-            _log.LogWarning("Gemini returned empty text");
+            _log.LogWarning("Gemini response has no candidates. Raw: {Body}", Trunc(body, 600));
             return "{}";
         }
-        return text!;
+
+        var cand0 = candidates[0];
+
+        // If finishReason indicates block/stop with no content, bail gracefully.
+        if (cand0.TryGetProperty("finishReason", out var finishNode))
+        {
+            var fr = finishNode.GetString();
+            if (string.Equals(fr, "SAFETY", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fr, "OTHER", StringComparison.OrdinalIgnoreCase))
+            {
+                _log.LogWarning("Gemini candidate blocked or empty (finishReason={Finish}). Raw: {Body}", fr, Trunc(body, 600));
+                return "{}";
+            }
+        }
+
+        if (!cand0.TryGetProperty("content", out var content) ||
+            !content.TryGetProperty("parts", out var parts) ||
+            parts.ValueKind != JsonValueKind.Array ||
+            parts.GetArrayLength() == 0)
+        {
+            _log.LogWarning("Gemini candidate has no content.parts. Raw: {Body}", Trunc(body, 600));
+            return "{}";
+        }
+
+        // Walk parts to find JSON in any supported shape.
+        for (int i = 0; i < parts.GetArrayLength(); i++)
+        {
+            var part = parts[i];
+
+            // 1) Normal: text
+            if (part.TryGetProperty("text", out var textNode))
+            {
+                var text = textNode.GetString();
+                if (!string.IsNullOrWhiteSpace(text))
+                    return text!;
+            }
+
+            // 2) Tool-style: functionCall.args (already JSON)
+            if (part.TryGetProperty("functionCall", out var fc) &&
+                fc.ValueKind == JsonValueKind.Object &&
+                fc.TryGetProperty("args", out var args))
+            {
+                // Return raw JSON object/array string
+                return args.GetRawText();
+            }
+
+            // 3) Binary JSON: inlineData (base64) with JSON mime
+            if (part.TryGetProperty("inlineData", out var inlineData) &&
+                inlineData.ValueKind == JsonValueKind.Object &&
+                inlineData.TryGetProperty("mimeType", out var mime) &&
+                string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
+                inlineData.TryGetProperty("data", out var dataNode))
+            {
+                try
+                {
+                    var b64 = dataNode.GetString();
+                    if (!string.IsNullOrEmpty(b64))
+                    {
+                        var bytes = Convert.FromBase64String(b64);
+                        var json = Encoding.UTF8.GetString(bytes);
+                        if (!string.IsNullOrWhiteSpace(json))
+                            return json;
+                    }
+                }
+                catch (FormatException) { /* ignore bad base64 */ }
+            }
+        }
+
+        // Nothing usable found
+        _log.LogWarning("Gemini returned no usable JSON in parts. Raw: {Body}", Trunc(body, 600));
+        return "{}";
+
+        static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
     }
 }
 #endregion
