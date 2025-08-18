@@ -11,6 +11,7 @@ export interface BreakingArticle {
   title: string;
   content?: string;
   images?: ArticleImage[];
+  createdDate?: string;
 }
 
 type Props = {
@@ -82,8 +83,13 @@ export default function BreakingNewsSlider({
         // don’t silently loop on 4xx/5xx
         throw new Error(`HTTP ${res.status}`);
       }
-      const data: { id: string; title: string }[] = await res.json();
-      setArticles(data.map((a) => ({ id: a.id, title: a.title })));
+      const data: { id: string; title: string; createdDate?: string }[] = await res.json();
+      data.sort(
+        (a, b) =>
+          new Date(b.createdDate ?? 0).getTime() -
+          new Date(a.createdDate ?? 0).getTime(),
+      );
+      setArticles(data.map((a) => ({ id: a.id, title: a.title, createdDate: a.createdDate })));
       setIndex(0);
     })().catch((err: unknown) => {
       if (!(err instanceof Error) || err.name !== 'AbortError') {

@@ -17,6 +17,7 @@ export async function ensureAdmin() {
       Cookie: `JwtToken=${token.value}`,
     },
     cache: 'no-store',
+    credentials: 'include',
   });
 
   if (!res.ok) {
