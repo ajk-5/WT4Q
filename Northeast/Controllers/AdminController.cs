@@ -95,7 +95,18 @@ namespace Northeast.Controllers
                 return NotFound(new { message = "Admin not found" });
             }
 
-            return Ok(new { id = admin.Id, adminName = admin.UserName, email = admin.Email });
+            var roleString = admin.Role.ToString();
+
+            return Ok(new
+            {
+                id = admin.Id,
+                adminName = admin.UserName,
+                email = admin.Email,
+                role = roleString,
+                roles = new[] { roleString },
+                isAdmin = admin.Role == Role.Admin || admin.Role == Role.SuperAdmin,
+                isSuperAdmin = admin.Role == Role.SuperAdmin
+            });
         }
 
         [Authorize(Policy = "SuperAdminOnly")]
