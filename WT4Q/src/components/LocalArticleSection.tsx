@@ -32,7 +32,7 @@ export default function LocalArticleSection() {
 
   return (
     <section className={styles.container} aria-label="Local news">
-      <h2 className={styles.heading}>News Near You</h2>
+      <h2 className={styles.heading}>Local News based on your location</h2>
       <ArticleCard article={article} />
     </section>
   );
