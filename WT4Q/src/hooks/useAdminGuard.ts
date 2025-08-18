@@ -8,10 +8,12 @@ export interface AdminInfo {
   id?: string;
   adminName?: string;
   email?: string;
+
   role?: string;
   roles?: string[];
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
+
   [key: string]: unknown;
 }
 
@@ -34,6 +36,7 @@ export function useAdminGuard() {
           return;
         }
         const data: AdminInfo = await res.json();
+
         if (isMounted) {
           setAdmin(data);
         }
@@ -41,6 +44,7 @@ export function useAdminGuard() {
         if (!controller.signal.aborted) {
           router.replace('/admin-login');
         }
+
       }
     }
 
