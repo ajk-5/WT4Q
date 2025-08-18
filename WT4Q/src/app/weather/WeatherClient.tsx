@@ -13,6 +13,9 @@ interface Weather {
   weathercode: number;
   isDay: boolean;
   windspeed?: number | null;
+  airQuality?: number | null;
+  uvIndex?: number | null;
+  alerts: string[];
 }
 
 interface ForecastEntry {
@@ -57,51 +60,65 @@ export default function WeatherPage() {
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
-    if (stored.length > 0) {
-      Promise.all(
-        stored.map(async (c) => {
-          const wRes = await fetch(`/api/weather/by-city?city=${encodeURIComponent(c)}`);
-          const fRes = await fetch(
-            `/api/weather/daily-forecast-by-city?city=${encodeURIComponent(c)}`
-          );
-          if (wRes.ok && fRes.ok) {
-            const wData = await wRes.json();
-            const fData = await fRes.json();
-            return {
-              ...wData,
-              forecast: Array.isArray(fData.forecast) ? fData.forecast : [],
-            } as SavedCity;
-          }
-          return null;
-        })
-      ).then((list) => setSaved(list.filter(Boolean) as SavedCity[]));
+    try {
+      const raw = JSON.parse(localStorage.getItem('savedCities') || '[]');
+      if (Array.isArray(raw)) {
+        if (raw.length > 0 && typeof raw[0] === 'string') {
+          Promise.all(
+            (raw as string[]).map(async (c) => {
+              const wRes = await fetch(`/api/weather/by-city?city=${encodeURIComponent(c)}`);
+              const fRes = await fetch(
+                `/api/weather/daily-forecast-by-city?city=${encodeURIComponent(c)}`
+              );
+              if (wRes.ok && fRes.ok) {
+                const wData = await wRes.json();
+                const fData = await fRes.json();
+                return {
+                  ...wData,
+                  alerts: Array.isArray(wData.alerts) ? wData.alerts : [],
+                  forecast: Array.isArray(fData.forecast) ? fData.forecast : [],
+                } as SavedCity;
+              }
+              return null;
+            })
+          ).then((list) => {
+            const filtered = list.filter(Boolean) as SavedCity[];
+            setSaved(filtered);
+            localStorage.setItem('savedCities', JSON.stringify(filtered));
+          });
+        } else {
+          setSaved(raw as SavedCity[]);
+        }
+      }
+    } catch {
+      setSaved([]);
     }
   }, []);
 
   const saveCurrentCity = async () => {
     if (!weather) return;
-    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
-    if (stored.includes(weather.city)) return;
-    stored.push(weather.city);
-    localStorage.setItem('savedCities', JSON.stringify(stored));
+    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as SavedCity[];
+    if (stored.some((c) => c.city === weather.city)) return;
     const fRes = await fetch(
       `/api/weather/daily-forecast-by-city?city=${encodeURIComponent(weather.city)}`
     );
     const fData = fRes.ok ? await fRes.json() : { forecast: [] };
-    setSaved([
-      ...saved,
-      { ...weather, forecast: Array.isArray(fData.forecast) ? fData.forecast : [] },
-    ]);
+    const newCity: SavedCity = {
+      ...weather,
+      forecast: Array.isArray(fData.forecast) ? fData.forecast : [],
+    };
+    const updated = [...stored, newCity];
+    localStorage.setItem('savedCities', JSON.stringify(updated));
+    setSaved(updated);
     setNotice('City saved');
     setTimeout(() => setNotice(''), 3000);
   };
 
   const removeCity = (name: string) => {
-    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as string[];
-    const updated = stored.filter((c) => c !== name);
+    const stored = JSON.parse(localStorage.getItem('savedCities') || '[]') as SavedCity[];
+    const updated = stored.filter((w) => w.city !== name);
     localStorage.setItem('savedCities', JSON.stringify(updated));
-    setSaved(saved.filter((w) => w.city !== name));
+    setSaved(updated);
   };
 
   const loadCity = async (name: string) => {
@@ -110,7 +127,7 @@ export default function WeatherPage() {
       const res = await fetch(`/api/weather/by-city?city=${encodeURIComponent(name)}`);
       if (res.ok) {
         const data: Weather = await res.json();
-        setWeather(data);
+        setWeather({ ...data, alerts: Array.isArray(data.alerts) ? data.alerts : [] });
         const fRes = await fetch(
           `/api/weather/forecast-by-city?city=${encodeURIComponent(name)}`
         );
@@ -181,6 +198,17 @@ export default function WeatherPage() {
               {unit === 'C' ? '°F' : '°C'}
             </button>
           </div>
+          <div className={styles.extra}>
+            <span>AQI: {weather.airQuality ?? 'N/A'}</span>
+            <span>UV Index: {weather.uvIndex ?? 'N/A'}</span>
+            {weather.alerts.length > 0 && (
+              <ul className={styles.alerts}>
+                {weather.alerts.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className={styles.mapContainer}>
             <iframe
               className={styles.map}
@@ -242,6 +270,17 @@ export default function WeatherPage() {
                 >
                   Remove
                 </button>
+              </div>
+              <div className={styles.extra}>
+                <span>AQI: {w.airQuality ?? 'N/A'}</span>
+                <span>UV Index: {w.uvIndex ?? 'N/A'}</span>
+                {w.alerts.length > 0 && (
+                  <ul className={styles.alerts}>
+                    {w.alerts.map((a) => (
+                      <li key={a}>{a}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
               {w.forecast.length > 0 && (
                 <div className={styles.savedForecast}>

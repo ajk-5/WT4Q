@@ -128,6 +128,18 @@
   font-size: 0.875rem;
 }
 
+.extra {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
+  gap: 0.125rem;
+}
+
+.alerts {
+  margin: 0.25rem 0 0 1rem;
+}
+
 .smallIcon {
   width: 24px;
   height: 24px;
