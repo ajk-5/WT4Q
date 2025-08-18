@@ -10,7 +10,12 @@ async function fetchArticles(cat: string): Promise<Article[]> {
       { cache: 'no-store' }
     );
     if (!res.ok) return [];
-    return await res.json();
+    const data: Article[] = await res.json();
+    return data.sort(
+      (a, b) =>
+        new Date(b.createdDate ?? 0).getTime() -
+        new Date(a.createdDate ?? 0).getTime(),
+    );
   } catch {
     return [];
   }

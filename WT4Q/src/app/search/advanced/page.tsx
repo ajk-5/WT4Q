@@ -28,7 +28,13 @@ export default function AdvancedSearchPage() {
     try {
       const res = await fetch(`${API_ROUTES.ARTICLE.FILTER}?${params.toString()}`);
       if (res.ok) {
-        setResults(await res.json());
+        const data: Article[] = await res.json();
+        data.sort(
+          (a, b) =>
+            new Date(b.createdDate ?? 0).getTime() -
+            new Date(a.createdDate ?? 0).getTime(),
+        );
+        setResults(data);
       } else {
         setResults([]);
       }

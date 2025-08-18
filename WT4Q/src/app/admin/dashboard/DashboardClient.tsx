@@ -33,7 +33,9 @@ export default function DashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [articles, setArticles] = useState<{ id: string; title: string }[]>([]);
+  const [articles, setArticles] = useState<
+    { id: string; title: string; createdDate?: string }[]
+  >([]);
 
   useEffect(() => {
     async function load() {
@@ -43,7 +45,13 @@ export default function DashboardClient() {
           credentials: 'include',
         });
         if (!res.ok) return;
-        const data = await res.json();
+        const data: { id: string; title: string; createdDate?: string }[] =
+          await res.json();
+        data.sort(
+          (a, b) =>
+            new Date(b.createdDate ?? 0).getTime() -
+            new Date(a.createdDate ?? 0).getTime(),
+        );
         setArticles(data);
       } catch {
         // ignore

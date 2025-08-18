@@ -31,6 +31,11 @@ function SearchContent() {
         const res = await fetch(API_ROUTES.ARTICLE.SEARCH(q));
         if (res.ok) {
           const data: Article[] = await res.json();
+          data.sort(
+            (a, b) =>
+              new Date(b.createdDate ?? 0).getTime() -
+              new Date(a.createdDate ?? 0).getTime(),
+          );
           setResults(data);
         } else {
           setResults([]);

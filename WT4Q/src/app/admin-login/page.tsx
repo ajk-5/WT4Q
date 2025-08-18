@@ -15,6 +15,7 @@ export default async function AdminLoginPage() {
       const res = await fetch(API_ROUTES.ADMIN_AUTH.ME, {
         headers: { Cookie: `JwtToken=${token.value}` },
         cache: 'no-store',
+        credentials: 'include',
       });
       if (res.ok) {
         const data: AdminInfo = await res.json();

@@ -6,6 +6,7 @@ export interface Article {
   id: string;
   title: string;
   summary: string;
+  createdDate?: string;
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
