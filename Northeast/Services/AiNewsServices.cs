@@ -46,11 +46,15 @@ public sealed class AiNewsOptions
     /// <summary>Hours window to auto-flag breaking news.</summary>
     public int BreakingWindowHours { get; set; } = 24;
 
-    /// <summary>Fetch real headlines before prompting the model.</summary>
-    public bool UseExternalNews { get; set; } = true;
-
     /// <summary>Fetch real images from APIs instead of relying on the model.</summary>
     public bool UseExternalImages { get; set; } = true;
+
+    // NEW: long-form True Crime writer controls
+    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
+    public int TrueCrimeMinWordCount { get; set; } = 1200;
+
+    // (Deprecated) We no longer fetch external headlines; keep for back-compat but unused.
+    public bool UseExternalNews { get; set; } = false;
 }
 #endregion
 
@@ -249,14 +253,16 @@ Tone: clear, calm, concise. No fluff or clichés. Never mention you are an AI.
 HARD RULES:
 - Output STRICT JSON (UTF-8) only.
 - Every item MUST include an ISO-8601 UTC ""eventDateUtc"" (e.g., 2025-08-17T11:02:00Z).
-- Only cover events from the last {o.MaxAgeDays} days. If you are unsure the event is within this window, OMIT it.
+- Only cover events from the last {o.MaxAgeDays} days. If you are unsure an event is within this window, OMIT it.
 - ""isBreaking"": true only if eventDateUtc is within the last {o.BreakingWindowHours} hours OR it impacts public safety (e.g., natural disasters, major outages, terror alerts).
 - Body: one <div> with <h2>/<h3> subheads, short paragraphs, final section 'What happens next'.
-- Minimum {o.MinWordCount} words.
+- Minimum {o.MinWordCount} words (True Crime may override higher).
 - Use 5–12 relevant SEO keywords.
 - IMAGES: Provide 0–6 tentative descriptors (no copyrighted/watermarked). If unsure, return an empty list; do NOT guess.
+- Avoid repeating topics already covered recently.
 
-    Do NOT repeat topics. Recent titles to avoid:\n{string.Join("; ", recentTitles.Take(50))}";
+Recent titles to avoid:
+{string.Join("; ", recentTitles.Take(50))}";
 
     public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"Return JSON:
 {{
@@ -275,10 +281,24 @@ HARD RULES:
     }}
   ]
 }}
-Constraints: Cover only events in the last {o.MaxAgeDays} days. Return fewer than {count} if fewer qualify.";
+Constraints:
+- Identify truly trending items from the last {o.MaxAgeDays} days using your internal knowledge only.
+- If fewer than {count} valid items exist, return fewer.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"Write one fresh piece in category '{category}'. It may be newsy or analysis.
 Return the same JSON shape as above with a single item in 'items'. Titles must be unique vs recent list.";
+
+    // NEW: dedicated non-graphic TRUE CRIME writer (long-form)
+    public static string BuildTrueCrimeUser(AiNewsOptions o) => $@"Write ONE long-form TRUE CRIME article (non-graphic) in category 'Crime'.
+Requirements:
+- Focus on public interest, verified-style narrative, and context (investigation timeline, people involved, legal posture).
+- No graphic descriptions of violence or gore. Avoid sensationalism; stick to sober, responsible tone.
+- Include safety tips or resources if appropriate.
+- Minimum {o.TrueCrimeMinWordCount} words.
+- Structure body as one <div> with <h2>/<h3> sections and a final 'What happens next'.
+Return JSON with a single item in 'items' using the same shape:
+- The title should contain 'True Crime' or 'TRUE CRIME'.
+- Provide eventDateUtc within the last {o.MaxAgeDays} days if the narrative has recent developments; otherwise set to a recent analysis date within that window.";
 }
 #endregion
 
@@ -341,14 +361,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
         var user = AiNewsPrompt.BuildTrendingUser(_opts, Math.Max(1, _opts.MaxTrendingPerTick));
-
-        if (_opts.UseExternalNews)
-        {
-            var fetcher = scope.ServiceProvider.GetRequiredService<INewsFetcher>();
-            var headlines = await fetcher.FetchAsync(_opts.MaxTrendingPerTick * 3, ct);
-            var context = string.Join("\n", headlines.Select(h => $"{h.PublishedUtc:O} | {h.Title} | {h.Url}"));
-            user = "Using ONLY these headlines (date | title | url):\n" + context + "\n\n" + user;
-        }
 
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = DeserializeSafe(json);
@@ -538,14 +550,6 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
         var user = AiNewsPrompt.BuildRandomUser(_opts, category);
 
-        if (_opts.UseExternalNews)
-        {
-            var fetcher = scope.ServiceProvider.GetRequiredService<INewsFetcher>();
-            var headlines = await fetcher.FetchAsync(_opts.MaxTrendingPerTick * 3, ct);
-            var context = string.Join("\n", headlines.Select(h => $"{h.PublishedUtc:O} | {h.Title} | {h.Url}"));
-            user = "Using ONLY these headlines (date | title | url):\n" + context + "\n\n" + user;
-        }
-
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
         if (batch.Items.Count == 0) return;
@@ -610,6 +614,114 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 }
 #endregion
 
+#region Service: TRUE CRIME long-form writer
+public sealed class AiTrueCrimeWriterService : BackgroundService
+{
+    private readonly ILogger<AiTrueCrimeWriterService> _log;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly AiNewsOptions _opts;
+    private readonly IGenerativeTextClient _ai;
+
+    public AiTrueCrimeWriterService(
+        ILogger<AiTrueCrimeWriterService> log,
+        IServiceScopeFactory scopeFactory,
+        IOptions<AiNewsOptions> opts,
+        IGenerativeTextClient ai)
+    {
+        _log = log; _scopeFactory = scopeFactory; _opts = opts.Value; _ai = ai;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _log.LogInformation("AiTrueCrimeWriterService started (interval {Interval}).", _opts.TrueCrimeInterval);
+        var timer = new PeriodicTimer(_opts.TrueCrimeInterval);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                try { await TickAsync(stoppingToken); }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { _log.LogError(ex, "AI true-crime writer tick failed."); }
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            timer.Dispose();
+            _log.LogInformation("AiTrueCrimeWriterService stopping.");
+        }
+    }
+
+    private async Task TickAsync(CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var recent = await db.Set<Article>()
+            .OrderByDescending(a => a.CreatedDate)
+            .Select(a => a.Title)
+            .Take(200)
+            .ToListAsync(ct);
+
+        var system = AiNewsPrompt.BuildSystem(_opts, recent);
+        var user = AiNewsPrompt.BuildTrueCrimeUser(_opts);
+
+        var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
+        var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
+        if (batch.Items.Count == 0) { _log.LogInformation("No true-crime item returned."); return; }
+
+        var adminId = await db.Set<User>()
+            .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync(ct);
+        if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
+
+        var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
+        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
+        var now = DateTimeOffset.UtcNow;
+        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
+
+        foreach (var d in batch.Items)
+        {
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
+
+            // Allow analyses with a recent analysis date if the underlying case is older:
+            if (d.EventDateUtc is null) d.EventDateUtc = now;
+            if (now - d.EventDateUtc.Value > maxAge) continue;
+            if (!titles.Add(d.Title)) continue;
+            if (HtmlText.CountWords(d.ArticleHtml) < Math.Max(_opts.MinWordCount, _opts.TrueCrimeMinWordCount)) continue;
+
+            List<ArticleImage>? images = null;
+            if (_opts.UseExternalImages)
+                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
+            else
+                images = AiImageFilter.SelectRelevantImages(d);
+
+            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
+
+            var article = new Article
+            {
+                AuthorId = adminId.Value,
+                ArticleType = ArticleType.Article,
+                Category = Category.Crime,
+                Title = d.Title.Trim(),
+                Content = AiTrendingNewsPollingService.EnsureHtmlDiv(d.ArticleHtml, _opts.TrueCrimeMinWordCount),
+                IsBreakingNews = isBreaking,
+                CountryName = d.CountryName,
+                CountryCode = d.CountryCode,
+                Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
+                Images = (images is { Count: > 0 }) ? images : null,
+            };
+
+            db.Set<Article>().Add(article);
+        }
+
+        await db.SaveChangesAsync(ct);
+        _log.LogInformation("Inserted a TRUE CRIME long-form article.");
+    }
+}
+#endregion
+
 #region DI registration helper
 public static class AiNewsRegistration
 {
@@ -622,9 +734,9 @@ public static class AiNewsRegistration
             client.Timeout = TimeSpan.FromSeconds(60);
         });
         services.AddHttpClient<IImagePicker, WikimediaImagePicker>();
-        services.AddHttpClient<INewsFetcher, BingNewsFetcher>();
         services.AddHostedService<AiTrendingNewsPollingService>();
         services.AddHostedService<AiRandomArticleWriterService>();
+        services.AddHostedService<AiTrueCrimeWriterService>();
         return services;
     }
 }
