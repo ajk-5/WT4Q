@@ -68,6 +68,11 @@ Set the `SuperAdmin:Email` and `SuperAdmin:Password` environment variables to
 seed the initial super administrator account. The API will run on the port
 configured in the project settings.
 
+The API logs visitor locations using data from ipinfo.io. To avoid hitting
+their anonymous rate limits, supply an API token via the `IPINFO_TOKEN`
+environment variable. Results for each IP address are cached in memory for 24
+hours to minimize external requests.
+
 ### Applying Migrations
 
 When new migrations are added (for example, a migration named `AddIsGuestToVisitors`), update the database by running:
