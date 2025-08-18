@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -169,139 +170,186 @@ public sealed class GeminiRestClient : IGenerativeTextClient
         _http = http; _log = log; _opts = opts.Value;
     }
 
-    public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
+        public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
-        var payload = new
+        static object BuildSchema()
         {
-            contents = new[]
+            var item = new
             {
-                new { role = "user", parts = new object[] { new { text = userPrompt } } }
-            },
-            systemInstruction = new
-            {
-                role = "system",
-                parts = new object[] { new { text = systemInstruction } }
-            },
-            generationConfig = new
-            {
-                temperature,
-                candidateCount = 1,
-                stopSequences = Array.Empty<string>(),
-                // Strongly hint JSON-only output
-                responseMimeType = "application/json",
-                // (Optional but recommended) enforce a schema to reduce surprises:
-                // responseSchema = new {
-                //     type = "OBJECT",
-                //     properties = new {
-                //         items = new {
-                //             type = "ARRAY",
-                //             items = new {
-                //                 type = "OBJECT"
-                //             }
-                //         }
-                //     }
-                // }
-            }
-        };
-
-        using var req = new HttpRequestMessage(HttpMethod.Post, uri)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
-        };
-        req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
-
-        using var res = await _http.SendAsync(req, ct);
-        var body = await res.Content.ReadAsStringAsync(ct);
-
-        if (!res.IsSuccessStatusCode)
-        {
-            // keep your existing error extraction if you like
-            res.EnsureSuccessStatusCode();
-        }
-
-        using var doc = JsonDocument.Parse(body);
-        var root = doc.RootElement;
-
-        if (!root.TryGetProperty("candidates", out var candidates) ||
-            candidates.ValueKind != JsonValueKind.Array ||
-            candidates.GetArrayLength() == 0)
-        {
-            _log.LogWarning("Gemini response has no candidates. Raw: {Body}", Trunc(body, 600));
-            return "{}";
-        }
-
-        var cand0 = candidates[0];
-
-        // If finishReason indicates block/stop with no content, bail gracefully.
-        if (cand0.TryGetProperty("finishReason", out var finishNode))
-        {
-            var fr = finishNode.GetString();
-            if (string.Equals(fr, "SAFETY", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(fr, "OTHER", StringComparison.OrdinalIgnoreCase))
-            {
-                _log.LogWarning("Gemini candidate blocked or empty (finishReason={Finish}). Raw: {Body}", fr, Trunc(body, 600));
-                return "{}";
-            }
-        }
-
-        if (!cand0.TryGetProperty("content", out var content) ||
-            !content.TryGetProperty("parts", out var parts) ||
-            parts.ValueKind != JsonValueKind.Array ||
-            parts.GetArrayLength() == 0)
-        {
-            _log.LogWarning("Gemini candidate has no content.parts. Raw: {Body}", Trunc(body, 600));
-            return "{}";
-        }
-
-        // Walk parts to find JSON in any supported shape.
-        for (int i = 0; i < parts.GetArrayLength(); i++)
-        {
-            var part = parts[i];
-
-            // 1) Normal: text
-            if (part.TryGetProperty("text", out var textNode))
-            {
-                var text = textNode.GetString();
-                if (!string.IsNullOrWhiteSpace(text))
-                    return text!;
-            }
-
-            // 2) Tool-style: functionCall.args (already JSON)
-            if (part.TryGetProperty("functionCall", out var fc) &&
-                fc.ValueKind == JsonValueKind.Object &&
-                fc.TryGetProperty("args", out var args))
-            {
-                // Return raw JSON object/array string
-                return args.GetRawText();
-            }
-
-            // 3) Binary JSON: inlineData (base64) with JSON mime
-            if (part.TryGetProperty("inlineData", out var inlineData) &&
-                inlineData.ValueKind == JsonValueKind.Object &&
-                inlineData.TryGetProperty("mimeType", out var mime) &&
-                string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
-                inlineData.TryGetProperty("data", out var dataNode))
-            {
-                try
+                type = "OBJECT",
+                properties = new
                 {
-                    var b64 = dataNode.GetString();
-                    if (!string.IsNullOrEmpty(b64))
+                    title = new { type = "STRING" },
+                    category = new { type = "STRING" },
+                    articleHtml = new { type = "STRING" },
+                    countryName = new { type = new[] { "STRING", "NULL" } },
+                    countryCode = new { type = new[] { "STRING", "NULL" } },
+                    keywords = new { type = "ARRAY", items = new { type = "STRING" } },
+                    images = new
                     {
-                        var bytes = Convert.FromBase64String(b64);
-                        var json = Encoding.UTF8.GetString(bytes);
-                        if (!string.IsNullOrWhiteSpace(json))
-                            return json;
+                        type = "ARRAY",
+                        items = new
+                        {
+                            type = "OBJECT",
+                            properties = new
+                            {
+                                photoLink = new { type = new[] { "STRING", "NULL" } },
+                                altText = new { type = new[] { "STRING", "NULL" } },
+                                caption = new { type = new[] { "STRING", "NULL" } }
+                            }
+                        }
+                    },
+                    eventDateUtc = new { type = "STRING" },
+                    isBreaking = new { type = new[] { "BOOLEAN", "NULL" } },
+                    breakingReason = new { type = new[] { "STRING", "NULL" } }
+                },
+                required = new[] { "title", "articleHtml", "eventDateUtc" }
+            };
+
+            return new
+            {
+                type = "OBJECT",
+                properties = new
+                {
+                    items = new
+                    {
+                        type = "ARRAY",
+                        items = item
+                    }
+                },
+                required = new[] { "items" }
+            };
+        }
+
+        async Task<string> CallAsync(bool useSchema, CancellationToken token)
+        {
+            var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+            var generationConfig = new Dictionary<string, object?>
+            {
+                ["temperature"] = temperature,
+                ["candidateCount"] = 1,
+                ["stopSequences"] = Array.Empty<string>(),
+                ["maxOutputTokens"] = 2048
+            };
+
+            if (useSchema)
+            {
+                generationConfig["responseMimeType"] = "application/json";
+                generationConfig["responseSchema"] = BuildSchema();
+            }
+            else
+            {
+                generationConfig.Remove("responseMimeType");
+                generationConfig.Remove("responseSchema");
+            }
+
+            var payload = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        parts = new object[] { new { text = userPrompt } }
+                    }
+                },
+                systemInstruction = new
+                {
+                    role = "system",
+                    parts = new object[] { new { text = systemInstruction } }
+                },
+                generationConfig
+            };
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, uri)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+            };
+            req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
+
+            using var res = await _http.SendAsync(req, token);
+            var body = await res.Content.ReadAsStringAsync(token);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                res.EnsureSuccessStatusCode();
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+
+            static string? Extract(JsonElement r)
+            {
+                if (!r.TryGetProperty("candidates", out var candidates) ||
+                    candidates.ValueKind != JsonValueKind.Array ||
+                    candidates.GetArrayLength() == 0)
+                    return null;
+
+                var cand0 = candidates[0];
+
+                if (!cand0.TryGetProperty("content", out var content)) return null;
+                if (!content.TryGetProperty("parts", out var parts) ||
+                    parts.ValueKind != JsonValueKind.Array ||
+                    parts.GetArrayLength() == 0)
+                    return null;
+
+                for (int i = 0; i < parts.GetArrayLength(); i++)
+                {
+                    var part = parts[i];
+
+                    if (part.TryGetProperty("text", out var textNode))
+                    {
+                        var text = textNode.GetString();
+                        if (!string.IsNullOrWhiteSpace(text))
+                            return text!;
+                    }
+
+                    if (part.TryGetProperty("functionCall", out var fc) &&
+                        fc.ValueKind == JsonValueKind.Object &&
+                        fc.TryGetProperty("args", out var args))
+                    {
+                        return args.GetRawText();
+                    }
+
+                    if (part.TryGetProperty("inlineData", out var inlineData) &&
+                        inlineData.ValueKind == JsonValueKind.Object &&
+                        inlineData.TryGetProperty("mimeType", out var mime) &&
+                        string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
+                        inlineData.TryGetProperty("data", out var dataNode))
+                    {
+                        try
+                        {
+                            var b64 = dataNode.GetString();
+                            if (!string.IsNullOrEmpty(b64))
+                            {
+                                var bytes = Convert.FromBase64String(b64);
+                                var json = Encoding.UTF8.GetString(bytes);
+                                if (!string.IsNullOrWhiteSpace(json))
+                                    return json;
+                            }
+                        }
+                        catch {}
                     }
                 }
-                catch (FormatException) { /* ignore bad base64 */ }
+                return null;
             }
+
+            var extracted = Extract(root);
+            if (extracted is null)
+            {
+                _log.LogWarning("Gemini candidate has no usable parts (useSchema={UseSchema}). Raw: {Body}", useSchema, Trunc(body, 600));
+                return "{}";
+            }
+
+            return extracted;
         }
 
-        // Nothing usable found
-        _log.LogWarning("Gemini returned no usable JSON in parts. Raw: {Body}", Trunc(body, 600));
-        return "{}";
+        var first = await CallAsync(useSchema: true, ct);
+        if (!string.IsNullOrWhiteSpace(first) && first != "{}") return first;
+
+        var second = await CallAsync(useSchema: false, ct);
+        return string.IsNullOrWhiteSpace(second) ? "{}" : second;
 
         static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
     }
@@ -326,7 +374,7 @@ HARD RULES:
 - Avoid repeating topics already covered recently.
 
 Recent titles to avoid:
-{string.Join("; ", recentTitles.Take(50))}";
+{string.Join("; ", recentTitles.Take(20))}";
 
     public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"Return JSON:
 {{
@@ -431,7 +479,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         if (batch.Items.Count == 0)
         {
-            _log.LogWarning("AI returned no items.");
+            _log.LogInformation("AI returned no items this tick.");
             return;
         }
 
@@ -616,7 +664,11 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
-        if (batch.Items.Count == 0) return;
+        if (batch.Items.Count == 0)
+        {
+            _log.LogInformation("AI returned no items this tick.");
+            return;
+        }
 
         var adminId = await db.Set<User>()
             .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
