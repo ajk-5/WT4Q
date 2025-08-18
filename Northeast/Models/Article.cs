@@ -41,5 +41,8 @@ namespace Northeast.Models
         public string? CountryCode { get; set; }
 
         public List<string>? Keywords { get; set; }
+
+        [NotMapped]
+        public int Views { get; set; }
     }
 }

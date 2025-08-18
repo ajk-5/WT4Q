@@ -2,6 +2,7 @@ import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../category.module.css';
+import LocalArticleSection from '@/components/LocalArticleSection';
 
 async function fetchArticles(cat: string): Promise<Article[]> {
   try {
@@ -47,6 +48,7 @@ export default async function CategoryPage({
   const articles = await fetchArticles(category);
   return (
     <div className={styles.container}>
+      <LocalArticleSection />
       <h1 className={styles.title}>{category}</h1>
       <div className={styles.grid}>
         {articles.map((a) => (

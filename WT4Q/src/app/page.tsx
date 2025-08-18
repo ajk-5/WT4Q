@@ -9,6 +9,7 @@ import { chunk } from '@/lib/chunk';
 import type { Metadata } from 'next';
 import styles from './page.module.css';
 import WeatherWidget from '@/components/WeatherWidget';
+import LocalArticleSection from '@/components/LocalArticleSection';
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -152,6 +153,8 @@ export default async function Home() {
           ))}
         </div>
       ))}
+
+      <LocalArticleSection />
 
      {/* <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
       <footer className={styles.footer}>
