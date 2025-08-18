@@ -60,6 +60,7 @@ export default function RootLayout({
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-0NKNBEMWC2"
         />
+        <meta name="description" content="Reliable, exclisive and best global website and source of news, media, datas and informations. Entertainment  true crimes articles, horrors also including luxury lifestyle.  "></meta>
         <Script id="gtag-init" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
