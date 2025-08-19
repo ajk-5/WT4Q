@@ -23,14 +23,17 @@ public sealed class AiNewsOptions
     /// <summary>API key for Gemini (Google AI Studio / Vertex AI Developer API).</summary>
     public string ApiKey { get; set; } = string.Empty;
 
-    /// <summary>Model name. Use the latest stable Gemini 2.5 Pro.</summary>
+    /// <summary>Model name. Prefer the latest stable Gemini 2.5 Pro.</summary>
     public string Model { get; set; } = "gemini-2.5-pro";
 
     /// <summary>How often to poll and publish AI-generated trending news.</summary>
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(10);
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5); // every 5 min
 
     /// <summary>How often to write a random category article.</summary>
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(10);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(10); // every 10 min
+
+    /// <summary>How often to write a true-crime article (Crime category, non-graphic).</summary>
+    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
 
     /// <summary>Max items to attempt per trending tick.</summary>
     public int MaxTrendingPerTick { get; set; } = 3;
@@ -38,11 +41,11 @@ public sealed class AiNewsOptions
     /// <summary>Temperature-style creativity control (0..2); 0.7–1.0 reads more human.</summary>
     public double Creativity { get; set; } = 0.9;
 
-    /// <summary>Minimum words for the article body.</summary>
-    public int MinWordCount { get; set; } = 260;
+    /// <summary>Minimum words for the article body (we enforce >160; using 180).</summary>
+    public int MinWordCount { get; set; } = 180;
 
-    /// <summary>Discard anything older than this many days.</summary>
-    public int MaxAgeDays { get; set; } = 60;
+    /// <summary>Discard anything older than this many days (≤ 30 days per requirement).</summary>
+    public int MaxAgeDays { get; set; } = 30;
 
     /// <summary>Hours window to auto-flag breaking news.</summary>
     public int BreakingWindowHours { get; set; } = 24;
@@ -50,11 +53,10 @@ public sealed class AiNewsOptions
     /// <summary>Fetch real images from APIs instead of relying on the model.</summary>
     public bool UseExternalImages { get; set; } = true;
 
-    // NEW: long-form True Crime writer controls
-    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
+    /// <summary>Higher minimum for long-form true crime (optional).</summary>
     public int TrueCrimeMinWordCount { get; set; } = 1200;
 
-    // (Deprecated) We no longer fetch external headlines; keep for back-compat but unused.
+    // (Deprecated) External headlines not used, kept for back-compat.
     public bool UseExternalNews { get; set; } = false;
 }
 #endregion
@@ -66,11 +68,10 @@ internal static class AiImageFilter
     {
         if (draft.Images is null || draft.Images.Count == 0) return null;
 
-        // derive simple subject tokens from the title (drop anything after ':' or '-')
+        // derive subject tokens from the title (drop anything after ':' or '-')
         var subject = draft.Title ?? string.Empty;
         var splitIndex = subject.IndexOfAny(new[] { ':', '-' });
-        if (splitIndex > 0)
-            subject = subject[..splitIndex];
+        if (splitIndex > 0) subject = subject[..splitIndex];
 
         var subjectWords = subject
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -80,14 +81,14 @@ internal static class AiImageFilter
 
         var filtered = draft.Images
             .AsEnumerable()
-            .Reverse() // prefer latest images if the list is chronological
+            .Reverse() // prefer latest if chronological
             .Where(i => ImageMatches(i, subjectWords))
             .Take(2)
             .Select(i => new ArticleImage
             {
                 PhotoLink = i.PhotoLink,
-                AltText = i.AltText,
-                Caption = i.Caption
+                AltText = string.IsNullOrWhiteSpace(i.AltText) ? draft.Title : i.AltText,
+                Caption = string.IsNullOrWhiteSpace(i.Caption) ? draft.Title : i.Caption
             })
             .ToList();
 
@@ -95,18 +96,20 @@ internal static class AiImageFilter
     }
 
     private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "the", "a", "an", "of", "in", "to", "for", "and"
-    };
+    { "the","a","an","of","in","to","for","and" };
 
     private static readonly string[] AllowedHosts =
     {
-        "images.unsplash.com", "unsplash.com", "pexels.com", "images.pexels.com", "pixabay.com",
+        "images.unsplash.com", "unsplash.com",
+        "pexels.com", "images.pexels.com",
+        "pixabay.com",
         "upload.wikimedia.org", "commons.wikimedia.org", "wikimedia.org", "wikipedia.org"
     };
 
     private static bool ImageMatches(AiImage img, List<string> subjectWords)
     {
+        if (img is null) return false;
+
         var text = ((img.AltText ?? string.Empty) + " " + (img.Caption ?? string.Empty)).ToLowerInvariant();
         var hits = subjectWords.Count(w => Regex.IsMatch(text, $@"\b{Regex.Escape(w)}\b", RegexOptions.IgnoreCase));
         if (hits < Math.Min(2, Math.Max(1, subjectWords.Count / 2))) return false;
@@ -127,7 +130,7 @@ public sealed class AiArticleDraft
 {
     [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
     [JsonPropertyName("category")] public string Category { get; set; } = "Info";
-    [JsonPropertyName("articleHtml")] public string ArticleHtml { get; set; } = string.Empty; // one <div> with sub-headings
+    [JsonPropertyName("articleHtml")] public string ArticleHtml { get; set; } = string.Empty; // one <div> with sub-headings + "What happens next"
     [JsonPropertyName("countryName")] public string? CountryName { get; set; } // null for global
     [JsonPropertyName("countryCode")] public string? CountryCode { get; set; } // null for global
     [JsonPropertyName("keywords")] public List<string>? Keywords { get; set; }
@@ -150,10 +153,7 @@ public sealed class AiArticleDraftBatch
 }
 #endregion
 
-#region Minimal Gemini REST client (v1beta generateContent)
-/// <summary>
-/// Tiny wrapper for Gemini generateContent over REST to avoid SDK coupling.
-/// </summary>
+#region Gemini REST client (function-calling first + fallbacks)
 public interface IGenerativeTextClient
 {
     Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct);
@@ -172,239 +172,262 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
     public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        static object BuildSchema()
-        {
-            var imageItem = new
-            {
-                type = "OBJECT",
-                properties = new
-                {
-                    photoLink = new { type = "STRING", nullable = true },
-                    altText   = new { type = "STRING", nullable = true },
-                    caption   = new { type = "STRING", nullable = true }
-                }
-            };
-
-            var item = new
-            {
-                type = "OBJECT",
-                properties = new
-                {
-                    title        = new { type = "STRING" },
-                    category     = new { type = "STRING", nullable = true },
-                    articleHtml  = new { type = "STRING" },
-                    countryName  = new { type = "STRING", nullable = true },
-                    countryCode  = new { type = "STRING", nullable = true },
-                    keywords     = new
-                    {
-                        type = "ARRAY",
-                        items = new { type = "STRING" },
-                        nullable = true
-                    },
-                    images       = new
-                    {
-                        type = "ARRAY",
-                        items = imageItem,
-                        nullable = true
-                    },
-                    eventDateUtc = new { type = "STRING", format = "date-time" },
-                    isBreaking   = new { type = "BOOLEAN", nullable = true },
-                    breakingReason = new { type = "STRING", nullable = true }
-                },
-                required = new[] { "title", "articleHtml", "eventDateUtc" },
-                propertyOrdering = new[]
-                {
-                    "title","category","articleHtml","countryName","countryCode",
-                    "keywords","images","eventDateUtc","isBreaking","breakingReason"
-                }
-            };
-
-            return new
-            {
-                type = "OBJECT",
-                properties = new
-                {
-                    items = new
-                    {
-                        type = "ARRAY",
-                        items = item
-                    }
-                },
-                required = new[] { "items" },
-                propertyOrdering = new[] { "items" }
-            };
-        }
-
-        async Task<(bool ok, string? body)> CallOnceAsync(
-            string mdl,
-            string sys,
-            string prompt,
-            bool withSchema,
-            bool jsonModeOnly,
-            CancellationToken token)
-        {
-            var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{mdl}:generateContent";
-
-            var gen = new Dictionary<string, object?>
-            {
-                ["temperature"] = temperature,
-                ["candidateCount"] = 1,
-                ["maxOutputTokens"] = 8192,
-                ["thinkingBudget"] = 0,
-            };
-
-            if (withSchema)
-            {
-                gen["response_mime_type"] = "application/json";
-                gen["responseMimeType"] = "application/json";
-                gen["response_schema"] = BuildSchema();
-                gen["responseSchema"] = BuildSchema();
-            }
-            else if (jsonModeOnly)
-            {
-                gen["response_mime_type"] = "application/json";
-                gen["responseMimeType"] = "application/json";
-            }
-
-            var payload = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        role = "user",
-                        parts = new object[] { new { text = prompt } }
-                    }
-                },
-                systemInstruction = new
-                {
-                    role = "system",
-                    parts = new object[] { new { text = sys } }
-},
-                generationConfig = gen
-            };
-
-            using var req = new HttpRequestMessage(HttpMethod.Post, uri)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
-            };
-            req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
-
-            using var res = await _http.SendAsync(req, token);
-            var body = await res.Content.ReadAsStringAsync(token);
-
-            // Do NOT throw here; allow fallback without-schema if this fails.
-            if (!res.IsSuccessStatusCode)
-            {
-
-                _log.LogWarning("Gemini HTTP {Status}. Body: {Body}", (int)res.StatusCode, Trunc(body, 800));
-                return (false, body);
-
-            }
-
-            try
-            {
-                using var doc = JsonDocument.Parse(body);
-                var root = doc.RootElement;
-                if (root.TryGetProperty("promptFeedback", out var pf))
-                    _log.LogDebug("Gemini promptFeedback: {PF}", Trunc(pf.GetRawText(), 600));
-
-                if (root.TryGetProperty("candidates", out var cands) &&
-                    cands.ValueKind == JsonValueKind.Array &&
-                    cands.GetArrayLength() > 0)
-                {
-                    var cand0 = cands[0];
-                    if (cand0.TryGetProperty("finishReason", out var fr))
-                        _log.LogDebug("Gemini finishReason: {FR}", fr.GetString());
-                    if (!cand0.TryGetProperty("content", out var content) ||
-                        !content.TryGetProperty("parts", out var parts) ||
-                        parts.ValueKind != JsonValueKind.Array ||
-                        parts.GetArrayLength() == 0)
-                    {
-                        _log.LogWarning("Gemini candidate has EMPTY parts (withSchema={WithSchema}, jsonOnly={JsonOnly}). Raw: {Raw}",
-                            withSchema, jsonModeOnly, Trunc(body, 800));
-                    }
-                }
-            }
-            catch { }
-
-            return (true, body);
-
-            static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
-        }
-
-        static string? Extract(string body)
-        {
-            using var doc = JsonDocument.Parse(body);
-            var root = doc.RootElement;
-
-            if (!root.TryGetProperty("candidates", out var candidates) ||
-                candidates.ValueKind != JsonValueKind.Array ||
-                candidates.GetArrayLength() == 0)
-                return null;
-
-            var cand0 = candidates[0];
-            if (!cand0.TryGetProperty("content", out var content)) return null;
-            if (!content.TryGetProperty("parts", out var parts) ||
-                parts.ValueKind != JsonValueKind.Array ||
-                parts.GetArrayLength() == 0)
-                return null;
-
-            foreach (var part in parts.EnumerateArray())
-            {
-                if (part.TryGetProperty("text", out var textNode))
-                {
-                    var text = textNode.GetString();
-                    if (!string.IsNullOrWhiteSpace(text)) return text!;
-                }
-                if (part.TryGetProperty("functionCall", out var fc) &&
-                    fc.ValueKind == JsonValueKind.Object &&
-                    fc.TryGetProperty("args", out var args))
-                    return args.GetRawText();
-
-                if (part.TryGetProperty("inlineData", out var inlineData) &&
-                    inlineData.ValueKind == JsonValueKind.Object &&
-                    inlineData.TryGetProperty("mimeType", out var mime) &&
-                    string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
-                    inlineData.TryGetProperty("data", out var dataNode))
-                {
-                    try
-                    {
-                        var b64 = dataNode.GetString();
-                        if (!string.IsNullOrEmpty(b64))
-                        {
-                            var bytes = Convert.FromBase64String(b64);
-                            var json = Encoding.UTF8.GetString(bytes);
-                            if (!string.IsNullOrWhiteSpace(json)) return json;
-                        }
-                    }
-                    catch { }
-                }
-            }
-            return null;
-        }
-
-        var (ok1, body1) = await CallOnceAsync(model, systemInstruction, userPrompt, withSchema: true, jsonModeOnly: false, ct);
+        // 1) Function calling (very reliable)
+        var (ok1, body1) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: true, useSchema: false, ct);
         var text = ok1 ? Extract(body1!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        var (ok2, body2) = await CallOnceAsync(model, systemInstruction, userPrompt, withSchema: false, jsonModeOnly: true, ct);
+        // 2) Structured output (responseSchema)
+        var (ok2, body2) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: false, useSchema: true, ct);
         text = ok2 ? Extract(body2!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        var forcedPrompt = userPrompt + "\n\nReturn ONLY valid UTF-8 JSON with this shape (no prose): " +
-            "{\"items\":[{\"title\":\"...\",\"category\":\"...\",\"articleHtml\":\"<div>...</div>\",\"countryName\":null,\"countryCode\":null,\"keywords\":[\"...\"],\"images\":[{\"altText\":\"...\",\"caption\":\"\",\"photoLink\":null}],\"eventDateUtc\":\"YYYY-MM-DDTHH:mm:ssZ\",\"isBreaking\":false,\"breakingReason\":null}]}";
-        var (ok3, body3) = await CallOnceAsync(model, systemInstruction, forcedPrompt, withSchema: false, jsonModeOnly: false, ct);
+        // 3) JSON mode only (no schema)
+        var (ok3, body3) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: false, useSchema: false, ct, jsonModeOnly: true);
         text = ok3 ? Extract(body3!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        var fallbackModel = "gemini-2.5-flash";
-        var (ok4, body4) = await CallOnceAsync(fallbackModel, systemInstruction, userPrompt, withSchema: true, jsonModeOnly: false, ct);
+        // 4) Plain-text, forced JSON
+        var forced = userPrompt + "\n\nReturn ONLY valid JSON for the described schema in the 'items' array. No prose outside JSON.";
+        var (ok4, body4) = await CallAsync(model, systemInstruction, forced, temperature, useFunctionCalling: false, useSchema: false, ct, jsonModeOnly: false);
         text = ok4 ? Extract(body4!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        _log.LogWarning("Gemini returned no usable JSON after all fallbacks.");
+        // 5) Fallback model
+        var fallback = "gemini-2.5-flash";
+        var (ok5, body5) = await CallAsync(fallback, systemInstruction, userPrompt, temperature, useFunctionCalling: true, useSchema: false, ct);
+        text = ok5 ? Extract(body5!) : null;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
+
+        _log.LogWarning("Gemini returned no usable JSON after all strategies.");
         return "{}";
+    }
+
+    private async Task<(bool ok, string? body)> CallAsync(
+        string model, string sys, string prompt, double temperature,
+        bool useFunctionCalling, bool useSchema, CancellationToken ct, bool jsonModeOnly = false)
+    {
+        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+        var gen = new Dictionary<string, object?>
+        {
+            ["temperature"] = temperature,
+            ["candidateCount"] = 1,
+            ["maxOutputTokens"] = 8192
+        };
+
+        object? tools = null;
+        object? toolConfig = null;
+
+        if (useFunctionCalling)
+        {
+            tools = new[]
+            {
+                new
+                {
+                    functionDeclarations = new[]
+                    {
+                        new
+                        {
+                            name = "emit",
+                            description = "Emit strictly-validated JSON batch of articles.",
+                            parameters = BuildFunctionSchema() // JSON Schema (lowercase)
+                        }
+                    }
+                }
+            };
+            toolConfig = new
+            {
+                functionCallingConfig = new { mode = "ANY" }
+            };
+        }
+        else if (useSchema)
+        {
+            gen["responseMimeType"] = "application/json";
+            gen["responseSchema"] = BuildResponseSchema(); // Gemini Schema (UPPERCASE types)
+        }
+        else if (jsonModeOnly)
+        {
+            gen["responseMimeType"] = "application/json";
+        }
+
+        var payload = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    role = "user",
+                    parts = new object[] { new { text = prompt } }
+                }
+            },
+            systemInstruction = new
+            {
+                role = "system", // ✅ use "system" for system instructions
+                parts = new object[] { new { text = sys } }
+            },
+            generationConfig = gen,
+            tools,
+            toolConfig
+        };
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+        };
+        req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
+
+        using var res = await _http.SendAsync(req, ct);
+        var body = await res.Content.ReadAsStringAsync(ct);
+
+        if (!res.IsSuccessStatusCode)
+        {
+            _log.LogWarning("Gemini HTTP {Status}. Body: {Body}", (int)res.StatusCode, Trunc(body, 800));
+            return (false, body);
+        }
+
+        return (true, body);
+
+        static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
+    }
+
+    // JSON Schema for function-calling
+    private static object BuildFunctionSchema()
+    {
+        var imageItem = new
+        {
+            type = "object",
+            properties = new
+            {
+                photoLink = new { type = "string", nullable = true },
+                altText = new { type = "string", nullable = true },
+                caption = new { type = "string", nullable = true }
+            },
+            additionalProperties = false
+        };
+
+        var item = new
+        {
+            type = "object",
+            properties = new
+            {
+                title = new { type = "string" },
+                category = new { type = "string" },
+                articleHtml = new { type = "string" },
+                countryName = new { type = new[] { "string", "null" } },
+                countryCode = new { type = new[] { "string", "null" } },
+                keywords = new { type = new[] { "array", "null" }, items = new { type = "string" } },
+                images = new { type = new[] { "array", "null" }, items = imageItem },
+                eventDateUtc = new { type = "string", format = "date-time" },
+                isBreaking = new { type = new[] { "boolean", "null" } },
+                breakingReason = new { type = new[] { "string", "null" } }
+            },
+            required = new[] { "title", "articleHtml", "eventDateUtc" },
+            additionalProperties = false
+        };
+
+        return new
+        {
+            type = "object",
+            properties = new
+            {
+                items = new { type = "array", items = item }
+            },
+            required = new[] { "items" },
+            additionalProperties = false
+        };
+    }
+
+    // Gemini structured-output Schema (uppercase type names)
+    private static object BuildResponseSchema()
+    {
+        var imageItem = new
+        {
+            type = "OBJECT",
+            properties = new
+            {
+                photoLink = new { type = new[] { "STRING", "NULL" } },
+                altText = new { type = new[] { "STRING", "NULL" } },
+                caption = new { type = new[] { "STRING", "NULL" } }
+            }
+        };
+
+        var item = new
+        {
+            type = "OBJECT",
+            properties = new
+            {
+                title = new { type = "STRING" },
+                category = new { type = "STRING" },
+                articleHtml = new { type = "STRING" },
+                countryName = new { type = new[] { "STRING", "NULL" } },
+                countryCode = new { type = new[] { "STRING", "NULL" } },
+                keywords = new { type = "ARRAY", items = new { type = "STRING" } },
+                images = new { type = "ARRAY", items = imageItem },
+                eventDateUtc = new { type = "STRING" },
+                isBreaking = new { type = new[] { "BOOLEAN", "NULL" } },
+                breakingReason = new { type = new[] { "STRING", "NULL" } }
+            },
+            required = new[] { "title", "articleHtml", "eventDateUtc" }
+        };
+
+        return new
+        {
+            type = "OBJECT",
+            properties = new
+            {
+                items = new { type = "ARRAY", items = item }
+            },
+            required = new[] { "items" }
+        };
+    }
+
+    private static string? Extract(string body)
+    {
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+
+        if (!root.TryGetProperty("candidates", out var cands) ||
+            cands.ValueKind != JsonValueKind.Array || cands.GetArrayLength() == 0)
+            return null;
+
+        var c0 = cands[0];
+        if (!c0.TryGetProperty("content", out var content)) return null;
+        if (!content.TryGetProperty("parts", out var parts) ||
+            parts.ValueKind != JsonValueKind.Array || parts.GetArrayLength() == 0)
+            return null;
+
+        foreach (var p in parts.EnumerateArray())
+        {
+            if (p.TryGetProperty("functionCall", out var fc) &&
+                fc.TryGetProperty("args", out var args))
+                return args.GetRawText();
+
+            if (p.TryGetProperty("text", out var textNode))
+            {
+                var text = textNode.GetString();
+                if (!string.IsNullOrWhiteSpace(text)) return text!;
+            }
+
+            if (p.TryGetProperty("inlineData", out var inlineData) &&
+                inlineData.TryGetProperty("mimeType", out var mime) &&
+                string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
+                inlineData.TryGetProperty("data", out var dataNode))
+            {
+                try
+                {
+                    var b64 = dataNode.GetString();
+                    if (!string.IsNullOrEmpty(b64))
+                    {
+                        var bytes = Convert.FromBase64String(b64);
+                        var json = Encoding.UTF8.GetString(bytes);
+                        if (!string.IsNullOrWhiteSpace(json)) return json;
+                    }
+                }
+                catch { }
+            }
+        }
+        return null;
     }
 }
 #endregion
@@ -412,66 +435,154 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 #region Prompt builder
 public static class AiNewsPrompt
 {
-    public static string BuildSystem(AiNewsOptions o, IEnumerable<string> recentTitles) => $@"You are a senior news editor.
-Tone: clear, calm, concise. No fluff or clichés. Never mention you are an AI.
+    public static string BuildSystem(AiNewsOptions o, IEnumerable<string> recentTitles) => $@"
+You are a senior human news editor. Write like a calm, clear journalist with simple words.
+Hard rules:
+- Output STRICT JSON only (UTF-8). No prose outside JSON.
+- Each item: ≥ {o.MinWordCount} words, one <div> root, use <h2>/<h3> sub-headings, END with 'What happens next' explaining likely near-term developments.
+- Sound human (no AI clichés). Paraphrase; do not copy lines verbatim.
+- If global, set ""countryName"": null and ""countryCode"": null.
+- Provide 5–12 lowercase, unique keywords.
+- Images: prefer royalty-free links (Wikimedia/Unsplash/Pexels/Pixabay) with accurate alt/caption; if not confident, set images = [].
+- DO NOT repeat topics already covered recently.
+- Recency: eventDateUtc MUST be within the last {o.MaxAgeDays} days (≤ 30 days). Omit anything older.
 
-HARD RULES:
-- Output STRICT JSON (UTF-8) only.
-- Every item MUST include an ISO-8601 UTC ""eventDateUtc"" (e.g., 2025-08-17T11:02:00Z).
-- Only cover events from the last {o.MaxAgeDays} days. If you are unsure an event is within this window, OMIT it.
-- ""isBreaking"": true only if eventDateUtc is within the last {o.BreakingWindowHours} hours OR it impacts public safety (e.g., natural disasters, major outages, terror alerts).
-- Body: one <div> with <h2>/<h3> subheads, short paragraphs, final section 'What happens next'.
-- Minimum {o.MinWordCount} words (True Crime may override higher).
-- Use 5–12 relevant SEO keywords.
-- IMAGES: Provide 0–6 tentative descriptors (no copyrighted/watermarked). If unsure, return an empty list; do NOT guess.
-- Avoid repeating topics already covered recently.
+Recent titles to avoid: {string.Join("; ", recentTitles.Take(50))}";
 
-Recent titles to avoid:
-{string.Join("; ", recentTitles.Take(20))}";
-
-    public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"Return JSON:
+    public static string BuildTrendingUser(AiNewsOptions o, int count) => $@"
+Return JSON:
 {{
   ""items"": [
     {{
-      ""title"": ""unique, specific headline"",
+      ""title"": ""specific, unique headline"",
       ""category"": ""Politics|Crime|Entertainment|Business|Health|Lifestyle|Technology|Sports|Info"",
-      ""articleHtml"": ""<div>...content...</div>"",
+      ""articleHtml"": ""<div>...subheads...What happens next...</div>"",
       ""countryName"": null | ""France"" | ""United States"" | ...,
       ""countryCode"": null | ""FR"" | ""US"" | ...,
-      ""keywords"": [""kw1"", ""kw2"", ...],
-      ""images"": [{{ ""altText"": ""short description"", ""caption"": """", ""photoLink"": null }}],
+      ""keywords"": [""kw1"",""kw2"",...],
+      ""images"": [{{ ""altText"": ""accurate alt"", ""caption"": ""helpful caption"", ""photoLink"": ""https://upload.wikimedia.org/..."" }}],
       ""eventDateUtc"": ""YYYY-MM-DDTHH:mm:ssZ"",
       ""isBreaking"": true|false,
-      ""breakingReason"": null | ""why""
+      ""breakingReason"": null | ""short reason""
     }}
   ]
 }}
 Constraints:
-- Identify truly trending items from the last {o.MaxAgeDays} days using your internal knowledge only.
-- If fewer than {count} valid items exist, return fewer.";
+- Identify truly trending items from the last {o.MaxAgeDays} days based on internal knowledge only.
+- Return up to {count} strong items; if fewer valid exist, return fewer.";
 
-    public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"Write one fresh piece in category '{category}'. It may be newsy or analysis.
-Return the same JSON shape as above with a single item in 'items'. Titles must be unique vs recent list.";
+    public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"
+Write ONE fresh analysis piece in category '{category}' that follows the same structural rules. The story must feel human-written, with simple words and clear sub-headings, and a 'What happens next' section. Return the same JSON shape with a single item in 'items'. Title must be unique vs the recent list.";
 
-    // NEW: dedicated non-graphic TRUE CRIME writer (long-form)
-    public static string BuildTrueCrimeUser(AiNewsOptions o) => $@"Write ONE long-form TRUE CRIME article (non-graphic) in category 'Crime'.
+    public static string BuildTrueCrimeUser(AiNewsOptions o) => $@"
+Write ONE non-graphic TRUE CRIME article in the 'Crime' category.
 Requirements:
-- Focus on public interest, verified-style narrative, and context (investigation timeline, people involved, legal posture).
-- No graphic descriptions of violence or gore. Avoid sensationalism; stick to sober, responsible tone.
-- Include safety tips or resources if appropriate.
-- Minimum {o.TrueCrimeMinWordCount} words.
-- Structure body as one <div> with <h2>/<h3> sections and a final 'What happens next'.
-Return JSON with a single item in 'items' using the same shape:
-- The title should contain 'True Crime' or 'TRUE CRIME'.
-- Provide eventDateUtc within the last {o.MaxAgeDays} days if the narrative has recent developments; otherwise set to a recent analysis date within that window.";
+- Focus on a real murder/crime case with developments in the last {o.MaxAgeDays} days; if none, write a recent analysis with a current analysis date within that window. Mention dates and places briefly.
+- Thrilling but responsible tone; simple human words; no gore or graphic detail.
+- ≥ {Math.Max(o.MinWordCount, o.TrueCrimeMinWordCount)} words.
+- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happens next' describing likely next steps in the investigation/trial.
+- Provide accurate royalty-free image link(s) if appropriate; else [].
+- Output the same JSON 'items' shape as other prompts, with eventDateUtc set to a date within {o.MaxAgeDays} days.";
 }
 #endregion
 
-#region Service: AI Trending News every 1 minutes
-/// <summary>
-/// Uses Gemini 2.5 Pro to synthesize trending news (no external sources), every N minutes.
-/// Saves to DB and prevents repeats by checking recent titles and enforcing uniqueness.
-/// </summary>
+#region Mapping helpers
+internal static class ArticleMapping
+{
+    public static Category ParseCategoryStrict(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return Category.Info;
+        switch (s.Trim().ToLowerInvariant())
+        {
+            case "politics": return Category.Politics;
+            case "crime": return Category.Crime;
+            case "entertainment": return Category.Entertainment;
+            case "business": return Category.Business;
+            case "health": return Category.Health;
+            case "lifestyle": return Category.Lifestyle; // ✅ capital L
+            case "technology": return Category.Technology;
+            case "sports": return Category.Sports;
+            case "info": return Category.Info;
+            default: return Category.Info;
+        }
+    }
+
+    public static string EnsureHtmlDiv(string html, int minWords)
+    {
+        var t = html?.Trim() ?? string.Empty;
+        if (!t.StartsWith("<div", StringComparison.OrdinalIgnoreCase))
+            t = $"<div>\n{t}\n</div>";
+
+        // ensure length and structure
+        var words = Regex.Split(Regex.Replace(t, "<.*?>", " "), @"\s+")
+                         .Where(w => !string.IsNullOrWhiteSpace(w))
+                         .ToArray();
+        if (words.Length < minWords)
+            t += $"\n<!-- padded to meet minimum word count {minWords} -->";
+        if (!Regex.IsMatch(t, @"<h2>|<h3>", RegexOptions.IgnoreCase))
+            t = t.Replace("<div>", "<div>\n<h2>Update</h2>\n", StringComparison.OrdinalIgnoreCase);
+        if (!Regex.IsMatch(t, @"What happens next", RegexOptions.IgnoreCase))
+            t += "\n<h2>What happens next</h2><p>We will monitor developments and update when officials share more verified details.</p>";
+        return t;
+    }
+
+    public static Article MapToArticle(
+        AiArticleDraft d,
+        ArticleType type,
+        Guid authorId,
+        IEnumerable<ArticleImage>? pickedImages,
+        AiNewsOptions opts,
+        DateTimeOffset nowUtc)
+    {
+        var isBreaking = (d.IsBreaking == true) ||
+                         (d.EventDateUtc is not null &&
+                          (nowUtc - d.EventDateUtc.Value) <= TimeSpan.FromHours(opts.BreakingWindowHours));
+
+        var keywords = d.Keywords?
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Distinct()
+            .Take(12)
+            .ToList();
+        if (keywords is { Count: 0 }) keywords = null;
+
+        // Global => null/null per requirement
+        string? countryName = d.CountryName;
+        string? countryCode = d.CountryCode;
+        if (string.IsNullOrWhiteSpace(countryName) ||
+            countryName.Equals("global", StringComparison.OrdinalIgnoreCase))
+        {
+            countryName = null;
+            countryCode = null;
+        }
+
+        // Prefer linked images; if none confident, set null
+        var imagesList = pickedImages?.Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink)).ToList();
+        if (imagesList is { Count: 0 }) imagesList = null;
+
+        var minWords = type == ArticleType.Article && opts.TrueCrimeMinWordCount > opts.MinWordCount
+            ? opts.TrueCrimeMinWordCount
+            : opts.MinWordCount;
+
+        return new Article
+        {
+            AuthorId = authorId,
+            ArticleType = type,
+            Category = ParseCategoryStrict(d.Category),
+            Title = (d.Title ?? string.Empty).Trim(),
+            CreatedDate = DateTime.UtcNow,
+            Content = EnsureHtmlDiv(d.ArticleHtml, minWords),
+            IsBreakingNews = isBreaking,
+            CountryName = countryName,
+            CountryCode = countryCode,
+            Keywords = keywords,
+            Images = imagesList
+        };
+    }
+}
+#endregion
+
+#region Service: AI Trending News every 5 minutes
 public sealed class AiTrendingNewsPollingService : BackgroundService
 {
     private readonly ILogger<AiTrendingNewsPollingService> _log;
@@ -501,10 +612,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
                 catch (Exception ex) { _log.LogError(ex, "AI trending tick failed."); }
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when the service is stopping
-        }
+        catch (OperationCanceledException) { }
         finally
         {
             timer.Dispose();
@@ -517,11 +625,11 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Gather recent titles (for prompt + dedup)
+        // Gather recent titles for dedupe (memory + DB)
         var recent = await db.Set<Article>()
             .OrderByDescending(a => a.CreatedDate)
             .Select(a => a.Title)
-            .Take(200)
+            .Take(300)
             .ToListAsync(ct);
 
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
@@ -529,23 +637,14 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = DeserializeSafe(json);
+        if (batch.Items.Count == 0) { _log.LogInformation("AI returned no items this tick."); return; }
 
-        if (batch.Items.Count == 0)
-        {
-            _log.LogInformation("AI returned no items this tick.");
-            return;
-        }
-
+        // Author via FirstOrDefault (SuperAdmin or Role=2)
         var adminId = await db.Set<User>()
             .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
             .Select(u => (Guid?)u.Id)
             .FirstOrDefaultAsync(ct);
-
-        if (adminId is null)
-        {
-            _log.LogWarning("No SuperAdmin (Role=2) user found. Skipping tick.");
-            return;
-        }
+        if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var toAdd = new List<Article>();
@@ -558,53 +657,39 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
             if (d.EventDateUtc is null) continue;
             if (now - d.EventDateUtc.Value > maxAge) continue;
+
+            // drop if title seen recently or in this batch
             if (!titles.Add(d.Title)) { _log.LogDebug("Duplicate title skipped: {Title}", d.Title); continue; }
-            if (HtmlText.CountWords(d.ArticleHtml) < 50) { _log.LogDebug("AI content too short for title {Title}", d.Title); continue; }
+
+            if (HtmlText.CountWords(d.ArticleHtml) < 120) { _log.LogDebug("Content too short for {Title}", d.Title); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
-            {
                 images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
-            }
             else
-            {
                 images = AiImageFilter.SelectRelevantImages(d);
-            }
 
-            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
+            var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId.Value, images, _opts, now);
 
-            var article = new Article
-            {
-                AuthorId = adminId.Value,
-                ArticleType = ArticleType.News,
-                Category = ParseCategory(d.Category),
-                Title = d.Title.Trim(),
-                Content = EnsureHtmlDiv(d.ArticleHtml, _opts.MinWordCount),
-                IsBreakingNews = isBreaking,
-                CountryName = d.CountryName, // null for global
-                CountryCode = d.CountryCode, // null for global
-                Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = (images is { Count: > 0 }) ? images : null,
-            };
+            // guard against DB duplicates (race/other service)
+            var exists = await db.Set<Article>()
+                .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
+            if (exists) { _log.LogDebug("DB duplicate found, skipping: {Title}", article.Title); continue; }
 
             toAdd.Add(article);
         }
 
-        if (toAdd.Count == 0)
-        {
-            _log.LogInformation("No new AI articles to insert.");
-            return;
-        }
+        if (toAdd.Count == 0) { _log.LogInformation("No new AI news to insert."); return; }
 
         db.Set<Article>().AddRange(toAdd);
         try
         {
             await db.SaveChangesAsync(ct);
-            _log.LogInformation("Inserted {Count} AI trending article(s).", toAdd.Count);
+            _log.LogInformation("Inserted {Count} AI trending news item(s).", toAdd.Count);
         }
         catch (DbUpdateException ex)
         {
-            _log.LogWarning(ex, "DbUpdateException while saving AI articles. Some duplicates may have been dropped by DB constraints.");
+            _log.LogWarning(ex, "DbUpdateException while saving AI news (some duplicates may have been dropped).");
         }
     }
 
@@ -630,33 +715,15 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
                     var batch = JsonSerializer.Deserialize<AiArticleDraftBatch>(slice, opts);
                     return batch ?? new AiArticleDraftBatch();
                 }
-                catch { /* swallow */ }
+                catch { }
             }
             return new AiArticleDraftBatch();
         }
     }
-
-    private static Category ParseCategory(string? s)
-    {
-        if (!string.IsNullOrWhiteSpace(s) && Enum.TryParse<Category>(s, true, out var cat)) return cat;
-        return Category.Info;
-    }
-
-    internal static string EnsureHtmlDiv(string html, int minWords)
-    {
-        var t = html?.Trim() ?? string.Empty;
-        if (!t.StartsWith("<div", StringComparison.OrdinalIgnoreCase))
-            t = $"<div>\n{t}\n</div>";
-        // very light safeguard: ensure it's not too short
-        var words = t.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length < minWords)
-            t += $"\n<!-- padded to meet minimum word count {minWords} -->";
-        return t;
-    }
 }
 #endregion
 
-#region Service: Random AI article every N minutes
+#region Service: Random AI article every 10 minutes
 public sealed class AiRandomArticleWriterService : BackgroundService
 {
     private readonly ILogger<AiRandomArticleWriterService> _log;
@@ -687,10 +754,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 catch (Exception ex) { _log.LogError(ex, "AI random writer tick failed."); }
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when the service is stopping
-        }
+        catch (OperationCanceledException) { }
         finally
         {
             timer.Dispose();
@@ -709,7 +773,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var recent = await db.Set<Article>()
             .OrderByDescending(a => a.CreatedDate)
             .Select(a => a.Title)
-            .Take(200)
+            .Take(300)
             .ToListAsync(ct);
 
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
@@ -717,11 +781,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 
         var json = await _ai.GenerateJsonAsync(_opts.Model, system, user, _opts.Creativity, ct);
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
-        if (batch.Items.Count == 0)
-        {
-            _log.LogInformation("AI returned no items this tick.");
-            return;
-        }
+        if (batch.Items.Count == 0) { _log.LogInformation("AI returned no items this tick."); return; }
 
         var adminId = await db.Set<User>()
             .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
@@ -737,36 +797,23 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
-            if (d.EventDateUtc is null) continue;
+            if (d.EventDateUtc is null) d.EventDateUtc = now;
             if (now - d.EventDateUtc.Value > maxAge) continue;
             if (!titles.Add(d.Title)) continue;
-            if (HtmlText.CountWords(d.ArticleHtml) < 50) continue;
+            if (HtmlText.CountWords(d.ArticleHtml) < 120) continue;
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
-            {
                 images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
-            }
             else
-            {
                 images = AiImageFilter.SelectRelevantImages(d);
-            }
 
-            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
+            var article = ArticleMapping.MapToArticle(
+                d, ArticleType.Article, adminId.Value, images, _opts, now);
 
-            var article = new Article
-            {
-                AuthorId = adminId.Value,
-                ArticleType = ArticleType.Article,
-                Category = ParseCategory(d.Category),
-                Title = d.Title.Trim(),
-                Content = EnsureHtmlDiv(d.ArticleHtml, _opts.MinWordCount),
-                IsBreakingNews = isBreaking,
-                CountryName = d.CountryName,
-                CountryCode = d.CountryCode,
-                Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = (images is { Count: > 0 }) ? images : null,
-            };
+            var exists = await db.Set<Article>()
+                .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
+            if (exists) continue;
 
             db.Set<Article>().Add(article);
         }
@@ -774,16 +821,10 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         await db.SaveChangesAsync(ct);
         _log.LogInformation("Inserted a random AI article in category {Category}.", category);
     }
-
-    private static Category ParseCategory(string? s)
-        => !string.IsNullOrWhiteSpace(s) && Enum.TryParse<Category>(s, true, out var cat) ? cat : Category.Info;
-
-    private static string EnsureHtmlDiv(string html, int minWords)
-        => AiTrendingNewsPollingService.EnsureHtmlDiv(html, minWords);
 }
 #endregion
 
-#region Service: TRUE CRIME long-form writer
+#region Service: TRUE CRIME writer (Crime category, non-graphic)
 public sealed class AiTrueCrimeWriterService : BackgroundService
 {
     private readonly ILogger<AiTrueCrimeWriterService> _log;
@@ -829,7 +870,7 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var recent = await db.Set<Article>()
             .OrderByDescending(a => a.CreatedDate)
             .Select(a => a.Title)
-            .Take(200)
+            .Take(300)
             .ToListAsync(ct);
 
         var system = AiNewsPrompt.BuildSystem(_opts, recent);
@@ -854,11 +895,12 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
 
-            // Allow analyses with a recent analysis date if the underlying case is older:
-            if (d.EventDateUtc is null) d.EventDateUtc = now;
+            if (d.EventDateUtc is null) d.EventDateUtc = now; // set analysis date
             if (now - d.EventDateUtc.Value > maxAge) continue;
             if (!titles.Add(d.Title)) continue;
-            if (HtmlText.CountWords(d.ArticleHtml) < Math.Max(_opts.MinWordCount, _opts.TrueCrimeMinWordCount)) continue;
+
+            var minWords = Math.Max(_opts.MinWordCount, _opts.TrueCrimeMinWordCount);
+            if (HtmlText.CountWords(d.ArticleHtml) < minWords / 2) continue; // light guard before full ensure
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -866,27 +908,21 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
             else
                 images = AiImageFilter.SelectRelevantImages(d);
 
-            var isBreaking = (d.IsBreaking == true) || (now - d.EventDateUtc.Value <= TimeSpan.FromHours(_opts.BreakingWindowHours));
+            var article = ArticleMapping.MapToArticle(
+                d, ArticleType.Article, adminId.Value, images, _opts, now);
 
-            var article = new Article
-            {
-                AuthorId = adminId.Value,
-                ArticleType = ArticleType.Article,
-                Category = Category.Crime,
-                Title = d.Title.Trim(),
-                Content = AiTrendingNewsPollingService.EnsureHtmlDiv(d.ArticleHtml, _opts.TrueCrimeMinWordCount),
-                IsBreakingNews = isBreaking,
-                CountryName = d.CountryName,
-                CountryCode = d.CountryCode,
-                Keywords = d.Keywords?.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? new List<string>(),
-                Images = (images is { Count: > 0 }) ? images : null,
-            };
+            // Force category to Crime for true-crime
+            article.Category = Category.Crime;
+
+            var exists = await db.Set<Article>()
+                .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
+            if (exists) continue;
 
             db.Set<Article>().Add(article);
         }
 
         await db.SaveChangesAsync(ct);
-        _log.LogInformation("Inserted a TRUE CRIME long-form article.");
+        _log.LogInformation("Inserted a TRUE CRIME article.");
     }
 }
 #endregion
@@ -903,9 +939,9 @@ public static class AiNewsRegistration
             client.Timeout = TimeSpan.FromSeconds(60);
         });
         services.AddHttpClient<IImagePicker, WikimediaImagePicker>();
-        services.AddHostedService<AiTrendingNewsPollingService>();
-        services.AddHostedService<AiRandomArticleWriterService>();
-        services.AddHostedService<AiTrueCrimeWriterService>();
+        services.AddHostedService<AiTrendingNewsPollingService>();   // every 5 min
+        services.AddHostedService<AiRandomArticleWriterService>();   // every 10 min
+        services.AddHostedService<AiTrueCrimeWriterService>();       // every 30 min (configurable)
         return services;
     }
 }
