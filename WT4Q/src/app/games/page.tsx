@@ -26,6 +26,20 @@ export default function GamesPage() {
             />
           </div>
         </li>
+        <li className={styles.item}>
+          <PrefetchLink
+            href="/games/metrotrade"
+            title="Play Metropolotan Trader"
+          >
+            Metropolotan Trader
+          </PrefetchLink>
+          <div className={styles.preview}>
+            <img
+              src="https://via.placeholder.com/200?text=Metro"
+              alt="Metropolotan Trader preview"
+            />
+          </div>
+        </li>
       </ul>
     </main>
   );

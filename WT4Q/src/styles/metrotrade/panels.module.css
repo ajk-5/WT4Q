@@ -1,0 +1,12 @@
+.wrap { display:flex; flex-direction:column; gap:8px; }
+.card { background:#0f1828; border:1px solid #26334b; border-radius:8px; padding:10px; }
+.card[data-active="true"]{ outline:2px solid #25c2a0; }
+.header { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:6px; }
+.badge { background:#6aa3ff; color:#001; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; font-weight:800; }
+.row { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; }
+.props { display:flex; flex-direction:column; gap:6px; max-height:220px; overflow:auto; }
+.prop { background:#0b1322; border:1px solid #21304a; border-radius:6px; padding:6px; }
+.pname { font-size:13px; font-weight:700; }
+.pmeta { font-size:11px; opacity:0.8; }
+.actions { display:flex; gap:6px; margin-top:6px; }
+.actions button { padding:4px 6px; background:#162138; color:#dbe8ff; border:1px solid #2a3a55; border-radius:6px; cursor:pointer; }
