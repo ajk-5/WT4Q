@@ -231,9 +231,10 @@ export default async function ArticlePage(
               </PrefetchLink>
             ))}
           </div>
+          <LocalArticleSection />
         </aside>
       )}
-      <LocalArticleSection />
+      
     </div>
   );
 }

@@ -1,0 +1,41 @@
+# VCS & CI
+.git
+.github
+.gitignore
+
+# Env & secrets (never ship these)
+.env
+.env.*
+*.env
+*.pfx
+*.pem
+*.key
+certs
+keys
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Node / Next.js
+node_modules
+.next
+.next/cache
+npm-debug.log
+.pnpm-store
+
+# .NET
+bin
+obj
+*.user
+*.suo
+*.dbmdl
+*.jfm
+
+# Tests & misc
+coverage
+__tests__
+
+# (Optional) not needed in context
+docker-compose*
