@@ -19,6 +19,22 @@
 .pawn { width:14px; height:14px; border-radius:50%; background:#6aa3ff; color:#000; font-weight:700; display:grid; place-items:center; }
 .here { position:absolute; inset:2px; border:2px dashed #58d68d; border-radius:6px; pointer-events:none; }
 
+@media (max-width: 600px) {
+  .grid {
+    --size: min(70vh, 95vw);
+    min-width: 260px;
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 400px) {
+  .grid {
+    --size: min(60vh, 90vw);
+    min-width: 220px;
+    min-height: 220px;
+  }
+}
+
 /* Tile type accents */
 .t_go { background: linear-gradient(180deg, rgba(40,180,120,0.1), rgba(0,0,0,0)); }
 .t_property { background: linear-gradient(180deg, rgba(100,150,250,0.06), rgba(0,0,0,0)); }

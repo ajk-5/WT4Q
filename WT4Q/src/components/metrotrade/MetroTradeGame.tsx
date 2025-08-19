@@ -5,6 +5,7 @@ import Board from "./Board";
 import HUD from "./HUD";
 import PlayerPanel from "./PlayerPanel";
 import styles from "@/styles/metrotrade/ui.module.css";
+import responsive from "@/styles/metrotrade/responsive.module.css";
 
 export default function MetroTradeGame(){
   const [players, setPlayers] = useState(2);
@@ -18,10 +19,10 @@ export default function MetroTradeGame(){
   const gameOver = bankruptCount >= state.players.length-1;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.topBar}>
+    <div className={`${styles.container} ${responsive.container}`}>
+      <div className={`${styles.topBar} ${responsive.topBar}`}>
         <div className={styles.brand}>MetroTrade</div>
-        <div className={styles.controls}>
+        <div className={`${styles.controls} ${responsive.controls}`}>
           <label>Players
             <input type="number" min={2} max={5} value={players} onChange={e=>setPlayers(parseInt(e.target.value||"2"))}/>
           </label>
@@ -31,9 +32,9 @@ export default function MetroTradeGame(){
           <button onClick={onStart} className={styles.primary}>Start</button>
         </div>
       </div>
-      <div className={styles.layout}>
-        <div className={styles.boardWrap}><Board/></div>
-        <div className={styles.side}>
+      <div className={`${styles.layout} ${responsive.layout}`}>
+        <div className={`${styles.boardWrap} ${responsive.boardWrap}`}><Board/></div>
+        <div className={`${styles.side} ${responsive.side}`}>
           <HUD/>
           <PlayerPanel/>
         </div>
