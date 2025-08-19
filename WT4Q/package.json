@@ -13,6 +13,7 @@
     "fabric": "^6.0.0-beta15",
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
+    "immer": "^10.1.1",
     "lint": "^0.8.19",
     "lucide-react": "^0.469.0",
     "next": "^15.4.2",
@@ -20,6 +21,7 @@
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.2.3",
     "turbo": "^2.5.5",
+    "uuid": "^9.0.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
@@ -32,6 +34,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "happy-dom": "^18.0.1",
     "jsdom": "^24.0.0",
     "typescript": "^5",
     "vitest": "^3.2.4"
