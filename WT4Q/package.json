@@ -21,8 +21,13 @@
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.2.3",
     "turbo": "^2.5.5",
+<<<<<<< HEAD
     "uuid": "^11.1.0",
     "zustand": "^4.5.7"
+=======
+    "uuid": "^9.0.1",
+    "zustand": "^4.5.2"
+>>>>>>> c4ecff4b36c50a4c5542b109a21f8aa1a27ba3f6
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -34,6 +39,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "happy-dom": "^18.0.1",
     "jsdom": "^24.0.0",
     "typescript": "^5",
     "vitest": "^3.2.4"
