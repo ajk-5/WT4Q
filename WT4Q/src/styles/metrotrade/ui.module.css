@@ -1,12 +1,12 @@
-.container { display:flex; flex-direction:column; gap:16px; padding:16px; color:#e9f1fb; background:#0b1220; }
+.container { display:flex;max-width: fit-content; flex-direction:column; gap:16px; padding:16px; color:#e9f1fb; background:#0b1220; }
 .topBar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .brand { font-weight:800; font-size:20px; letter-spacing:0.5px; }
 .controls { display:flex; gap:8px; align-items:center; }
 .controls input { width:60px; margin-left:6px; }
 .primary { background:#25c2a0; color:#081018; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
-.layout { display:grid; grid-template-columns: 1fr 320px; gap:16px; }
+.layout { display:grid; grid-template-columns: 5fr 1fr; gap:16px; }
 .boardWrap { display:grid; place-items:center; }
-.side { display:flex; flex-direction:column; gap:12px; }
+.side { display:flex; flex-direction:column; }
 .hud { background:#101826; border:1px solid #223047; border-radius:8px; padding:12px; }
 .turnRow { display:flex; justify-content:space-between; margin-bottom:8px; }
 .buttons { display:flex; gap:8px; flex-wrap:wrap; }
