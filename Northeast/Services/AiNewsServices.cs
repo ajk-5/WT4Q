@@ -170,7 +170,7 @@ public sealed class GeminiRestClient : IGenerativeTextClient
         _http = http; _log = log; _opts = opts.Value;
     }
 
-        public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
+    public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
         static object BuildSchema()
         {
@@ -235,27 +235,35 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             };
         }
 
-        async Task<string> CallAsync(bool useSchema, CancellationToken token)
+        async Task<(bool ok, string? body)> CallOnceAsync(
+            string mdl,
+            string sys,
+            string prompt,
+            bool withSchema,
+            bool jsonModeOnly,
+            CancellationToken token)
         {
-            var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+            var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{mdl}:generateContent";
 
-            var generationConfig = new Dictionary<string, object?>
+            var gen = new Dictionary<string, object?>
             {
                 ["temperature"] = temperature,
                 ["candidateCount"] = 1,
-                ["stopSequences"] = Array.Empty<string>(),
-                ["maxOutputTokens"] = 2048
+                ["maxOutputTokens"] = 8192,
+                ["thinkingBudget"] = 0,
             };
 
-            if (useSchema)
+            if (withSchema)
             {
-                generationConfig["responseMimeType"] = "application/json";
-                generationConfig["responseSchema"] = BuildSchema();
+                gen["response_mime_type"] = "application/json";
+                gen["responseMimeType"] = "application/json";
+                gen["response_schema"] = BuildSchema();
+                gen["responseSchema"] = BuildSchema();
             }
-            else
+            else if (jsonModeOnly)
             {
-                generationConfig.Remove("responseMimeType");
-                generationConfig.Remove("responseSchema");
+                gen["response_mime_type"] = "application/json";
+                gen["responseMimeType"] = "application/json";
             }
 
             var payload = new
@@ -265,15 +273,15 @@ public sealed class GeminiRestClient : IGenerativeTextClient
                     new
                     {
                         role = "user",
-                        parts = new object[] { new { text = userPrompt } }
+                        parts = new object[] { new { text = prompt } }
                     }
                 },
                 systemInstruction = new
                 {
-                    role = "model", // important: use "model" (not "system")
-                    parts = new object[] { new { text = systemInstruction } }
-                },
-                generationConfig
+                    role = "system",
+                    parts = new object[] { new { text = sys } }
+},
+                generationConfig = gen
             };
 
             using var req = new HttpRequestMessage(HttpMethod.Post, uri)
@@ -288,87 +296,115 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             // Do NOT throw here; allow fallback without-schema if this fails.
             if (!res.IsSuccessStatusCode)
             {
-                _log.LogWarning("Gemini returned HTTP {Status} (useSchema={UseSchema}). Body (truncated): {Body}",
-                    (int)res.StatusCode, useSchema, Trunc(body, 600));
-                return "{}";
+
+                _log.LogWarning("Gemini HTTP {Status}. Body: {Body}", (int)res.StatusCode, Trunc(body, 800));
+                return (false, body);
+
             }
 
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("promptFeedback", out var pf))
+                    _log.LogDebug("Gemini promptFeedback: {PF}", Trunc(pf.GetRawText(), 600));
+
+                if (root.TryGetProperty("candidates", out var cands) &&
+                    cands.ValueKind == JsonValueKind.Array &&
+                    cands.GetArrayLength() > 0)
+                {
+                    var cand0 = cands[0];
+                    if (cand0.TryGetProperty("finishReason", out var fr))
+                        _log.LogDebug("Gemini finishReason: {FR}", fr.GetString());
+                    if (!cand0.TryGetProperty("content", out var content) ||
+                        !content.TryGetProperty("parts", out var parts) ||
+                        parts.ValueKind != JsonValueKind.Array ||
+                        parts.GetArrayLength() == 0)
+                    {
+                        _log.LogWarning("Gemini candidate has EMPTY parts (withSchema={WithSchema}, jsonOnly={JsonOnly}). Raw: {Raw}",
+                            withSchema, jsonModeOnly, Trunc(body, 800));
+                    }
+                }
+            }
+            catch { }
+
+            return (true, body);
+
+            static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
+        }
+
+        static string? Extract(string body)
+        {
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            static string? Extract(JsonElement r)
-            {
-                if (!r.TryGetProperty("candidates", out var candidates) ||
-                    candidates.ValueKind != JsonValueKind.Array ||
-                    candidates.GetArrayLength() == 0)
-                    return null;
-
-                var cand0 = candidates[0];
-
-                if (!cand0.TryGetProperty("content", out var content)) return null;
-                if (!content.TryGetProperty("parts", out var parts) ||
-                    parts.ValueKind != JsonValueKind.Array ||
-                    parts.GetArrayLength() == 0)
-                    return null;
-
-                for (int i = 0; i < parts.GetArrayLength(); i++)
-                {
-                    var part = parts[i];
-
-                    if (part.TryGetProperty("text", out var textNode))
-                    {
-                        var text = textNode.GetString();
-                        if (!string.IsNullOrWhiteSpace(text))
-                            return text!;
-                    }
-
-                    if (part.TryGetProperty("functionCall", out var fc) &&
-                        fc.ValueKind == JsonValueKind.Object &&
-                        fc.TryGetProperty("args", out var args))
-                    {
-                        return args.GetRawText();
-                    }
-
-                    if (part.TryGetProperty("inlineData", out var inlineData) &&
-                        inlineData.ValueKind == JsonValueKind.Object &&
-                        inlineData.TryGetProperty("mimeType", out var mime) &&
-                        string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
-                        inlineData.TryGetProperty("data", out var dataNode))
-                    {
-                        try
-                        {
-                            var b64 = dataNode.GetString();
-                            if (!string.IsNullOrEmpty(b64))
-                            {
-                                var bytes = Convert.FromBase64String(b64);
-                                var json = Encoding.UTF8.GetString(bytes);
-                                if (!string.IsNullOrWhiteSpace(json))
-                                    return json;
-                            }
-                        }
-                        catch {}
-                    }
-                }
+            if (!root.TryGetProperty("candidates", out var candidates) ||
+                candidates.ValueKind != JsonValueKind.Array ||
+                candidates.GetArrayLength() == 0)
                 return null;
-            }
 
-            var extracted = Extract(root);
-            if (extracted is null)
+            var cand0 = candidates[0];
+            if (!cand0.TryGetProperty("content", out var content)) return null;
+            if (!content.TryGetProperty("parts", out var parts) ||
+                parts.ValueKind != JsonValueKind.Array ||
+                parts.GetArrayLength() == 0)
+                return null;
+
+            foreach (var part in parts.EnumerateArray())
             {
-                _log.LogWarning("Gemini candidate has no usable parts (useSchema={UseSchema}). Raw: {Body}", useSchema, Trunc(body, 600));
-                return "{}";
-            }
+                if (part.TryGetProperty("text", out var textNode))
+                {
+                    var text = textNode.GetString();
+                    if (!string.IsNullOrWhiteSpace(text)) return text!;
+                }
+                if (part.TryGetProperty("functionCall", out var fc) &&
+                    fc.ValueKind == JsonValueKind.Object &&
+                    fc.TryGetProperty("args", out var args))
+                    return args.GetRawText();
 
-            return extracted;
+                if (part.TryGetProperty("inlineData", out var inlineData) &&
+                    inlineData.ValueKind == JsonValueKind.Object &&
+                    inlineData.TryGetProperty("mimeType", out var mime) &&
+                    string.Equals(mime.GetString(), "application/json", StringComparison.OrdinalIgnoreCase) &&
+                    inlineData.TryGetProperty("data", out var dataNode))
+                {
+                    try
+                    {
+                        var b64 = dataNode.GetString();
+                        if (!string.IsNullOrEmpty(b64))
+                        {
+                            var bytes = Convert.FromBase64String(b64);
+                            var json = Encoding.UTF8.GetString(bytes);
+                            if (!string.IsNullOrWhiteSpace(json)) return json;
+                        }
+                    }
+                    catch { }
+                }
+            }
+            return null;
         }
 
-        var first = await CallAsync(useSchema: true, ct);
-        if (!string.IsNullOrWhiteSpace(first) && first != "{}") return first;
+        var (ok1, body1) = await CallOnceAsync(model, systemInstruction, userPrompt, withSchema: true, jsonModeOnly: false, ct);
+        var text = ok1 ? Extract(body1!) : null;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        var second = await CallAsync(useSchema: false, ct);
-        return string.IsNullOrWhiteSpace(second) ? "{}" : second;
+        var (ok2, body2) = await CallOnceAsync(model, systemInstruction, userPrompt, withSchema: false, jsonModeOnly: true, ct);
+        text = ok2 ? Extract(body2!) : null;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
+        var forcedPrompt = userPrompt + "\n\nReturn ONLY valid UTF-8 JSON with this shape (no prose): " +
+            "{\"items\":[{\"title\":\"...\",\"category\":\"...\",\"articleHtml\":\"<div>...</div>\",\"countryName\":null,\"countryCode\":null,\"keywords\":[\"...\"],\"images\":[{\"altText\":\"...\",\"caption\":\"\",\"photoLink\":null}],\"eventDateUtc\":\"YYYY-MM-DDTHH:mm:ssZ\",\"isBreaking\":false,\"breakingReason\":null}]}";
+        var (ok3, body3) = await CallOnceAsync(model, systemInstruction, forcedPrompt, withSchema: false, jsonModeOnly: false, ct);
+        text = ok3 ? Extract(body3!) : null;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
+
+        var fallbackModel = "gemini-2.5-flash";
+        var (ok4, body4) = await CallOnceAsync(fallbackModel, systemInstruction, userPrompt, withSchema: true, jsonModeOnly: false, ct);
+        text = ok4 ? Extract(body4!) : null;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
+
+        _log.LogWarning("Gemini returned no usable JSON after all fallbacks.");
+        return "{}";
     }
 }
 #endregion
