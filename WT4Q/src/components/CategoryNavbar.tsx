@@ -47,9 +47,27 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
 
         </div>
       </div>
-      <PrefetchLink href="/games" className={styles.link} onClick={onNavigate}>
-        Games
-      </PrefetchLink>
+      <div className={styles.dropdown}>
+        <PrefetchLink href="/games" className={styles.link} onClick={onNavigate}>
+          Games
+        </PrefetchLink>
+        <div className={styles.dropdownMenu}>
+          <PrefetchLink
+            href="/games/2048_game_online"
+            className={styles.link}
+            onClick={onNavigate}
+          >
+            2048
+          </PrefetchLink>
+          <PrefetchLink
+            href="/games/metrotrade"
+            className={styles.link}
+            onClick={onNavigate}
+          >
+            Metropolotan Trader
+          </PrefetchLink>
+        </div>
+      </div>
       <PrefetchLink href="/weather" className={styles.link} onClick={onNavigate}>
         Weather
       </PrefetchLink>
