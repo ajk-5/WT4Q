@@ -1,5 +1,5 @@
+using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -174,36 +174,49 @@ public sealed class GeminiRestClient : IGenerativeTextClient
     {
         static object BuildSchema()
         {
+            var imageItem = new
+            {
+                type = "OBJECT",
+                properties = new
+                {
+                    photoLink = new { type = "STRING", nullable = true },
+                    altText   = new { type = "STRING", nullable = true },
+                    caption   = new { type = "STRING", nullable = true }
+                }
+            };
+
             var item = new
             {
                 type = "OBJECT",
                 properties = new
                 {
-                    title = new { type = "STRING" },
-                    category = new { type = "STRING" },
-                    articleHtml = new { type = "STRING" },
-                    countryName = new { type = new[] { "STRING", "NULL" } },
-                    countryCode = new { type = new[] { "STRING", "NULL" } },
-                    keywords = new { type = "ARRAY", items = new { type = "STRING" } },
-                    images = new
+                    title        = new { type = "STRING" },
+                    category     = new { type = "STRING", nullable = true },
+                    articleHtml  = new { type = "STRING" },
+                    countryName  = new { type = "STRING", nullable = true },
+                    countryCode  = new { type = "STRING", nullable = true },
+                    keywords     = new
                     {
                         type = "ARRAY",
-                        items = new
-                        {
-                            type = "OBJECT",
-                            properties = new
-                            {
-                                photoLink = new { type = new[] { "STRING", "NULL" } },
-                                altText = new { type = new[] { "STRING", "NULL" } },
-                                caption = new { type = new[] { "STRING", "NULL" } }
-                            }
-                        }
+                        items = new { type = "STRING" },
+                        nullable = true
                     },
-                    eventDateUtc = new { type = "STRING" },
-                    isBreaking = new { type = new[] { "BOOLEAN", "NULL" } },
-                    breakingReason = new { type = new[] { "STRING", "NULL" } }
+                    images       = new
+                    {
+                        type = "ARRAY",
+                        items = imageItem,
+                        nullable = true
+                    },
+                    eventDateUtc = new { type = "STRING", format = "date-time" },
+                    isBreaking   = new { type = "BOOLEAN", nullable = true },
+                    breakingReason = new { type = "STRING", nullable = true }
                 },
-                required = new[] { "title", "articleHtml", "eventDateUtc" }
+                required = new[] { "title", "articleHtml", "eventDateUtc" },
+                propertyOrdering = new[]
+                {
+                    "title","category","articleHtml","countryName","countryCode",
+                    "keywords","images","eventDateUtc","isBreaking","breakingReason"
+                }
             };
 
             return new
@@ -217,7 +230,8 @@ public sealed class GeminiRestClient : IGenerativeTextClient
                         items = item
                     }
                 },
-                required = new[] { "items" }
+                required = new[] { "items" },
+                propertyOrdering = new[] { "items" }
             };
         }
 
@@ -256,7 +270,7 @@ public sealed class GeminiRestClient : IGenerativeTextClient
                 },
                 systemInstruction = new
                 {
-                    role = "system",
+                    role = "model", // important: use "model" (not "system")
                     parts = new object[] { new { text = systemInstruction } }
                 },
                 generationConfig
@@ -271,9 +285,12 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             using var res = await _http.SendAsync(req, token);
             var body = await res.Content.ReadAsStringAsync(token);
 
+            // Do NOT throw here; allow fallback without-schema if this fails.
             if (!res.IsSuccessStatusCode)
             {
-                res.EnsureSuccessStatusCode();
+                _log.LogWarning("Gemini returned HTTP {Status} (useSchema={UseSchema}). Body (truncated): {Body}",
+                    (int)res.StatusCode, useSchema, Trunc(body, 600));
+                return "{}";
             }
 
             using var doc = JsonDocument.Parse(body);
