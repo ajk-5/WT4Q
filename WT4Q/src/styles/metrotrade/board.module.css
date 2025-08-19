@@ -1,8 +1,11 @@
 
-.grid { 
+.grid {
   --size: min(80vh, 80vw);
   width: var(--size);
   height: var(--size);
+  /* ensure the board is visible even if viewport units resolve to zero */
+  min-width: 320px;
+  min-height: 320px;
   display: grid;
   grid-template-columns: repeat(11, 1fr);
   grid-template-rows: repeat(11, 1fr);
