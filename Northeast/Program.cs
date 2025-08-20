@@ -1,30 +1,33 @@
-﻿using MaxMind.GeoIP2;
-using Northeast.Clients;
+﻿// =============================
+// File: Program.cs
+// =============================
+using MaxMind.GeoIP2;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.DataProtection;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Http.Resilience;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Hosting;
-using Northeast.Services;
-using Northeast.Services.Similarity;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Northeast.Data;
 using Northeast.Interface;
 using Northeast.Middlewares;
-using Northeast.Repository;
-using Northeast.Utilities;
-using System.Text;
-using System.IO;
-using System.Text.Json.Serialization;
 using Northeast.Models;
-using Microsoft.AspNetCore.Authentication;            // optional
-using System.Threading.Tasks;                        // for Task
+using Northeast.Repository;
+using Northeast.Services;
+using Northeast.Services.Similarity;
+using Northeast.Utilities;
+using Polly.Timeout;                        // ✅ Polly timeout
+using System.IO;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;                     // ✅ Timeout.InfiniteTimeSpan
 
 var builder = WebApplication.CreateBuilder(args);
 var originsPolicy = "AuthorizedApps";
@@ -33,6 +36,8 @@ var originsPolicy = "AuthorizedApps";
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -45,7 +50,7 @@ builder.Services.Configure<HostOptions>(options =>
     options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
 });
 
-// --- Register Application Services ---
+// --- Application Services ---
 builder.Services.AddScoped<UserRegistration>();
 builder.Services.AddScoped<UserAuthentification>();
 builder.Services.AddScoped<ArticleServices>();
@@ -56,7 +61,7 @@ builder.Services.AddScoped<OTPservices>();
 builder.Services.AddTransient<SendEmail>();
 builder.Services.AddScoped<SiteVisitorServices>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient(); // generic (no special policies)
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<UserRepository>();
@@ -73,65 +78,72 @@ builder.Services.AddScoped<CommentReportRepository>();
 builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
-builder.Services.AddOptions<GeminiOptions>()
-    .Bind(builder.Configuration.GetSection("Gemini"))
-    .ValidateOnStart();
-builder.Services.AddSingleton<IValidateOptions<GeminiOptions>, GeminiOptionsValidator>();
-builder.Services.AddHttpClient<GeminiClient>()
+
+// --- HTTP clients with resilience (named "default") ---
+builder.Services.AddHttpClient("default")
+    .ConfigureHttpClient(c =>
+    {
+        c.Timeout = Timeout.InfiniteTimeSpan; // ✅ Polly owns timeouts
+    })
     .AddStandardResilienceHandler(o =>
     {
+        // Timeouts
+        o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);
+        o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150);
+
+        // Circuit breaker rule: SamplingDuration >= 2 × AttemptTimeout
+        o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2); // ✅ >= 120s
+        o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+        o.CircuitBreaker.FailureRatio = 0.2;
+        o.CircuitBreaker.MinimumThroughput = 10;
+
+        // Retry
+        o.Retry.MaxRetryAttempts = 2;
         o.Retry.ShouldHandle = args =>
-            ValueTask.FromResult(
-                args.Outcome.Exception is HttpRequestException ||
-                (args.Outcome.Result?.StatusCode is >= HttpStatusCode.InternalServerError));
-        o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+            new ValueTask<bool>(
+                args.Outcome.Exception is HttpRequestException
+                || args.Outcome.Exception is TimeoutRejectedException
+                || (args.Outcome.Result is { } r &&
+                    (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
+            );
     });
-builder.Services.AddHttpClient<NewsRssClient>(client =>
-{
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NewsBot/1.0)");
-    client.DefaultRequestHeaders.Accept.ParseAdd("application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8");
-})
-    .AddStandardResilienceHandler(o =>
-    {
-        o.Retry.MaxRetryAttempts = 3;
-        o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
-    });
-builder.Services.AddScoped<Deduplication>();
-builder.Services.AddScoped<AuthorResolver>();
-builder.Services.AddScoped<ArticleFactory>();
+
+// --- AI News (Gemini + hosted services) ---
 builder.Services.AddAiNews(o =>
 {
     o.ApiKey = builder.Configuration["AiNews:ApiKey"]
                ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     o.Model = builder.Configuration["AiNews:Model"] ?? "gemini-2.5-pro";
-    o.TrendingInterval = TimeSpan.FromMinutes(10);
+    o.TrendingInterval = TimeSpan.FromMinutes(5);
     o.RandomInterval = TimeSpan.FromMinutes(10);
-    o.MaxTrendingPerTick = 3;
+    o.TrueCrimeInterval = TimeSpan.FromMinutes(30);
+    o.MaxTrendingPerTick = 1;
     o.Creativity = 0.9;
-    o.MinWordCount = 260;
+    o.MinWordCount = 180;
+    o.TrueCrimeMinWordCount = 1200;
+    o.MaxAgeDays = 30;
+    o.BreakingWindowHours = 24;
+    o.UseExternalImages = true;
 
     if (string.IsNullOrWhiteSpace(o.ApiKey))
         throw new InvalidOperationException("AiNews:ApiKey is missing. Set it in configuration or as an environment variable.");
 });
 
-// --- Configure Authentication ---
+// --- Authentication ---
 builder.Services.AddAuthentication(options =>
 {
-    // Default to JWT for API requests and use cookies to persist tokens.
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
-    // Important for cross-site flows: allow cross-site cookies
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
         ? CookieSecurePolicy.None
         : CookieSecurePolicy.Always;
 
-    // Prevent redirects on API routes (return 401/403 instead)
     options.Events = new CookieAuthenticationEvents
     {
         OnRedirectToLogin = ctx =>
@@ -169,8 +181,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
-
-    // Optionally read JWT from a cookie named "JwtToken"
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -211,7 +221,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// --- Forwarded Headers (trust NGINX) ---
+// --- Forwarded Headers (NGINX) ---
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders =
@@ -219,11 +229,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedProto |
         ForwardedHeaders.XForwardedHost;
 
-    // Trust forwarded headers from any proxy in front of the app.
-    // The reverse proxy is responsible for sanitizing the headers.
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
-    options.ForwardLimit = 2; // defensive cap on the number of entries
+    options.ForwardLimit = 2;
 });
 
 var dataProtection = builder.Services.AddDataProtection()
@@ -239,10 +247,10 @@ if (File.Exists(certPath) && !string.IsNullOrEmpty(certPwd))
 
 var app = builder.Build();
 
-// Ensure database is up to date on startup
+// --- DB migrations ---
 await app.Services.ApplyMigrationsAsync();
 
-// Seed a SuperAdmin user if credentials are provided
+// --- Seed SuperAdmin (optional) ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -268,16 +276,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 // --- Pipeline ---
-// Must be BEFORE HttpsRedirection/Auth so the app sees the original scheme/host.
 app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.OAuthUsePkce();
-    });
+    app.UseSwaggerUI(c => { c.OAuthUsePkce(); });
 }
 
 app.UseCookiePolicy(new CookiePolicyOptions
@@ -287,15 +291,10 @@ app.UseCookiePolicy(new CookiePolicyOptions
 });
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
-
-// CORS before auth so 401/403 still include CORS headers
 app.UseCors(originsPolicy);
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 await app.RunAsync();

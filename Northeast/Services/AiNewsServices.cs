@@ -1,11 +1,3 @@
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,50 +6,58 @@ using Microsoft.Extensions.Options;
 using Northeast.Data;
 using Northeast.Models;
 using Northeast.Utilities;
+using Polly.Timeout;                      // ✅ Polly timeout type
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Threading;                    // SemaphoreSlim + Timeout.InfiniteTimeSpan
+using System.Threading.RateLimiting;       // fixed-window limiter
 
 namespace Northeast.Services;
 
 #region Options
 public sealed class AiNewsOptions
 {
-    /// <summary>API key for Gemini (Google AI Studio / Vertex AI Developer API).</summary>
     public string ApiKey { get; set; } = string.Empty;
-
-    /// <summary>Model name. Prefer the latest stable Gemini 2.5 Pro.</summary>
     public string Model { get; set; } = "gemini-2.5-pro";
 
-    /// <summary>How often to poll and publish AI-generated trending news.</summary>
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5); // every 5 min
-
-    /// <summary>How often to write a random category article.</summary>
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(10); // every 10 min
-
-    /// <summary>How often to write a true-crime article (Crime category, non-graphic).</summary>
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(10);
     public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
 
-    /// <summary>Max items to attempt per trending tick.</summary>
-    public int MaxTrendingPerTick { get; set; } = 3;
-
-    /// <summary>Temperature-style creativity control (0..2); 0.7–1.0 reads more human.</summary>
+    public int MaxTrendingPerTick { get; set; } = 1;
     public double Creativity { get; set; } = 0.9;
-
-    /// <summary>Minimum words for the article body (we enforce >160; using 180).</summary>
     public int MinWordCount { get; set; } = 180;
-
-    /// <summary>Discard anything older than this many days (≤ 30 days per requirement).</summary>
     public int MaxAgeDays { get; set; } = 30;
-
-    /// <summary>Hours window to auto-flag breaking news.</summary>
     public int BreakingWindowHours { get; set; } = 24;
-
-    /// <summary>Fetch real images from APIs instead of relying on the model.</summary>
     public bool UseExternalImages { get; set; } = true;
-
-    /// <summary>Higher minimum for long-form true crime (optional).</summary>
     public int TrueCrimeMinWordCount { get; set; } = 1200;
+    public bool UseExternalNews { get; set; } = false; // back-compat
+}
+#endregion
 
-    // (Deprecated) External headlines not used, kept for back-compat.
-    public bool UseExternalNews { get; set; } = false;
+#region Cross-service single-flight gate
+/// <summary>Ensures only one AI job runs at a time across all hosted services.</summary>
+public sealed class AiWorkGate
+{
+    private static readonly SemaphoreSlim _sem = new(1, 1);
+    public static async Task<IDisposable> EnterAsync()
+    {
+        await _sem.WaitAsync();
+        return new Releaser(_sem);
+    }
+    private sealed class Releaser : IDisposable
+    {
+        private readonly SemaphoreSlim _s;
+        public Releaser(SemaphoreSlim s) => _s = s;
+        public void Dispose() => _s.Release();
+    }
 }
 #endregion
 
@@ -68,7 +68,6 @@ internal static class AiImageFilter
     {
         if (draft.Images is null || draft.Images.Count == 0) return null;
 
-        // derive subject tokens from the title (drop anything after ':' or '-')
         var subject = draft.Title ?? string.Empty;
         var splitIndex = subject.IndexOfAny(new[] { ':', '-' });
         if (splitIndex > 0) subject = subject[..splitIndex];
@@ -81,7 +80,7 @@ internal static class AiImageFilter
 
         var filtered = draft.Images
             .AsEnumerable()
-            .Reverse() // prefer latest if chronological
+            .Reverse()
             .Where(i => ImageMatches(i, subjectWords))
             .Take(2)
             .Select(i => new ArticleImage
@@ -125,14 +124,14 @@ internal static class AiImageFilter
 }
 #endregion
 
-#region DTOs used for Gemini JSON output
+#region DTOs for AI JSON
 public sealed class AiArticleDraft
 {
     [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
     [JsonPropertyName("category")] public string Category { get; set; } = "Info";
-    [JsonPropertyName("articleHtml")] public string ArticleHtml { get; set; } = string.Empty; // one <div> with sub-headings + "What happens next"
-    [JsonPropertyName("countryName")] public string? CountryName { get; set; } // null for global
-    [JsonPropertyName("countryCode")] public string? CountryCode { get; set; } // null for global
+    [JsonPropertyName("articleHtml")] public string ArticleHtml { get; set; } = string.Empty;
+    [JsonPropertyName("countryName")] public string? CountryName { get; set; }
+    [JsonPropertyName("countryCode")] public string? CountryCode { get; set; }
     [JsonPropertyName("keywords")] public List<string>? Keywords { get; set; }
     [JsonPropertyName("images")] public List<AiImage>? Images { get; set; }
     [JsonPropertyName("eventDateUtc")] public DateTimeOffset? EventDateUtc { get; set; }
@@ -153,7 +152,7 @@ public sealed class AiArticleDraftBatch
 }
 #endregion
 
-#region Gemini REST client (function-calling first + fallbacks)
+#region Gemini REST client (queued limiter + 31s spacing)
 public interface IGenerativeTextClient
 {
     Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct);
@@ -165,6 +164,21 @@ public sealed class GeminiRestClient : IGenerativeTextClient
     private readonly ILogger<GeminiRestClient> _log;
     private readonly AiNewsOptions _opts;
 
+    // Enforce ~2 req/min globally — queue instead of fail.
+    private static readonly FixedWindowRateLimiter _limiter = new(
+        new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 2,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 6,
+            AutoReplenishment = true
+        });
+
+    // Extra safety: ensure >= 31s between sends across process
+    private static readonly SemaphoreSlim _slotLock = new(1, 1);
+    private static DateTimeOffset _nextSlotUtc = DateTimeOffset.MinValue;
+    private static readonly TimeSpan _minSpacing = TimeSpan.FromSeconds(31);
+
     public GeminiRestClient(HttpClient http, IOptions<AiNewsOptions> opts, ILogger<GeminiRestClient> log)
     {
         _http = http; _log = log; _opts = opts.Value;
@@ -172,31 +186,20 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
     public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        // 1) Function calling (very reliable)
-        var (ok1, body1) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: true, useSchema: false, ct);
+        // Strategy 1: JSON mode
+        var (ok1, body1) = await CallAsync(model, systemInstruction, userPrompt, temperature, jsonMode: true, ct);
         var text = ok1 ? Extract(body1!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        // 2) Structured output (responseSchema)
-        var (ok2, body2) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: false, useSchema: true, ct);
+        // Strategy 2: Plain text, but force JSON in prompt
+        var forced = userPrompt + "\n\nReturn ONLY valid JSON for the described schema in the 'items' array. No prose outside JSON.";
+        var (ok2, body2) = await CallAsync(model, systemInstruction, forced, temperature, jsonMode: false, ct);
         text = ok2 ? Extract(body2!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
-        // 3) JSON mode only (no schema)
-        var (ok3, body3) = await CallAsync(model, systemInstruction, userPrompt, temperature, useFunctionCalling: false, useSchema: false, ct, jsonModeOnly: true);
+        // Strategy 3: flash JSON mode
+        var (ok3, body3) = await CallAsync("gemini-2.5-flash", systemInstruction, userPrompt, temperature, jsonMode: true, ct);
         text = ok3 ? Extract(body3!) : null;
-        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
-
-        // 4) Plain-text, forced JSON
-        var forced = userPrompt + "\n\nReturn ONLY valid JSON for the described schema in the 'items' array. No prose outside JSON.";
-        var (ok4, body4) = await CallAsync(model, systemInstruction, forced, temperature, useFunctionCalling: false, useSchema: false, ct, jsonModeOnly: false);
-        text = ok4 ? Extract(body4!) : null;
-        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
-
-        // 5) Fallback model
-        var fallback = "gemini-2.5-flash";
-        var (ok5, body5) = await CallAsync(fallback, systemInstruction, userPrompt, temperature, useFunctionCalling: true, useSchema: false, ct);
-        text = ok5 ? Extract(body5!) : null;
         if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
 
         _log.LogWarning("Gemini returned no usable JSON after all strategies.");
@@ -205,181 +208,93 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
     private async Task<(bool ok, string? body)> CallAsync(
         string model, string sys, string prompt, double temperature,
-        bool useFunctionCalling, bool useSchema, CancellationToken ct, bool jsonModeOnly = false)
+        bool jsonMode, CancellationToken ct)
     {
-        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
         var gen = new Dictionary<string, object?>
         {
             ["temperature"] = temperature,
             ["candidateCount"] = 1,
             ["maxOutputTokens"] = 8192
         };
-
-        object? tools = null;
-        object? toolConfig = null;
-
-        if (useFunctionCalling)
-        {
-            tools = new[]
-            {
-                new
-                {
-                    functionDeclarations = new[]
-                    {
-                        new
-                        {
-                            name = "emit",
-                            description = "Emit strictly-validated JSON batch of articles.",
-                            parameters = BuildFunctionSchema() // JSON Schema (lowercase)
-                        }
-                    }
-                }
-            };
-            toolConfig = new
-            {
-                functionCallingConfig = new { mode = "ANY" }
-            };
-        }
-        else if (useSchema)
-        {
-            gen["responseMimeType"] = "application/json";
-            gen["responseSchema"] = BuildResponseSchema(); // Gemini Schema (UPPERCASE types)
-        }
-        else if (jsonModeOnly)
-        {
-            gen["responseMimeType"] = "application/json";
-        }
+        if (jsonMode) gen["responseMimeType"] = "application/json";
 
         var payload = new
         {
-            contents = new[]
-            {
-                new
-                {
-                    role = "user",
-                    parts = new object[] { new { text = prompt } }
-                }
-            },
-            systemInstruction = new
-            {
-                role = "system", // ✅ use "system" for system instructions
-                parts = new object[] { new { text = sys } }
-            },
-            generationConfig = gen,
-            tools,
-            toolConfig
+            contents = new[] { new { role = "user", parts = new object[] { new { text = prompt } } } },
+            systemInstruction = new { role = "system", parts = new object[] { new { text = sys } } },
+            generationConfig = gen
         };
 
-        using var req = new HttpRequestMessage(HttpMethod.Post, uri)
-        {
-            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
-        };
-        req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
+        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_opts.ApiKey}";
+        var json = JsonSerializer.Serialize(payload);
 
-        using var res = await _http.SendAsync(req, ct);
-        var body = await res.Content.ReadAsStringAsync(ct);
-
-        if (!res.IsSuccessStatusCode)
+        // Slot spacing to keep under 2 RPM
+        await _slotLock.WaitAsync(ct);
+        try
         {
-            _log.LogWarning("Gemini HTTP {Status}. Body: {Body}", (int)res.StatusCode, Trunc(body, 800));
+            var now = DateTimeOffset.UtcNow;
+            if (_nextSlotUtc > now)
+            {
+                var wait = _nextSlotUtc - now;
+                _log.LogInformation("Gemini: waiting {ms} ms to respect spacing", (int)wait.TotalMilliseconds);
+                await Task.Delay(wait, ct);
+            }
+        }
+        finally
+        {
+            _slotLock.Release();
+        }
+
+        var attempt = 0;
+        var maxAttempts = 3;
+        var rnd = new Random();
+
+        while (true)
+        {
+            attempt++;
+
+            using var lease = await _limiter.AcquireAsync(1, ct);
+            if (!lease.IsAcquired)
+                throw new Exception("Local Gemini rate limit exceeded (queue full)");
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, uri)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+            req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
+
+            var start = DateTimeOffset.UtcNow;
+            using var res = await _http.SendAsync(req, ct);
+            var took = DateTimeOffset.UtcNow - start;
+            var body = await res.Content.ReadAsStringAsync(ct);
+
+            if (res.IsSuccessStatusCode)
+            {
+                _log.LogInformation("Gemini {Model} 200 OK in {Ms} ms", model, (int)took.TotalMilliseconds);
+
+                await _slotLock.WaitAsync(ct);
+                try { _nextSlotUtc = DateTimeOffset.UtcNow + _minSpacing; }
+                finally { _slotLock.Release(); }
+
+                return (true, body);
+            }
+
+            var code = (int)res.StatusCode;
+            if ((code == 429 || code >= 500) && attempt < maxAttempts)
+            {
+                var delay = res.Headers.RetryAfter?.Delta ??
+                            TimeSpan.FromMilliseconds(300 * Math.Pow(2, attempt) + rnd.Next(0, 200));
+                _log.LogWarning("Gemini HTTP {Status}. Retrying in {Delay}ms (attempt {Attempt}/{Max}). Body: {Body}",
+                    code, (int)delay.TotalMilliseconds, attempt, maxAttempts, Trunc(body, 600));
+                await Task.Delay(delay, ct);
+                continue;
+            }
+
+            _log.LogWarning("Gemini HTTP {Status}. Body: {Body}", code, Trunc(body, 800));
             return (false, body);
         }
 
-        return (true, body);
-
         static string Trunc(string s, int max) => s.Length <= max ? s : s[..max] + "…";
-    }
-
-    // JSON Schema for function-calling
-    private static object BuildFunctionSchema()
-    {
-        var imageItem = new
-        {
-            type = "object",
-            properties = new
-            {
-                photoLink = new { type = "string", nullable = true },
-                altText = new { type = "string", nullable = true },
-                caption = new { type = "string", nullable = true }
-            },
-            additionalProperties = false
-        };
-
-        var item = new
-        {
-            type = "object",
-            properties = new
-            {
-                title = new { type = "string" },
-                category = new { type = "string" },
-                articleHtml = new { type = "string" },
-                countryName = new { type = new[] { "string", "null" } },
-                countryCode = new { type = new[] { "string", "null" } },
-                keywords = new { type = new[] { "array", "null" }, items = new { type = "string" } },
-                images = new { type = new[] { "array", "null" }, items = imageItem },
-                eventDateUtc = new { type = "string", format = "date-time" },
-                isBreaking = new { type = new[] { "boolean", "null" } },
-                breakingReason = new { type = new[] { "string", "null" } }
-            },
-            required = new[] { "title", "articleHtml", "eventDateUtc" },
-            additionalProperties = false
-        };
-
-        return new
-        {
-            type = "object",
-            properties = new
-            {
-                items = new { type = "array", items = item }
-            },
-            required = new[] { "items" },
-            additionalProperties = false
-        };
-    }
-
-    // Gemini structured-output Schema (uppercase type names)
-    private static object BuildResponseSchema()
-    {
-        var imageItem = new
-        {
-            type = "OBJECT",
-            properties = new
-            {
-                photoLink = new { type = new[] { "STRING", "NULL" } },
-                altText = new { type = new[] { "STRING", "NULL" } },
-                caption = new { type = new[] { "STRING", "NULL" } }
-            }
-        };
-
-        var item = new
-        {
-            type = "OBJECT",
-            properties = new
-            {
-                title = new { type = "STRING" },
-                category = new { type = "STRING" },
-                articleHtml = new { type = "STRING" },
-                countryName = new { type = new[] { "STRING", "NULL" } },
-                countryCode = new { type = new[] { "STRING", "NULL" } },
-                keywords = new { type = "ARRAY", items = new { type = "STRING" } },
-                images = new { type = "ARRAY", items = imageItem },
-                eventDateUtc = new { type = "STRING" },
-                isBreaking = new { type = new[] { "BOOLEAN", "NULL" } },
-                breakingReason = new { type = new[] { "STRING", "NULL" } }
-            },
-            required = new[] { "title", "articleHtml", "eventDateUtc" }
-        };
-
-        return new
-        {
-            type = "OBJECT",
-            properties = new
-            {
-                items = new { type = "ARRAY", items = item }
-            },
-            required = new[] { "items" }
-        };
     }
 
     private static string? Extract(string body)
@@ -399,10 +314,6 @@ public sealed class GeminiRestClient : IGenerativeTextClient
 
         foreach (var p in parts.EnumerateArray())
         {
-            if (p.TryGetProperty("functionCall", out var fc) &&
-                fc.TryGetProperty("args", out var args))
-                return args.GetRawText();
-
             if (p.TryGetProperty("text", out var textNode))
             {
                 var text = textNode.GetString();
@@ -439,13 +350,13 @@ public static class AiNewsPrompt
 You are a senior human news editor. Write like a calm, clear journalist with simple words.
 Hard rules:
 - Output STRICT JSON only (UTF-8). No prose outside JSON.
-- Each item: ≥ {o.MinWordCount} words, one <div> root, use <h2>/<h3> sub-headings, END with 'What happens next' explaining likely near-term developments.
+- Each item: ≥ {o.MinWordCount} words, one <div> root, use <h2>/<h3> sub-headings, END with 'What happens next'.
 - Sound human (no AI clichés). Paraphrase; do not copy lines verbatim.
 - If global, set ""countryName"": null and ""countryCode"": null.
 - Provide 5–12 lowercase, unique keywords.
 - Images: prefer royalty-free links (Wikimedia/Unsplash/Pexels/Pixabay) with accurate alt/caption; if not confident, set images = [].
 - DO NOT repeat topics already covered recently.
-- Recency: eventDateUtc MUST be within the last {o.MaxAgeDays} days (≤ 30 days). Omit anything older.
+- Recency: eventDateUtc MUST be within the last {o.MaxAgeDays} days (≤ 30 days).
 
 Recent titles to avoid: {string.Join("; ", recentTitles.Take(50))}";
 
@@ -472,15 +383,14 @@ Constraints:
 - Return up to {count} strong items; if fewer valid exist, return fewer.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"
-Write ONE fresh analysis piece in category '{category}' that follows the same structural rules. The story must feel human-written, with simple words and clear sub-headings, and a 'What happens next' section. Return the same JSON shape with a single item in 'items'. Title must be unique vs the recent list.";
+Write ONE fresh analysis piece in category '{category}' that follows the same structural rules. Return the same JSON shape with a single item in 'items'. Title must be unique vs the recent list.";
 
     public static string BuildTrueCrimeUser(AiNewsOptions o) => $@"
 Write ONE non-graphic TRUE CRIME article in the 'Crime' category.
 Requirements:
-- Focus on a real murder/crime case with developments in the last {o.MaxAgeDays} days; if none, write a recent analysis with a current analysis date within that window. Mention dates and places briefly.
-- Thrilling but responsible tone; simple human words; no gore or graphic detail.
+- Focus on a real murder/crime case with developments in the last {o.MaxAgeDays} days; if none, write a recent analysis with a current analysis date within that window.
 - ≥ {Math.Max(o.MinWordCount, o.TrueCrimeMinWordCount)} words.
-- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happens next' describing likely next steps in the investigation/trial.
+- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happens next'.
 - Provide accurate royalty-free image link(s) if appropriate; else [].
 - Output the same JSON 'items' shape as other prompts, with eventDateUtc set to a date within {o.MaxAgeDays} days.";
 }
@@ -492,19 +402,19 @@ internal static class ArticleMapping
     public static Category ParseCategoryStrict(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return Category.Info;
-        switch (s.Trim().ToLowerInvariant())
+        return s.Trim().ToLowerInvariant() switch
         {
-            case "politics": return Category.Politics;
-            case "crime": return Category.Crime;
-            case "entertainment": return Category.Entertainment;
-            case "business": return Category.Business;
-            case "health": return Category.Health;
-            case "lifestyle": return Category.Lifestyle; // ✅ capital L
-            case "technology": return Category.Technology;
-            case "sports": return Category.Sports;
-            case "info": return Category.Info;
-            default: return Category.Info;
-        }
+            "politics" => Category.Politics,
+            "crime" => Category.Crime,
+            "entertainment" => Category.Entertainment,
+            "business" => Category.Business,
+            "health" => Category.Health,
+            "lifestyle" => Category.Lifestyle,
+            "technology" => Category.Technology,
+            "sports" => Category.Sports,
+            "info" => Category.Info,
+            _ => Category.Info
+        };
     }
 
     public static string EnsureHtmlDiv(string html, int minWords)
@@ -513,10 +423,8 @@ internal static class ArticleMapping
         if (!t.StartsWith("<div", StringComparison.OrdinalIgnoreCase))
             t = $"<div>\n{t}\n</div>";
 
-        // ensure length and structure
         var words = Regex.Split(Regex.Replace(t, "<.*?>", " "), @"\s+")
-                         .Where(w => !string.IsNullOrWhiteSpace(w))
-                         .ToArray();
+                         .Where(w => !string.IsNullOrWhiteSpace(w)).ToArray();
         if (words.Length < minWords)
             t += $"\n<!-- padded to meet minimum word count {minWords} -->";
         if (!Regex.IsMatch(t, @"<h2>|<h3>", RegexOptions.IgnoreCase))
@@ -546,7 +454,6 @@ internal static class ArticleMapping
             .ToList();
         if (keywords is { Count: 0 }) keywords = null;
 
-        // Global => null/null per requirement
         string? countryName = d.CountryName;
         string? countryCode = d.CountryCode;
         if (string.IsNullOrWhiteSpace(countryName) ||
@@ -556,7 +463,6 @@ internal static class ArticleMapping
             countryCode = null;
         }
 
-        // Prefer linked images; if none confident, set null
         var imagesList = pickedImages?.Where(i => !string.IsNullOrWhiteSpace(i.PhotoLink)).ToList();
         if (imagesList is { Count: 0 }) imagesList = null;
 
@@ -582,7 +488,7 @@ internal static class ArticleMapping
 }
 #endregion
 
-#region Service: AI Trending News every 5 minutes
+#region Service: AI Trending News
 public sealed class AiTrendingNewsPollingService : BackgroundService
 {
     private readonly ILogger<AiTrendingNewsPollingService> _log;
@@ -601,6 +507,8 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(TimeSpan.Zero, stoppingToken); // 0s for Trending
+
         _log.LogInformation("AiTrendingNewsPollingService started (interval {Interval}).", _opts.TrendingInterval);
         var timer = new PeriodicTimer(_opts.TrendingInterval);
         try
@@ -622,10 +530,11 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
     private async Task TickAsync(CancellationToken ct)
     {
+        using var gate = await AiWorkGate.EnterAsync();
+
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Gather recent titles for dedupe (memory + DB)
         var recent = await db.Set<Article>()
             .OrderByDescending(a => a.CreatedDate)
             .Select(a => a.Title)
@@ -639,7 +548,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var batch = DeserializeSafe(json);
         if (batch.Items.Count == 0) { _log.LogInformation("AI returned no items this tick."); return; }
 
-        // Author via FirstOrDefault (SuperAdmin or Role=2)
         var adminId = await db.Set<User>()
             .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
             .Select(u => (Guid?)u.Id)
@@ -647,20 +555,17 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
-        var toAdd = new List<Article>();
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
+        var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
             if (d.EventDateUtc is null) continue;
             if (now - d.EventDateUtc.Value > maxAge) continue;
-
-            // drop if title seen recently or in this batch
             if (!titles.Add(d.Title)) { _log.LogDebug("Duplicate title skipped: {Title}", d.Title); continue; }
-
             if (HtmlText.CountWords(d.ArticleHtml) < 120) { _log.LogDebug("Content too short for {Title}", d.Title); continue; }
 
             List<ArticleImage>? images = null;
@@ -671,7 +576,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
             var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId.Value, images, _opts, now);
 
-            // guard against DB duplicates (race/other service)
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
             if (exists) { _log.LogDebug("DB duplicate found, skipping: {Title}", article.Title); continue; }
@@ -703,7 +607,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         }
         catch
         {
-            // try to locate JSON object in free-form text
             var start = json.IndexOf('{');
             var end = json.LastIndexOf('}');
             if (start >= 0 && end > start)
@@ -723,7 +626,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 }
 #endregion
 
-#region Service: Random AI article every 10 minutes
+#region Service: Random AI article
 public sealed class AiRandomArticleWriterService : BackgroundService
 {
     private readonly ILogger<AiRandomArticleWriterService> _log;
@@ -743,6 +646,8 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); // stagger
+
         _log.LogInformation("AiRandomArticleWriterService started (interval {Interval}).", _opts.RandomInterval);
         var timer = new PeriodicTimer(_opts.RandomInterval);
         try
@@ -764,6 +669,8 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 
     private async Task TickAsync(CancellationToken ct)
     {
+        using var gate = await AiWorkGate.EnterAsync();
+
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -824,7 +731,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 }
 #endregion
 
-#region Service: TRUE CRIME writer (Crime category, non-graphic)
+#region Service: TRUE CRIME writer
 public sealed class AiTrueCrimeWriterService : BackgroundService
 {
     private readonly ILogger<AiTrueCrimeWriterService> _log;
@@ -843,6 +750,8 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(TimeSpan.FromSeconds(40), stoppingToken); // stagger
+
         _log.LogInformation("AiTrueCrimeWriterService started (interval {Interval}).", _opts.TrueCrimeInterval);
         var timer = new PeriodicTimer(_opts.TrueCrimeInterval);
         try
@@ -864,6 +773,8 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
 
     private async Task TickAsync(CancellationToken ct)
     {
+        using var gate = await AiWorkGate.EnterAsync();
+
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -895,12 +806,12 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
 
-            if (d.EventDateUtc is null) d.EventDateUtc = now; // set analysis date
+            if (d.EventDateUtc is null) d.EventDateUtc = now;
             if (now - d.EventDateUtc.Value > maxAge) continue;
             if (!titles.Add(d.Title)) continue;
 
             var minWords = Math.Max(_opts.MinWordCount, _opts.TrueCrimeMinWordCount);
-            if (HtmlText.CountWords(d.ArticleHtml) < minWords / 2) continue; // light guard before full ensure
+            if (HtmlText.CountWords(d.ArticleHtml) < minWords / 2) continue;
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -911,7 +822,6 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
             var article = ArticleMapping.MapToArticle(
                 d, ArticleType.Article, adminId.Value, images, _opts, now);
 
-            // Force category to Crime for true-crime
             article.Category = Category.Crime;
 
             var exists = await db.Set<Article>()
@@ -933,15 +843,43 @@ public static class AiNewsRegistration
     public static IServiceCollection AddAiNews(this IServiceCollection services, Action<AiNewsOptions> configure)
     {
         services.Configure(configure);
+
+        // Gemini client with Polly owning timeouts (no double timeout)
         services.AddHttpClient<IGenerativeTextClient, GeminiRestClient>(client =>
         {
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.Timeout = TimeSpan.FromSeconds(60);
+            client.Timeout = Timeout.InfiniteTimeSpan;                 // ✅ let Polly handle timeouts
+        })
+        .AddStandardResilienceHandler(o =>
+        {
+            // --- Timeouts ---
+            o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);       // per-try
+            o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150); // whole pipeline
+
+            // --- Circuit breaker (must satisfy SamplingDuration >= 2 * AttemptTimeout) ---
+            o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2);  // ✅ >= 120s
+            o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+            o.CircuitBreaker.FailureRatio = 0.2;
+            o.CircuitBreaker.MinimumThroughput = 10;
+
+            // --- Retry (treat Polly timeouts as transient) ---
+            o.Retry.MaxRetryAttempts = 2;
+            o.Retry.ShouldHandle = args =>
+                new ValueTask<bool>(
+                    args.Outcome.Exception is HttpRequestException
+                    || args.Outcome.Exception is TimeoutRejectedException
+                    || (args.Outcome.Result is { } r &&
+                        (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
+                );
         });
+
+        // Image picker HTTP client
         services.AddHttpClient<IImagePicker, WikimediaImagePicker>();
-        services.AddHostedService<AiTrendingNewsPollingService>();   // every 5 min
-        services.AddHostedService<AiRandomArticleWriterService>();   // every 10 min
-        services.AddHostedService<AiTrueCrimeWriterService>();       // every 30 min (configurable)
+
+        // Hosted services
+        services.AddHostedService<AiTrendingNewsPollingService>();
+        services.AddHostedService<AiRandomArticleWriterService>();
+        services.AddHostedService<AiTrueCrimeWriterService>();
         return services;
     }
 }
