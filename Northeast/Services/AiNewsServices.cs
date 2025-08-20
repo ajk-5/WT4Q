@@ -701,6 +701,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
+        var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
@@ -722,11 +723,18 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
             if (exists) continue;
 
-            db.Set<Article>().Add(article);
+            toAdd.Add(article);
         }
 
+        if (toAdd.Count == 0)
+        {
+            _log.LogInformation("No random AI article inserted for category {Category}.", category);
+            return;
+        }
+
+        db.Set<Article>().AddRange(toAdd);
         await db.SaveChangesAsync(ct);
-        _log.LogInformation("Inserted a random AI article in category {Category}.", category);
+        _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
     }
 }
 #endregion
