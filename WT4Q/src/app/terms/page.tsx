@@ -13,7 +13,8 @@ export default function TermsPage() {
         Visiting or using the site means you agree to the rules described here.
         This page highlights key points in plain language, but it is not a legal
         document. For the full text, please read the{' '}
-        <a href="/TERMS_AND_COOKIE_POLICY.md">policy document</a>.
+        <a href="/TERMS_AND_CONDITIONS.md">Terms &amp; Conditions</a> and{' '}
+        <a href="/COOKIES_POLICY.md">Cookies Policy</a> documents.
       </p>
       <h2 className={styles.heading}>Terms of Service Highlights</h2>
       <p>
@@ -61,7 +62,7 @@ export default function TermsPage() {
         You can revisit that banner, adjust your browser settings, or clear stored
         data to change your choice at any time. Refusing essential cookies may
         limit functionality. Learn more in the{' '}
-        <a href="/TERMS_AND_COOKIE_POLICY.md">full policy</a>.
+        <a href="/COOKIES_POLICY.md">Cookies Policy</a>.
       </p>
       <p>
         We update our terms occasionally as laws change or new features launch.
