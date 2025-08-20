@@ -9,69 +9,22 @@ export default function AboutPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>About WT4Q</h1>
       <p>
-        WT4Q began as a weekend experiment among a few neighbors who wanted a
-        single page where they could check the weather, scan the latest
-        headlines, and unwind with a quick puzzle. What started as a hobby has
-        gradually grown into a daily habit for readers across the region. The
-        site may look larger today, yet our purpose is unchanged: to offer a
-        friendly corner of the internet where people stay informed, find
-        practical tools, and feel connected to one another.
-      </p>
-      <p>
-        We are fiercely independent. WT4Q has no corporate owners, political
-        donors, or advertising networks steering our coverage. Stories appear
-        because they affect real people who live where we do. Every fact is
-        double‑checked through public records or direct conversations, and if we
-        make a mistake we post a correction prominently. Trust is earned article
-        by article, and we work hard to keep it.
-      </p>
-      <p>
-        Our reporting blends neighborhood detail with broader context. A zoning
-        vote, school board decision, or global event can all ripple through daily
-        life, so we break down the implications in plain language. Quick updates
-        keep you informed as news unfolds, while follow‑up explainers step back
-        and show the bigger picture. We want readers to understand not just what
-        happened, but why it matters.
-      </p>
-      <p>
-        WT4Q offers more than news. Our weather dashboard aggregates data from
-        multiple sources to deliver hour‑by‑hour forecasts and storm alerts.
-        Practical utilities like gas‑price trackers, transit updates, and
-        community calendars share space with light‑hearted games for a short
-        break. The site is designed to be useful at dawn, during lunch, or when
-        you wind down after dinner.
-      </p>
-      <p>
-        Community participation keeps the site vibrant. Readers send tips, share
-        photos, and suggest story ideas that often become our most popular
-        pieces. Comments are moderated for civility, but we invite spirited
-        debate and credit contributors whenever possible. If you see something
-        that deserves coverage or notice an error, we want to hear from you.
-        WT4Q is a collaboration with its audience.
-      </p>
-      <p>
-        Accessibility and privacy guide our technical choices. Pages load
-        quickly on phones, adhere to WCAG standards, and avoid intrusive
-        tracking. We use only essential cookies and plainly explain why they
-        exist. New features undergo a review to ensure they conserve bandwidth
-        and energy. Serving information responsibly is part of serving our
-        readers.
-      </p>
-      <p>
-        Behind the scenes, WT4Q runs on open-source software maintained by
-        volunteers. Publishing our code allows others to audit how we handle
-        data, suggest improvements, or adapt tools for their own communities.
-        Transparency in both journalism and technology keeps us accountable and
-        encourages collaboration with developers, designers, and civic groups
-        who share our goals.
-      </p>
-      <p>
-        The future holds new sections, a newsletter, and perhaps even a meetup or
-        two, but our north star remains service. Thank you for reading, sharing,
-        and supporting WT4Q. Together we can nurture a digital front porch where
-        information is reliable, neighbors connect, and curiosity is always
-        welcome.
-      </p>
+WT4Q is an interactive website created to keep you informed, entertained, and engaged all in one place. It provides the latest news, articles, and information on a wide variety of topics including politics, crime, entertainment, business, health, lifestyle, sports, and weather. But WT4Q is more than just a news site—it also offers fun games, useful tools, and interactive features to make the experience enjoyable for every type of user.
+</p>
+
+<p>
+At the heart of WT4Q lies the power of Google’s Gemini AI, which helps automate the platform and ensure that the content you see is personalized and relevant. The website is managed by a team of administrators and super administrators who act as authors, publishing and curating articles. Meanwhile, users are encouraged to engage with content by commenting, liking, and sharing their thoughts, creating a lively and connected community.
+</p>
+
+<p>
+WT4Q also integrates smart external services to make your experience richer. The weather section, powered by the reliable MET.no API, gives you real-time and accurate weather updates. There’s also a world clock that not only shows the current time in major cities around the globe but also provides live weather information for those locations. On top of this, news and articles are personalized to match your location, so you always stay updated with what matters most to you.
+</p>
+
+<p>
+Security is a top priority for WT4Q. The platform uses Bcrypt encryption to protect user data and integrates Google OAuth for secure authentication. This ensures that every user can browse, interact, and participate with complete peace of mind. By combining the intelligence of AI with trusted external APIs, WT4Q delivers a comprehensive digital hub where staying informed is effortless, engaging, and secure.
+</p>
+<p>Our next top priority is  Newsletter functionality. We are working on it and will be published after some week.</p>
+<p></p>
     </div>
   );
 }

@@ -808,7 +808,86 @@ const WORLD_CITIES_DATA = [
     "country": "NP",
     "population": 845767,
     "timezone": "Asia/Kathmandu"
-  }
+  },{
+  "name": "Paris",
+  "lat": 48.8566,
+  "lon": 2.3522,
+  "country": "FR",
+  "population": 2148000,
+  "timezone": "Europe/Paris"
+},
+{
+  "name": "Madrid",
+  "lat": 40.4168,
+  "lon": -3.7038,
+  "country": "ES",
+  "population": 3266000,
+  "timezone": "Europe/Madrid"
+},
+{
+  "name": "Rome",
+  "lat": 41.9028,
+  "lon": 12.4964,
+  "country": "IT",
+  "population": 2873000,
+  "timezone": "Europe/Rome"
+},
+{
+  "name": "Buenos Aires",
+  "lat": -34.6037,
+  "lon": -58.3816,
+  "country": "AR",
+  "population": 2890000,
+  "timezone": "America/Argentina/Buenos_Aires"
+},
+{
+  "name": "Toronto",
+  "lat": 43.6532,
+  "lon": -79.3832,
+  "country": "CA",
+  "population": 2930000,
+  "timezone": "America/Toronto"
+},
+{
+  "name": "Washington D.C.",
+  "lat": 38.9072,
+  "lon": -77.0369,
+  "country": "US",
+  "population": 712816,
+  "timezone": "America/New_York"
+},
+{
+  "name": "Chicago",
+  "lat": 41.8781,
+  "lon": -87.6298,
+  "country": "US",
+  "population": 2746388,
+  "timezone": "America/Chicago"
+},
+{
+  "name": "San Francisco",
+  "lat": 37.7749,
+  "lon": -122.4194,
+  "country": "US",
+  "population": 815201,
+  "timezone": "America/Los_Angeles"
+},
+{
+  "name": "Copenhagen",
+  "lat": 55.6761,
+  "lon": 12.5683,
+  "country": "DK",
+  "population": 602481,
+  "timezone": "Europe/Copenhagen"
+},
+{
+  "name": "Stockholm",
+  "lat": 59.3293,
+  "lon": 18.0686,
+  "country": "SE",
+  "population": 975819,
+  "timezone": "Europe/Stockholm"
+}
 ] as const;
 
 

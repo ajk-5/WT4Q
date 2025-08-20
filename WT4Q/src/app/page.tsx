@@ -12,7 +12,7 @@ import WeatherWidget from '@/components/WeatherWidget';
 import LocalArticleSection from '@/components/LocalArticleSection';
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: 'WT4Q.com: Home',
   alternates: { canonical: '/' },
   openGraph: { title: 'WT4Q: A website for News, Articles, Informations, True Crime, Luxury , lifestyle and luxury  ', url: '/', type: 'website' },
 };
