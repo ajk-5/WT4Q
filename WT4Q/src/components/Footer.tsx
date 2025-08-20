@@ -7,7 +7,11 @@ export default function Footer() {
       <div className={styles.inner}>
         &copy; {new Date().getFullYear()} WT4Q News{' '}
         <span aria-hidden="true">|</span>{' '}
-        <PrefetchLink href="/terms">Terms &amp; Cookies</PrefetchLink>{' '}
+        <PrefetchLink href="/TERMS_AND_CONDITIONS.md">Terms &amp; Conditions</PrefetchLink>{' '}
+        <span aria-hidden="true">|</span>{' '}
+        <PrefetchLink href="/PRIVACY_POLICY.md">Privacy Policy</PrefetchLink>{' '}
+        <span aria-hidden="true">|</span>{' '}
+        <PrefetchLink href="/COOKIES_POLICY.md">Cookies Policy</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
         <PrefetchLink href="/about">About</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
