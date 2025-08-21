@@ -153,8 +153,8 @@ export default function TetrisGame() {
       return `rgba(${r},${g},${b},${a})`;
     }
 
-    function seededRandom(seed?: number) {
-      let x = seed | 0 || 123456789;
+    function seededRandom(seed: number = 123456789) {
+      let x = seed | 0;
       return () => {
         x ^= x << 13;
         x ^= x >>> 17;
@@ -622,19 +622,17 @@ export default function TetrisGame() {
     }
     soundBtn.addEventListener('click', () => {
       ensureAudio();
-      audioCtx?.resume?.();
+      audioCtx?.resume();
       soundBtn.textContent = '🔊 Sound on';
     });
     document.addEventListener('keydown', () => {
-      if (!audioCtx) {
-        ensureAudio();
-        audioCtx?.resume?.();
-        soundBtn.textContent = '🔊 Sound on';
-      }
+      ensureAudio();
+      audioCtx?.resume();
+      soundBtn.textContent = '🔊 Sound on';
     });
     function unlockAudioOnGesture() {
       ensureAudio();
-      audioCtx?.resume?.();
+      audioCtx?.resume();
       soundBtn.textContent = '🔊 Sound on';
       window.removeEventListener('touchstart', unlockAudioOnGesture);
       window.removeEventListener('pointerdown', unlockAudioOnGesture);
@@ -905,7 +903,7 @@ export default function TetrisGame() {
 
     // --- Best score (localStorage) ------------------------------------------
     const bestEl = document.getElementById('best')!;
-    let best = +localStorage.getItem('tetrisBest') || 0;
+    let best = Number(localStorage.getItem('tetrisBest') ?? 0);
     bestEl.textContent = best.toString();
     function updateBest() {
       if (player.score > best) {

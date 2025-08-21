@@ -26,6 +26,12 @@
   --error-red: #e63946;
   --metal-gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
 
+  /* Tetris game colors */
+  --bg1: #2b0a86;
+  --bg2: #130242;
+  --panel: rgba(255,255,255,0.08);
+  --panel-border: rgba(255,255,255,0.18);
+
   /* Layout scale */
   --content-max: 1200px;
   --radius: 14px;
