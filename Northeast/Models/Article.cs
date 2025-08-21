@@ -17,7 +17,6 @@ namespace Northeast.Models
         public Category Category { get; set; }
         [Required]
         public string Title { get; set; }
-        public string TitleHash { get; set; }
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]

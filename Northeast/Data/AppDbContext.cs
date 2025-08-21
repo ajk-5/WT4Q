@@ -49,10 +49,6 @@ namespace Northeast.Data
                 .IsUnique();
 
             modelBuilder.Entity<Article>()
-                .HasIndex(a => a.TitleHash)
-                .IsUnique();
-
-            modelBuilder.Entity<Article>()
                 .Navigation(a => a.Images)
                 .AutoInclude();
 
