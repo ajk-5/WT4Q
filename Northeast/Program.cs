@@ -21,6 +21,9 @@ using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Utilities;
 using Polly.Timeout;                        // ✅ Polly timeout
+using Polly;
+using Polly.Extensions.Http;
+using Northeast.Configuration;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -102,22 +105,49 @@ builder.Services.AddHttpClient("default")
         o.Retry.ShouldHandle = args =>
             new ValueTask<bool>(
                 args.Outcome.Exception is HttpRequestException
-                || args.Outcome.Exception is TimeoutRejectedException
                 || (args.Outcome.Result is { } r &&
                     (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
             );
     });
 
 // --- AI News (Gemini + hosted services) ---
-builder.Services.AddAiNews(o =>
-{
-    o.ApiKey = builder.Configuration["AiNews:ApiKey"]
-               ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
-               ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+builder.Services.Configure<AiNewsOptions>(builder.Configuration.GetSection("AiNews"));
 
-    if (string.IsNullOrWhiteSpace(o.ApiKey))
-        throw new InvalidOperationException("AiNews:ApiKey is missing. Set it in configuration or as an environment variable.");
-});
+builder.Services.AddHttpClient<IGeminiClient, GeminiClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AiNews:GeminiApiUrl"]);
+    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {builder.Configuration["AiNews:GeminiApiKey"]}");
+})
+.AddTransientHttpErrorPolicy(policy =>
+    policy.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
+.AddTransientHttpErrorPolicy(policy =>
+    policy.CircuitBreakerAsync(5, TimeSpan.FromMinutes(1)));
+
+builder.Services.AddHttpClient("News", client =>
+{
+    client.BaseAddress = new Uri("https://api.currentsapi.services/v1/");
+})
+.AddTransientHttpErrorPolicy(policy =>
+    policy.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt)))
+.AddTransientHttpErrorPolicy(policy =>
+    policy.CircuitBreakerAsync(5, TimeSpan.FromMinutes(1)));
+
+builder.Services.AddHttpClient("Wiki", client =>
+{
+    client.BaseAddress = new Uri("https://en.wikipedia.org/w/");
+    client.DefaultRequestHeaders.Add("User-Agent", "AI-News-Agent/1.0");
+})
+.AddTransientHttpErrorPolicy(policy =>
+    policy.WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(2)))
+.AddTransientHttpErrorPolicy(policy =>
+    policy.CircuitBreakerAsync(5, TimeSpan.FromMinutes(1)));
+
+builder.Services.AddScoped<IArticlePublisher, ArticlePublisher>();
+builder.Services.AddSingleton<AiArticleGenerator>();
+builder.Services.AddSingleton<SemaphoreSlim>(_ => new SemaphoreSlim(1, 1));
+builder.Services.AddHostedService<TrendingNewsService>();
+builder.Services.AddHostedService<RandomArticleService>();
+builder.Services.AddHostedService<HorrorArticleService>();
 
 // --- Authentication ---
 builder.Services.AddAuthentication(options =>
