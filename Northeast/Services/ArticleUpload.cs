@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Northeast.Repository;
 using Northeast.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Northeast.Data;
 
 
 namespace Northeast.Services

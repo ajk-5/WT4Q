@@ -25,11 +25,11 @@ namespace Northeast.Services;
 public sealed class AiNewsOptions
 {
     public string ApiKey { get; set; } = string.Empty;
-    public string Model { get; set; } = "gemini-2.5-pro";
+    public string Model { get; set; } = "gemini-2.5-flash";
 
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(5);
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(10);
-    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(30);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(30);
+    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(60);
 
     public int MaxTrendingPerTick { get; set; } = 1;
     public double Creativity { get; set; } = 0.9;
@@ -37,7 +37,7 @@ public sealed class AiNewsOptions
     public int MaxAgeDays { get; set; } = 30;
     public int BreakingWindowHours { get; set; } = 24;
     public bool UseExternalImages { get; set; } = true;
-    public int TrueCrimeMinWordCount { get; set; } = 1200;
+    public int TrueCrimeMinWordCount { get; set; } = 500;
     public bool UseExternalNews { get; set; } = false; // back-compat
 }
 #endregion
@@ -136,7 +136,7 @@ public sealed class AiArticleDraft
     [JsonPropertyName("images")] public List<AiImage>? Images { get; set; }
     [JsonPropertyName("eventDateUtc")] public DateTimeOffset? EventDateUtc { get; set; }
     [JsonPropertyName("isBreaking")] public bool? IsBreaking { get; set; }
-    [JsonPropertyName("breakingReason")] public string? BreakingReason { get; set; }
+ 
 }
 
 public sealed class AiImage
@@ -367,14 +367,13 @@ Return JSON:
     {{
       ""title"": ""specific, unique headline"",
       ""category"": ""Politics|Crime|Entertainment|Business|Health|Lifestyle|Technology|Sports|Info"",
-      ""articleHtml"": ""<div>...subheads...What happens next...</div>"",
+      ""articleHtml"": ""<div>...subheads...summary...</div>"",
       ""countryName"": null | ""France"" | ""United States"" | ...,
       ""countryCode"": null | ""FR"" | ""US"" | ...,
       ""keywords"": [""kw1"",""kw2"",...],
-      ""images"": [{{ ""altText"": ""accurate alt"", ""caption"": ""helpful caption"", ""photoLink"": ""https://upload.wikimedia.org/..."" }}],
+      ""images"": [{{ ""altText"": ""accurate alt"", ""caption"": ""helpful caption"", ""photoLink"": ""https://example.com/..."" }}],
       ""eventDateUtc"": ""YYYY-MM-DDTHH:mm:ssZ"",
-      ""isBreaking"": true|false,
-      ""breakingReason"": null | ""short reason""
+      ""isBreaking"": true|false
     }}
   ]
 }}

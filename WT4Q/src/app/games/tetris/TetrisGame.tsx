@@ -1224,7 +1224,7 @@ export default function TetrisGame() {
           <label htmlFor="designSelect">
             Design <small>(locks on Start)</small>
           </label>
-          <select id="designSelect" defaultValue="wood">
+          <select id="designSelect"  defaultValue="wood">
             <option value="wood">
               Wood
             </option>
