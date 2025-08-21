@@ -34,10 +34,10 @@ public sealed class AiNewsOptions
 
     public int MaxTrendingPerTick { get; set; } = 1;
     public double Creativity { get; set; } = 0.9;
-    public int MinWordCount { get; set; } = 180;
+    public int MinWordCount { get; set; } = 120;
     public int MaxAgeDays { get; set; } = 30;
     public int BreakingWindowHours { get; set; } = 24;
-    public bool UseExternalImages { get; set; } = true;
+    public bool UseExternalImages { get; set; } = false;
     public int TrueCrimeMinWordCount { get; set; } = 500;
     public bool UseExternalNews { get; set; } = false; // back-compat
 }
@@ -576,7 +576,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
@@ -584,11 +583,13 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
-            if (d.EventDateUtc is null) continue;
-            if (now - d.EventDateUtc.Value > maxAge) continue;
-            if (!titles.Add(d.Title)) { _log.LogDebug("Duplicate title skipped: {Title}", d.Title); continue; }
-            if (HtmlText.CountWords(d.ArticleHtml) < 120) { _log.LogDebug("Content too short for {Title}", d.Title); continue; }
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
+                { Info("missing title or html", d); continue; }
+            if (d.EventDateUtc is null) d.EventDateUtc = now;
+            if (now - d.EventDateUtc.Value > maxAge)
+                { Info("too old", d); continue; }
+            if (HtmlText.CountWords(d.ArticleHtml) < 80)
+                { Info("too short (<80 words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -600,7 +601,12 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
-            if (exists) { _log.LogDebug("DB duplicate found, skipping: {Title}", article.Title); continue; }
+            if (exists)
+            {
+                Info("DB duplicate title", d);
+                continue;
+                // article.Title = $"{article.Title} — update {now:HH:mm}"; // optional update path
+            }
 
             toAdd.Add(article);
         }
@@ -620,6 +626,9 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
             _log.LogWarning(ex, "DbUpdateException while saving AI news (some duplicates may have been dropped).");
         }
     }
+
+    private void Info(string reason, AiArticleDraft d) =>
+        _log.LogInformation("drop: {Reason} | title='{Title}'", reason, d.Title);
 
     internal static AiArticleDraftBatch DeserializeSafe(string json)
     {
@@ -719,7 +728,6 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
@@ -727,11 +735,13 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
+                { Info("missing title or html", d); continue; }
             if (d.EventDateUtc is null) d.EventDateUtc = now;
-            if (now - d.EventDateUtc.Value > maxAge) continue;
-            if (!titles.Add(d.Title)) continue;
-            if (HtmlText.CountWords(d.ArticleHtml) < 120) continue;
+            if (now - d.EventDateUtc.Value > maxAge)
+                { Info("too old", d); continue; }
+            if (HtmlText.CountWords(d.ArticleHtml) < 80)
+                { Info("too short (<80 words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -744,7 +754,11 @@ public sealed class AiRandomArticleWriterService : BackgroundService
 
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
-            if (exists) continue;
+            if (exists)
+            {
+                Info("DB duplicate title", d);
+                continue;
+            }
 
             toAdd.Add(article);
         }
@@ -760,6 +774,9 @@ public sealed class AiRandomArticleWriterService : BackgroundService
             await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
         _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
     }
+
+    private void Info(string reason, AiArticleDraft d) =>
+        _log.LogInformation("drop: {Reason} | title='{Title}'", reason, d.Title);
 }
 #endregion
 
@@ -828,7 +845,6 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
@@ -836,14 +852,15 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
+            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
+                { Info("missing title or html", d); continue; }
 
             if (d.EventDateUtc is null) d.EventDateUtc = now;
-            if (now - d.EventDateUtc.Value > maxAge) continue;
-            if (!titles.Add(d.Title)) continue;
+            if (now - d.EventDateUtc.Value > maxAge)
+                { Info("too old", d); continue; }
 
-            var minWords = Math.Max(_opts.MinWordCount, _opts.TrueCrimeMinWordCount);
-            if (HtmlText.CountWords(d.ArticleHtml) < minWords / 2) continue;
+            if (HtmlText.CountWords(d.ArticleHtml) < 80)
+                { Info("too short (<80 words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -858,13 +875,20 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
 
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
-            if (exists) continue;
+            if (exists)
+            {
+                Info("DB duplicate title", d);
+                continue;
+            }
 
             await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
         }
 
         _log.LogInformation("Inserted a TRUE CRIME article.");
     }
+
+    private void Info(string reason, AiArticleDraft d) =>
+        _log.LogInformation("drop: {Reason} | title='{Title}'", reason, d.Title);
 }
 #endregion
 
