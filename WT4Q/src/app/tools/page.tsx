@@ -5,7 +5,7 @@ import styles from './Tools.module.css';
 export const metadata: Metadata = {
   title: 'Tools',
   description:
-    'Handy utilities including a meme generator and a world clock.',
+    'Handy utilities including a meme generator, a world clock, and a free QR code scanner.',
 };
 
 export default function ToolsPage() {
@@ -27,6 +27,14 @@ export default function ToolsPage() {
             title="MemeMaker – create custom memes"
           >
             Mememaker
+          </PrefetchLink>
+        </li>
+        <li className={styles.item}>
+          <PrefetchLink
+            href="/tools/qr-code-scanner"
+            title="QR Code Scanner – free online tool, no sign up or login required"
+          >
+            QR Code Scanner
           </PrefetchLink>
         </li>
       </ul>
