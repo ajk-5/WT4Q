@@ -66,6 +66,13 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
           >
             Metropolotan Trader
           </PrefetchLink>
+          <PrefetchLink
+            href="/games/tetris"
+            className={styles.link}
+            onClick={onNavigate}
+          >
+            Tetris
+          </PrefetchLink>
         </div>
       </div>
       <PrefetchLink href="/weather" className={styles.link} onClick={onNavigate}>
