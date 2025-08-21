@@ -81,7 +81,6 @@ namespace Northeast.Services
                 ArticleType = articleDto.ArticleType,
                 Content = articleDto.Content,
                 IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews,
-                EmbededCode = articleDto.EmbededCode,
                 Keywords = articleDto.Keyword ?? null,
                 Images = articleDto.Images?.Select(img => new ArticleImage
                 {
@@ -93,8 +92,8 @@ namespace Northeast.Services
             };
             if (articleDto.ArticleType == 0)
             {
-                article.CountryName = articleDto.CountryName;
-                article.CountryCode = articleDto.CountryCode;
+                article.CountryName = articleDto.CountryName ?? null;
+                article.CountryCode = articleDto.CountryCode ?? null;
             }
             await _articleRepository.Add(article);
 
@@ -200,7 +199,6 @@ namespace Northeast.Services
             article.ArticleType = articleDto.ArticleType;
             article.Content = articleDto.Content;
             article.IsBreakingNews = articleDto.ArticleType == ArticleType.News && articleDto.IsBreakingNews;
-            article.EmbededCode = articleDto.EmbededCode;
             article.Keywords = articleDto.Keyword ?? null;
 
             if (articleDto.Images != null && articleDto.Images.Any())

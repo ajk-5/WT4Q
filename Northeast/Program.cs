@@ -1,33 +1,26 @@
-﻿// =============================
-// File: Program.cs
-// =============================
-using MaxMind.GeoIP2;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Http.Resilience;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+
 using Microsoft.IdentityModel.Tokens;
 using Northeast.Data;
 using Northeast.Interface;
-using Northeast.Middlewares;
+
 using Northeast.Models;
 using Northeast.Repository;
 using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Utilities;
 using Polly.Timeout;                        // ✅ Polly timeout
-using System.IO;
+
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;                     // ✅ Timeout.InfiniteTimeSpan
+                   // ✅ Timeout.InfiniteTimeSpan
 
 var builder = WebApplication.CreateBuilder(args);
 var originsPolicy = "AuthorizedApps";

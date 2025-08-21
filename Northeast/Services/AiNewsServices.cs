@@ -28,11 +28,11 @@ public sealed class AiNewsOptions
     public string ApiKey { get; set; } = string.Empty;
     public string Model { get; set; } = "gemini-2.5-flash";
 
-    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(30);
-    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(30);
-    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(60);
+    public TimeSpan TrendingInterval { get; set; } = TimeSpan.FromMinutes(15);
+    public TimeSpan RandomInterval { get; set; } = TimeSpan.FromMinutes(15);
+    public TimeSpan TrueCrimeInterval { get; set; } = TimeSpan.FromMinutes(30);
 
-    public int MaxTrendingPerTick { get; set; } = 1;
+    public int MaxTrendingPerTick { get; set; } = 3;
     public double Creativity { get; set; } = 0.9;
     public int MinWordCount { get; set; } = 120;
     public int MaxAgeDays { get; set; } = 30;
@@ -388,11 +388,11 @@ Write ONE fresh analysis piece in category '{category}' that follows the same st
     public static string BuildTrueCrimeUser(AiNewsOptions o) => $@"
 Write ONE non-graphic TRUE CRIME article in the 'Crime' category.
 Requirements:
-- Focus on a real murder/crime case with developments in the last {o.MaxAgeDays} days; if none, write a recent analysis with a current analysis date within that window.
-- ≥ {Math.Max(o.MinWordCount, o.TrueCrimeMinWordCount)} words.
-- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happens next'.
-- Provide accurate royalty-free image link(s) if appropriate; else [].
-- Output the same JSON 'items' shape as other prompts, with eventDateUtc set to a date within {o.MaxAgeDays} days.";
+- Focus on a real murder/crime cases , recent or historic;.
+- ≥ {Math.Max(o.MinWordCount, o.TrueCrimeMinWordCount)} words, make it thriller and without palgiarism and properly worded, in depth stories.
+- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happened next' if there is proper else give concludion or warning for people to take care against similar incident .
+- Provide accurate royalty-free image link(s) if appropriate; else image should be [] or null.
+- Output the same JSON 'items' shape as other prompts with some crrections for trum crime part no what happen next but 'what happened next 'like public reactions, outcomes,etc";
 }
 #endregion
 
@@ -502,7 +502,6 @@ internal static class ArticleMapping
                 AltText = i.AltText,
                 Caption = i.Caption
             }).ToList(),
-            EmbededCode = article.EmbededCode,
             CountryName = article.CountryName,
             CountryCode = article.CountryCode,
             Keyword = article.Keywords

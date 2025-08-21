@@ -26,7 +26,7 @@ namespace Northeast.Models
         public bool IsBreakingNews { get; set; } = false;
 
         public List<ArticleImage>? Images { get; set; } = new List<ArticleImage>();
-        public string? EmbededCode { get; set; }
+      
         public List<Comment>? Comments { get; set; } = new List<Comment>();
         public ICollection<LikeEntity>? Like { get; set; } = new List<LikeEntity>();
 
