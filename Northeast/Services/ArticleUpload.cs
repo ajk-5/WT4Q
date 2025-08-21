@@ -55,17 +55,26 @@ namespace Northeast.Services
         }
         public async Task Publish(ArticleDto articleDto)
         {
+            await Publish(articleDto, _connectedUser.Id);
+        }
+
+        public async Task Publish(ArticleDto articleDto, Guid authorId)
+        {
             if (HtmlText.CountWords(articleDto.Content) < 50)
             {
                 throw new ArgumentException("Article content must be at least 50 words long.");
             }
 
-            var u = _connectedUser;
-            Guid userId = u.Id;
+            var author = await _appDbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == authorId);
+            if (author == null || (author.Role != Role.Admin && author.Role != Role.SuperAdmin))
+            {
+                throw new UnauthorizedAccessException("Author must be an Admin or SuperAdmin.");
+            }
 
             Article article = new Article()
             {
-                AuthorId = userId,
+                AuthorId = authorId,
                 Title = articleDto.Title,
                 Category = articleDto.Category,
                 CreatedDate = DateTime.UtcNow,

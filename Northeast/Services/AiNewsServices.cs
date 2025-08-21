@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +13,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -573,11 +571,10 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var batch = DeserializeSafe(json);
         if (batch.Items.Count == 0) { _log.LogInformation("AI returned no items this tick."); return; }
 
-        var adminId = await db.Set<User>()
-            .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
-            .Select(u => (Guid?)u.Id)
-            .FirstOrDefaultAsync(ct);
-        if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
+        var admin = await db.Users
+            .FirstOrDefaultAsync(u => u.Role == Role.SuperAdmin || u.Role == Role.Admin, ct);
+        if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
+        var adminId = admin.Id;
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
@@ -599,7 +596,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
             else
                 images = AiImageFilter.SelectRelevantImages(d);
 
-            var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId.Value, images, _opts, now);
+            var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId, images, _opts, now);
 
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
@@ -610,30 +607,17 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         if (toAdd.Count == 0) { _log.LogInformation("No new AI news to insert."); return; }
 
-        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-        accessor.HttpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
-            }))
-        };
-
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         try
         {
             foreach (var article in toAdd)
-                await articleService.Publish(ArticleMapping.MapToDto(article));
+                await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
 
             _log.LogInformation("Inserted {Count} AI trending news item(s).", toAdd.Count);
         }
         catch (DbUpdateException ex)
         {
             _log.LogWarning(ex, "DbUpdateException while saving AI news (some duplicates may have been dropped).");
-        }
-        finally
-        {
-            accessor.HttpContext = null;
         }
     }
 
@@ -730,11 +714,10 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
         if (batch.Items.Count == 0) { _log.LogInformation("AI returned no items this tick."); return; }
 
-        var adminId = await db.Set<User>()
-            .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
-            .Select(u => (Guid?)u.Id)
-            .FirstOrDefaultAsync(ct);
-        if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
+        var admin = await db.Users
+            .FirstOrDefaultAsync(u => u.Role == Role.SuperAdmin || u.Role == Role.Admin, ct);
+        if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
+        var adminId = admin.Id;
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
@@ -757,7 +740,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
                 images = AiImageFilter.SelectRelevantImages(d);
 
             var article = ArticleMapping.MapToArticle(
-                d, ArticleType.Article, adminId.Value, images, _opts, now);
+                d, ArticleType.Article, adminId, images, _opts, now);
 
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
@@ -772,20 +755,9 @@ public sealed class AiRandomArticleWriterService : BackgroundService
             return;
         }
 
-        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-        accessor.HttpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
-            }))
-        };
-
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         foreach (var article in toAdd)
-            await articleService.Publish(ArticleMapping.MapToDto(article));
-
-        accessor.HttpContext = null;
+            await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
         _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
     }
 }
@@ -851,25 +823,15 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var batch = AiTrendingNewsPollingService.DeserializeSafe(json);
         if (batch.Items.Count == 0) { _log.LogInformation("No true-crime item returned."); return; }
 
-        var adminId = await db.Set<User>()
-            .Where(u => u.Role == Role.SuperAdmin || (int)u.Role == 2)
-            .Select(u => (Guid?)u.Id)
-            .FirstOrDefaultAsync(ct);
-        if (adminId is null) { _log.LogWarning("No SuperAdmin found."); return; }
+        var admin = await db.Users
+            .FirstOrDefaultAsync(u => u.Role == Role.SuperAdmin || u.Role == Role.Admin, ct);
+        if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
+        var adminId = admin.Id;
 
         var titles = new HashSet<string>(recent, StringComparer.OrdinalIgnoreCase);
         var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
-
-        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-        accessor.HttpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
-            }))
-        };
 
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         foreach (var d in batch.Items)
@@ -890,7 +852,7 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
                 images = AiImageFilter.SelectRelevantImages(d);
 
             var article = ArticleMapping.MapToArticle(
-                d, ArticleType.Article, adminId.Value, images, _opts, now);
+                d, ArticleType.Article, adminId, images, _opts, now);
 
             article.Category = Category.Crime;
 
@@ -898,10 +860,9 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
             if (exists) continue;
 
-            await articleService.Publish(ArticleMapping.MapToDto(article));
+            await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
         }
 
-        accessor.HttpContext = null;
         _log.LogInformation("Inserted a TRUE CRIME article.");
     }
 }
