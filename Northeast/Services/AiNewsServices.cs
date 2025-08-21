@@ -623,7 +623,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         }
         catch (DbUpdateException ex)
         {
-            _log.LogWarning(ex, "DbUpdateException while saving AI news (some duplicates may have been dropped).");
+            _log.LogError(ex, "Failed to insert AI trending news item(s); no articles were saved.");
         }
     }
 
@@ -770,9 +770,17 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         }
 
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
-        foreach (var article in toAdd)
-            await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
-        _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
+        try
+        {
+            foreach (var article in toAdd)
+                await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
+
+            _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
+        }
+        catch (DbUpdateException ex)
+        {
+            _log.LogError(ex, "Failed to insert random AI article(s) in category {Category}.", category);
+        }
     }
 
     private void Info(string reason, AiArticleDraft d) =>
@@ -850,6 +858,7 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
+        var inserted = 0;
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
@@ -881,10 +890,21 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
                 continue;
             }
 
-            await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
+            try
+            {
+                await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
+                inserted++;
+            }
+            catch (DbUpdateException ex)
+            {
+                _log.LogError(ex, "Failed to insert AI true-crime article '{Title}'.", article.Title);
+            }
         }
 
-        _log.LogInformation("Inserted a TRUE CRIME article.");
+        if (inserted == 0)
+            _log.LogInformation("No TRUE CRIME article inserted.");
+        else
+            _log.LogInformation("Inserted {Count} TRUE CRIME article(s).", inserted);
     }
 
     private void Info(string reason, AiArticleDraft d) =>
