@@ -77,7 +77,7 @@ export default function QrMaker() {
     try {
       canvasRef.current.toBlob(async (blob) => {
         if (!blob) return;
-        // @ts-expect-error ClipboardItem may not exist in some browsers
+       
         await navigator.clipboard.write([
           new window.ClipboardItem({ 'image/png': blob }),
         ]);

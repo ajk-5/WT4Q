@@ -63,7 +63,7 @@
 }
 
 .buttonPrimary {
-  background: #000;
+  background: #2b0a86;
   color: #fff;
   padding: 0.5rem 1rem;
   border: none;
@@ -73,7 +73,7 @@
 .buttonSecondary {
   border: 1px solid #000;
   padding: 0.5rem 1rem;
-  background: #fff;
+  background: #2b0a86;
   cursor: pointer;
 }
 
@@ -81,7 +81,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f3f4f6;
+  background: #f3f4f600;
   border: 1px solid #e5e7eb;
   padding: 1rem;
 }
