@@ -34,7 +34,7 @@ public sealed class AiNewsOptions
 
     public int MaxTrendingPerTick { get; set; } = 3;
     public double Creativity { get; set; } = 0.9;
-    public int MinWordCount { get; set; } = 120;
+    public int MinWordCount { get; set; } = 150;
     public int PreInsertMinWordCount { get; set; } = 80;      // low bar before mapping/padding
     public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
     public bool AcceptStaleAsAnalysis { get; set; } = true;    // coerce stale items into analysis
