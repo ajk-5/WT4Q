@@ -578,7 +578,6 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
@@ -602,11 +601,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
             if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
                 { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
-            List<ArticleImage>? images = null;
-            if (_opts.UseExternalImages)
-                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
-            else
-                images = AiImageFilter.SelectRelevantImages(d);
+            List<ArticleImage>? images = null; // images are intentionally omitted
 
             var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId, images, _opts, now);
 
@@ -739,7 +734,6 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
@@ -756,11 +750,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
             if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
                 { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
-            List<ArticleImage>? images = null;
-            if (_opts.UseExternalImages)
-                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
-            else
-                images = AiImageFilter.SelectRelevantImages(d);
+            List<ArticleImage>? images = null; // images are intentionally omitted
 
             var article = ArticleMapping.MapToArticle(
                 d, ArticleType.Article, adminId, images, _opts, now);
@@ -866,7 +856,6 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         if (admin is null) { _log.LogWarning("No Admin or SuperAdmin found."); return; }
         var adminId = admin.Id;
 
-        var picker = scope.ServiceProvider.GetRequiredService<IImagePicker>();
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
@@ -884,11 +873,7 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
             if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
                 { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
-            List<ArticleImage>? images = null;
-            if (_opts.UseExternalImages)
-                images = await picker.FindAsync(d.Title ?? string.Empty, d.Keywords ?? Enumerable.Empty<string>(), 2, ct);
-            else
-                images = AiImageFilter.SelectRelevantImages(d);
+            List<ArticleImage>? images = null; // images are intentionally omitted
 
             var article = ArticleMapping.MapToArticle(
                 d, ArticleType.Article, adminId, images, _opts, now);
@@ -961,8 +946,6 @@ public static class AiNewsRegistration
                 );
         });
 
-        // Image picker HTTP client
-        services.AddHttpClient<IImagePicker, WikimediaImagePicker>();
 
         // Hosted services
         services.AddHostedService<AiTrendingNewsPollingService>();
