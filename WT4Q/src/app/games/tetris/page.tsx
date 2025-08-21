@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
+import TetrisGame from './TetrisGame';
 
-const TetrisGame = dynamic(() => import('./TetrisGame'), { ssr: false });
 
 export const metadata: Metadata = {
   title: 'Tetris',
