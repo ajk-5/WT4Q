@@ -35,6 +35,9 @@ public sealed class AiNewsOptions
     public int MaxTrendingPerTick { get; set; } = 3;
     public double Creativity { get; set; } = 0.9;
     public int MinWordCount { get; set; } = 120;
+    public int PreInsertMinWordCount { get; set; } = 80;      // low bar before mapping/padding
+    public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
+    public bool AcceptStaleAsAnalysis { get; set; } = true;    // coerce stale items into analysis
     public int MaxAgeDays { get; set; } = 30;
     public int BreakingWindowHours { get; set; } = 24;
     public bool UseExternalImages { get; set; } = false;
@@ -582,13 +585,22 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
-                { Info("missing title or html", d); continue; }
+            if (string.IsNullOrWhiteSpace(d.Title))
+                { Info("missing title", d); continue; }
             if (d.EventDateUtc is null) d.EventDateUtc = now;
-            if (now - d.EventDateUtc.Value > maxAge)
+            var tooOld = now - d.EventDateUtc.Value > maxAge;
+            if (string.IsNullOrWhiteSpace(d.ArticleHtml) && _opts.FillMissingHtml)
+                d.ArticleHtml = AiFallbacks.MakeArticleHtml(d, _opts.MinWordCount, now, editorsNote: tooOld);
+            if (tooOld && !_opts.AcceptStaleAsAnalysis)
                 { Info("too old", d); continue; }
-            if (HtmlText.CountWords(d.ArticleHtml) < 80)
-                { Info("too short (<80 words)", d); continue; }
+            if (tooOld && _opts.AcceptStaleAsAnalysis)
+            {
+                // Flip to context/analysis: not breaking, date = now
+                d.IsBreaking = false;
+                d.EventDateUtc = now;
+            }
+            if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
+                { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -734,13 +746,15 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
         {
-            if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml))
-                { Info("missing title or html", d); continue; }
+            if (string.IsNullOrWhiteSpace(d.Title))
+                { Info("missing title", d); continue; }
+            if (string.IsNullOrWhiteSpace(d.ArticleHtml) && _opts.FillMissingHtml)
+                d.ArticleHtml = AiFallbacks.MakeArticleHtml(d, _opts.MinWordCount, now);
             if (d.EventDateUtc is null) d.EventDateUtc = now;
             if (now - d.EventDateUtc.Value > maxAge)
                 { Info("too old", d); continue; }
-            if (HtmlText.CountWords(d.ArticleHtml) < 80)
-                { Info("too short (<80 words)", d); continue; }
+            if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
+                { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
@@ -867,8 +881,8 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
             if (now - d.EventDateUtc.Value > maxAge)
                 { Info("too old", d); continue; }
 
-            if (HtmlText.CountWords(d.ArticleHtml) < 80)
-                { Info("too short (<80 words)", d); continue; }
+            if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
+                { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
             List<ArticleImage>? images = null;
             if (_opts.UseExternalImages)
