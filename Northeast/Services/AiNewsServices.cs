@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Northeast.Data;
+using Northeast.DTOs;
 using Northeast.Models;
 using Northeast.Utilities;
 using Polly.Timeout;                      // ✅ Polly timeout type
@@ -12,6 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -484,6 +487,29 @@ internal static class ArticleMapping
             Images = imagesList
         };
     }
+
+    public static ArticleDto MapToDto(Article article)
+    {
+        return new ArticleDto
+        {
+            Title = article.Title,
+            Category = article.Category,
+            ArticleType = article.ArticleType,
+            Content = article.Content,
+            IsBreakingNews = article.IsBreakingNews,
+            Images = article.Images?.Select(i => new ArticleImageDto
+            {
+                Photo = i.Photo,
+                PhotoLink = i.PhotoLink,
+                AltText = i.AltText,
+                Caption = i.Caption
+            }).ToList(),
+            EmbededCode = article.EmbededCode,
+            CountryName = article.CountryName,
+            CountryCode = article.CountryCode,
+            Keyword = article.Keywords
+        };
+    }
 }
 #endregion
 
@@ -584,15 +610,30 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
 
         if (toAdd.Count == 0) { _log.LogInformation("No new AI news to insert."); return; }
 
-        db.Set<Article>().AddRange(toAdd);
+        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
+            }))
+        };
+
+        var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         try
         {
-            await db.SaveChangesAsync(ct);
+            foreach (var article in toAdd)
+                await articleService.Publish(ArticleMapping.MapToDto(article));
+
             _log.LogInformation("Inserted {Count} AI trending news item(s).", toAdd.Count);
         }
         catch (DbUpdateException ex)
         {
             _log.LogWarning(ex, "DbUpdateException while saving AI news (some duplicates may have been dropped).");
+        }
+        finally
+        {
+            accessor.HttpContext = null;
         }
     }
 
@@ -731,8 +772,20 @@ public sealed class AiRandomArticleWriterService : BackgroundService
             return;
         }
 
-        db.Set<Article>().AddRange(toAdd);
-        await db.SaveChangesAsync(ct);
+        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
+            }))
+        };
+
+        var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
+        foreach (var article in toAdd)
+            await articleService.Publish(ArticleMapping.MapToDto(article));
+
+        accessor.HttpContext = null;
         _log.LogInformation("Inserted {Count} random AI article(s) in category {Category}.", toAdd.Count, category);
     }
 }
@@ -809,6 +862,16 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var now = DateTimeOffset.UtcNow;
         var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
+        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, adminId.Value.ToString())
+            }))
+        };
+
+        var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         foreach (var d in batch.Items)
         {
             if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.ArticleHtml)) continue;
@@ -835,10 +898,10 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
             if (exists) continue;
 
-            db.Set<Article>().Add(article);
+            await articleService.Publish(ArticleMapping.MapToDto(article));
         }
 
-        await db.SaveChangesAsync(ct);
+        accessor.HttpContext = null;
         _log.LogInformation("Inserted a TRUE CRIME article.");
     }
 }
