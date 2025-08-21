@@ -17,6 +17,8 @@ export default function Footer() {
         <span aria-hidden="true">|</span>{' '}
         <PrefetchLink href="/contact?type=problem">Report a Problem</PrefetchLink>{' '}
         <span aria-hidden="true">|</span>{' '}
+        <PrefetchLink href="/sitemap.xml">Sitemap</PrefetchLink>{' '}
+        <span aria-hidden="true">|</span>{' '}
         <PrefetchLink href="/contact">Contact Us</PrefetchLink>
       </div>
     </footer>
