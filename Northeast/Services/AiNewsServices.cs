@@ -39,6 +39,7 @@ public sealed class AiNewsOptions
     public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
     public bool AcceptStaleAsAnalysis { get; set; } = true;    // coerce stale items into analysis
     public int MaxAgeHours { get; set; } = 24;
+    public int MaxAgeDays { get; set; } = 3;
     public int BreakingWindowHours { get; set; } = 24;
     public bool UseExternalImages { get; set; } = false;
     public int TrueCrimeMinWordCount { get; set; } = 250;
@@ -381,8 +382,11 @@ Return JSON:
   ]
 }}
 Constraints:
-- Identify truly trending items from the last {o.MaxAgeHours} hours.
-- Return up to {count} strong items; if fewer valid exist, return fewer.";
+- PRIORITIZE stories from the LAST 60 MINUTES.
+- If not enough last-hour stories exist, you MAY include items (up to {o.MaxAgeDays} days old) for NON-POLITICS categories, but label them as context/non-breaking.
+- DO NOT include items older than 60 minutes for the Politics category.
+- Return up to {count} items (include fewer if necessary).
+- If details are thin, write a 'what we know so far' with verified context to reach ≥ {o.MinWordCount} words.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"
 Write ONE fresh analysis piece in category '{category}' that follows the same structural rules. Return the same JSON shape with a single item in 'items'. Title must be unique vs the recent list.";
@@ -577,45 +581,94 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var adminId = admin.Id;
 
         var now = DateTimeOffset.UtcNow;
-        var maxAge = TimeSpan.FromHours(_opts.MaxAgeHours);
+        var lastHour = TimeSpan.FromHours(1);
+        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
 
         var toAdd = new List<Article>();
-        foreach (var d in batch.Items)
+        foreach (var d0 in batch.Items)
         {
+            var d = d0;
+
             if (string.IsNullOrWhiteSpace(d.Title))
-                { Info("missing title", d); continue; }
+            { Info("missing title", d); continue; }
+
             if (d.EventDateUtc is null) d.EventDateUtc = now;
-            var tooOld = now - d.EventDateUtc.Value > maxAge;
-            if (string.IsNullOrWhiteSpace(d.ArticleHtml) && _opts.FillMissingHtml)
-                d.ArticleHtml = AiFallbacks.MakeArticleHtml(d, _opts.MinWordCount, now, editorsNote: tooOld);
-            if (tooOld && !_opts.AcceptStaleAsAnalysis)
-                { Info("too old", d); continue; }
-            if (tooOld && _opts.AcceptStaleAsAnalysis)
+
+            var age = now - d.EventDateUtc.Value;
+            var cat = ArticleMapping.ParseCategoryStrict(d.Category);
+            var acceptingStale = false;
+
+            // Fresh vs stale logic
+            if (age > lastHour)
             {
-                // Flip to context/analysis: not breaking, date = now
-                d.IsBreaking = false;
-                d.EventDateUtc = now;
+                if (cat == Category.Politics)
+                {
+                    Info($"politics item older than last hour ({(int)age.TotalMinutes} min)", d);
+                    continue;
+                }
+
+                // Accept stale (non-Politics) as analysis, within MaxAgeDays
+                if (age <= maxAge)
+                {
+                    acceptingStale = true;
+                    d.IsBreaking = false;
+                    // Normalize to 'now' so it doesn't look outdated in feeds
+                    d.EventDateUtc = now;
+                }
+                else
+                {
+                    Info("too old (beyond MaxAgeDays)", d);
+                    continue;
+                }
             }
-            if (HtmlText.CountWords(d.ArticleHtml) < _opts.PreInsertMinWordCount)
-                { Info($"too short (<{_opts.PreInsertMinWordCount} words)", d); continue; }
 
-            List<ArticleImage>? images = null; // images are intentionally omitted
+            // Ensure HTML exists
+            if (string.IsNullOrWhiteSpace(d.ArticleHtml) && _opts.FillMissingHtml)
+                d.ArticleHtml = AiFallbacks.MakeArticleHtml(d, _opts.MinWordCount, now, editorsNote: acceptingStale);
 
-            var article = ArticleMapping.MapToArticle(d, ArticleType.News, adminId, images, _opts, now);
+            // Try to expand to >= MinWordCount if short
+            if (HtmlText.CountWords(d.ArticleHtml) < _opts.MinWordCount)
+            {
+                var expanded = await AiElaboration.ExpandToMinWordsAsync(_ai, _opts, d, recent, now, ct);
+                if (HtmlText.CountWords(expanded.ArticleHtml) >= _opts.MinWordCount)
+                    d = expanded;
+            }
 
+            // Hard fallback: enforce minimum length
+            if (HtmlText.CountWords(d.ArticleHtml) < _opts.MinWordCount)
+            {
+                d.ArticleHtml = AiFallbacks.MakeArticleHtml(d, _opts.MinWordCount, now, editorsNote: acceptingStale);
+            }
+
+            List<ArticleImage>? images = null; // images intentionally omitted
+            var articleType = acceptingStale ? ArticleType.Article : ArticleType.News;
+
+            var article = ArticleMapping.MapToArticle(d, articleType, adminId, images, _opts, now);
+
+            // Duplicate handling: uniquify instead of drop
             var exists = await db.Set<Article>()
                 .AnyAsync(a => a.Title.ToLower() == article.Title.ToLower(), ct);
             if (exists)
             {
-                Info("DB duplicate title", d);
-                continue;
-                // article.Title = $"{article.Title} — update {now:HH:mm}"; // optional update path
+                var fallbackTitle = $"{article.Title} — update {now:HH:mm}";
+                var exists2 = await db.Set<Article>()
+                    .AnyAsync(a => a.Title.ToLower() == fallbackTitle.ToLower(), ct);
+
+                if (!exists2)
+                {
+                    article.Title = fallbackTitle;
+                }
+                else
+                {
+                    Info("DB duplicate title (even with update suffix)", d);
+                    continue;
+                }
             }
 
             toAdd.Add(article);
         }
 
-        if (toAdd.Count == 0) { _log.LogInformation("No new AI news to insert."); return; }
+        if (toAdd.Count == 0) { _log.LogInformation("No new AI last-hour or accepted-stale news to insert."); return; }
 
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         try
@@ -623,11 +676,11 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
             foreach (var article in toAdd)
                 await articleService.Publish(ArticleMapping.MapToDto(article), adminId);
 
-            _log.LogInformation("Inserted {Count} AI trending news item(s).", toAdd.Count);
+            _log.LogInformation("Inserted {Count} AI trending item(s) (fresh + accepted stale).", toAdd.Count);
         }
         catch (DbUpdateException ex)
         {
-            _log.LogError(ex, "Failed to insert AI trending news item(s); no articles were saved.");
+            _log.LogError(ex, "Failed to insert AI trending item(s); no articles were saved.");
         }
     }
 
