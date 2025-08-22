@@ -25,6 +25,7 @@ interface ArticleDetails {
   comments?: Comment[];
   like?: { id: number; type: number }[];
   views?: number;
+  keywords?: string[];
 }
 
 interface RelatedArticle {
@@ -110,6 +111,7 @@ export async function generateMetadata(
   return {
     title: article.title,
     description,
+    keywords: article.keywords,
     alternates: { canonical: url },
     openGraph: {
       title: article.title,
