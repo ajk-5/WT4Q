@@ -72,7 +72,7 @@ export default function BreakingNewsSlider({
 
     const ac = new AbortController();
     (async () => {
-      const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, {
+      const res = await fetch(API_ROUTES.ARTICLE.BREAKING, {
         signal: ac.signal,
         // If your API lives on another subdomain and uses cookie auth, uncomment:
         // credentials: 'include',
@@ -84,12 +84,16 @@ export default function BreakingNewsSlider({
         throw new Error(`HTTP ${res.status}`);
       }
       const data: { id: string; title: string; createdDate?: string }[] = await res.json();
-      data.sort(
-        (a, b) =>
-          new Date(b.createdDate ?? 0).getTime() -
-          new Date(a.createdDate ?? 0).getTime(),
+      setArticles(
+        data
+          .sort(
+            (a, b) =>
+              new Date(b.createdDate ?? 0).getTime() -
+              new Date(a.createdDate ?? 0).getTime(),
+          )
+          .slice(0, 20)
+          .map((a) => ({ id: a.id, title: a.title, createdDate: a.createdDate })),
       );
-      setArticles(data.map((a) => ({ id: a.id, title: a.title, createdDate: a.createdDate })));
       setIndex(0);
     })().catch((err: unknown) => {
       if (!(err instanceof Error) || err.name !== 'AbortError') {
