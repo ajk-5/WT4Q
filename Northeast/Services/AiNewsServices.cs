@@ -386,6 +386,8 @@ Constraints:
 - If not enough last-hour stories exist, you MAY include items (up to {o.MaxAgeDays} days old) for NON-POLITICS categories, but label them as context/non-breaking.
 - DO NOT include items older than 60 minutes for the Politics category.
 - Return up to {count} items (include fewer if necessary).
+- Add depth to article
+- If necessary add stats or available datas in the article. 
 - If details are thin, write a 'what we know so far' with verified context to reach ≥ {o.MinWordCount} words.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"
@@ -977,17 +979,17 @@ public static class AiNewsRegistration
         .AddStandardResilienceHandler(o =>
         {
             // --- Timeouts ---
-            o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);       // per-try
+            o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120);       // per-try
             o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150); // whole pipeline
 
             // --- Circuit breaker (must satisfy SamplingDuration >= 2 * AttemptTimeout) ---
             o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2);  // ✅ >= 120s
-            o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+            o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(60);
             o.CircuitBreaker.FailureRatio = 0.2;
             o.CircuitBreaker.MinimumThroughput = 10;
 
             // --- Retry (treat Polly timeouts as transient) ---
-            o.Retry.MaxRetryAttempts = 2;
+            o.Retry.MaxRetryAttempts = 3;
             o.Retry.ShouldHandle = args =>
                 new ValueTask<bool>(
                     args.Outcome.Exception is HttpRequestException
