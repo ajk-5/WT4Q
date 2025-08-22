@@ -38,10 +38,10 @@ public sealed class AiNewsOptions
     public int PreInsertMinWordCount { get; set; } = 80;      // low bar before mapping/padding
     public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
     public bool AcceptStaleAsAnalysis { get; set; } = true;    // coerce stale items into analysis
-    public int MaxAgeDays { get; set; } = 30;
+    public int MaxAgeHours { get; set; } = 24;
     public int BreakingWindowHours { get; set; } = 24;
     public bool UseExternalImages { get; set; } = false;
-    public int TrueCrimeMinWordCount { get; set; } = 500;
+    public int TrueCrimeMinWordCount { get; set; } = 250;
     public bool UseExternalNews { get; set; } = false; // back-compat
 }
 #endregion
@@ -354,13 +354,12 @@ public static class AiNewsPrompt
 You are a senior human news editor. Write like a calm, clear journalist with simple words.
 Hard rules:
 - Output STRICT JSON only (UTF-8). No prose outside JSON.
-- Each item: ≥ {o.MinWordCount} words, one <div> root, use <h2>/<h3> sub-headings, END with 'What happens next'.
+- Each item: ≥ {o.MinWordCount} words, one <div> root, use <h2>/<h3> sub-headings, END with sub heading 'What happens next'.
 - Sound human (no AI clichés). Paraphrase; do not copy lines verbatim.
 - If global, set ""countryName"": null and ""countryCode"": null.
 - Provide 5–12 lowercase, unique keywords.
-- Images: prefer royalty-free links (Wikimedia/Unsplash/Pexels/Pixabay) with accurate alt/caption; if not confident, set images = [].
 - DO NOT repeat topics already covered recently.
-- Recency: eventDateUtc MUST be within the last {o.MaxAgeDays} days (≤ 30 days).
+- Recency: eventDateUtc MUST be within the last {o.MaxAgeHours} hours (≤ 30 hours).
 
 Recent titles to avoid: {string.Join("; ", recentTitles.Take(50))}";
 
@@ -375,14 +374,14 @@ Return JSON:
       ""countryName"": null | ""France"" | ""United States"" | ...,
       ""countryCode"": null | ""FR"" | ""US"" | ...,
       ""keywords"": [""kw1"",""kw2"",...],
-      ""images"": [{{ ""altText"": ""accurate alt"", ""caption"": ""helpful caption"", ""photoLink"": ""https://example.com/..."" }}],
+      ""images"": [],
       ""eventDateUtc"": ""YYYY-MM-DDTHH:mm:ssZ"",
       ""isBreaking"": true|false
     }}
   ]
 }}
 Constraints:
-- Identify truly trending items from the last {o.MaxAgeDays} days based on internal knowledge only.
+- Identify truly trending items from the last {o.MaxAgeHours} hours.
 - Return up to {count} strong items; if fewer valid exist, return fewer.";
 
     public static string BuildRandomUser(AiNewsOptions o, Category category) => $@"
@@ -393,8 +392,7 @@ Write ONE non-graphic TRUE CRIME article in the 'Crime' category.
 Requirements:
 - Focus on a real murder/crime cases , recent or historic;.
 - ≥ {Math.Max(o.MinWordCount, o.TrueCrimeMinWordCount)} words, make it thriller and without palgiarism and properly worded, in depth stories.
-- Structure: one <div> with clear <h2>/<h3> sections, and end with 'What happened next' if there is proper else give concludion or warning for people to take care against similar incident .
-- Provide accurate royalty-free image link(s) if appropriate; else image should be [] or null.
+- Structure: one <div> with clear <h2> sections, and end with 'What happened next' if there is proper else give concludion or warning for people to take care against similar incident .
 - Output the same JSON 'items' shape as other prompts with some crrections for trum crime part no what happen next but 'what happened next 'like public reactions, outcomes,etc";
 }
 #endregion
@@ -579,7 +577,7 @@ public sealed class AiTrendingNewsPollingService : BackgroundService
         var adminId = admin.Id;
 
         var now = DateTimeOffset.UtcNow;
-        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
+        var maxAge = TimeSpan.FromHours(_opts.MaxAgeHours);
 
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
@@ -735,7 +733,7 @@ public sealed class AiRandomArticleWriterService : BackgroundService
         var adminId = admin.Id;
 
         var now = DateTimeOffset.UtcNow;
-        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
+        var maxAge = TimeSpan.FromHours(_opts.MaxAgeHours);
 
         var toAdd = new List<Article>();
         foreach (var d in batch.Items)
@@ -857,7 +855,7 @@ public sealed class AiTrueCrimeWriterService : BackgroundService
         var adminId = admin.Id;
 
         var now = DateTimeOffset.UtcNow;
-        var maxAge = TimeSpan.FromDays(_opts.MaxAgeDays);
+        var maxAge = TimeSpan.FromHours(_opts.MaxAgeHours);
 
         var articleService = scope.ServiceProvider.GetRequiredService<ArticleServices>();
         var inserted = 0;
