@@ -23,6 +23,7 @@
   justify-content: center;
   margin-top: 0.5rem;
   gap: 0.25rem;
+  
 }
 
 .dot {
@@ -33,6 +34,8 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  overflow: hidden;
+  position: absolute;
 }
 
 .active {
@@ -59,7 +62,8 @@
 }
 
 .detailTitle {
-  margin: 0.5rem 0;
+  margin: 0.1rem 0;
+  font-size: x-large;
   color: black;
   overflow-wrap: anywhere;
   
@@ -80,7 +84,7 @@
 .arrow {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateX(10%);
   background: transparent;
   border: none;
   color: inherit;

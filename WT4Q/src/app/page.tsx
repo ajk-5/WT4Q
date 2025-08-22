@@ -126,6 +126,7 @@ export default async function Home() {
               <h2 className={styles.heading}>
                 <span className={styles.kicker}>{category}</span>
               </h2>
+              
               <div className={styles.columnGrid}>
                 {articles.slice(0, 5).map((a) => (
                   <ArticleCard key={a.id} article={a} />
@@ -135,7 +136,9 @@ export default async function Home() {
           ))}
         </div>
       </div>
-
+        <div className={styles.centerColumn}>
+          <BreakingCenterpiece articles={breaking} />
+        </div>
       {/* The rest of the sections in rows (keeps vertical barres) */}
       {remainingRows.map((row, i) => (
         <div key={`row-${i}`} className={styles.row}>

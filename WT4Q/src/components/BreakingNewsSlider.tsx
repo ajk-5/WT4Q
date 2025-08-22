@@ -192,7 +192,7 @@ export default function BreakingNewsSlider({
         </div>
       )}
 
-      <div className={styles.dots} role="tablist" aria-label="Breaking news">
+      {/* <div className={styles.dots} role="tablist" aria-label="Breaking news">
         {articles.map((_, i) => (
           <button
             key={i}
@@ -204,7 +204,7 @@ export default function BreakingNewsSlider({
             onClick={() => setIndex(i)}
           />
         ))}
-      </div>
+      </div>*/}
     </div>
   );
 }

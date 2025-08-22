@@ -1,7 +1,7 @@
 .card {
   display: block;
-  padding: 0.2rem;
-  margin: 1rem 0;
+  padding: 0.1rem;
+  margin: 0.1rem 0;
   border-radius: 0.75rem;
   background: #ffffff00;
   font-family: "Georgia", "Times New Roman", serif;
@@ -20,8 +20,8 @@
 }
 
 .title {
-  font-size: 1rem;
-  margin-bottom: 0.2rem;
+  font-size: medium;
+  margin-bottom: 0rem;
   font-weight: bold;
   background: var(--metal-gradient);
   -webkit-background-clip: text;
@@ -29,18 +29,18 @@
 }
 
 .summary {
-  font-size: 1rem;
+  font-size: 0.5rem;
   margin-bottom: 0.2rem;
   color: var(--muted);
 }
 
 .views {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--muted);
 }
 
 .readMore {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--accent);
   text-decoration: underline;
 }
