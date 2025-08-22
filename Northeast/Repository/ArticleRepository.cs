@@ -186,9 +186,27 @@ namespace Northeast.Repository
         public async Task<IEnumerable<Article>> GetBreakingNews()
         {
             var cutoff = DateTime.UtcNow.AddDays(-3);
+
+            // find any breaking news older than the cutoff and flip the flag
+            var expired = await _context.Articles
+                .Where(a => a.ArticleType == ArticleType.News && a.IsBreakingNews && a.CreatedDate < cutoff)
+                .ToListAsync();
+
+            if (expired.Count > 0)
+            {
+                foreach (var article in expired)
+                {
+                    article.IsBreakingNews = false;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            // return most recent breaking news, limited to 20 articles
             return await _context.Articles.AsNoTracking()
                 .Where(a => a.ArticleType == ArticleType.News && a.IsBreakingNews && a.CreatedDate >= cutoff)
                 .OrderByDescending(a => a.CreatedDate)
+                .Take(20)
                 .ToListAsync();
         }
 
