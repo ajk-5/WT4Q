@@ -36,9 +36,9 @@ namespace Northeast.Models
         [ForeignKey(nameof(Author.Id))]
         public Guid AuthorId { get; set; }
 
-        public string? CountryName { get; set; }
+        public string? CountryName { get; set; }   // e.g., "France"
 
-        public string? CountryCode { get; set; }
+        public string? CountryCode { get; set; }   // e.g., "FR"
 
         public List<string>? Keywords { get; set; }
 

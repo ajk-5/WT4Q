@@ -398,13 +398,22 @@ internal static class ParaphrasePrompt
 {
     public static string BuildSystem(AiNewsOptions o) => $@"
 You are a senior news editor. Paraphrase and expand using simple, neutral language.
+
 Hard rules:
 - Output STRICT JSON only (UTF-8). No prose outside JSON.
-- Each item: ≥ {o.MinWordCount} words. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs for readability. END with sub heading 'What happens next'.
+- Each item: ≥ {o.MinWordCount} words. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs. END with sub heading 'What happens next'.
 - No fabricated quotes or numbers. Use only the feed info provided plus widely-known, non-controversial background.
-- Country fields: null if global. If the country is provided, set both name and 2-letter code.
+
+Country selection (very important):
+- Decide country **from the article’s subject/event location** (look at named places, demonyms, officials, cities).
+- DO NOT use publisher origin or Google edition as a proxy.
+- If the article is clearly about France (e.g., ‘François Bayrou’, ‘Paris’, ‘rentrée politique’), set countryName='France' and countryCode='FR'.
+- If multiple countries are involved, choose the **primary** one in the story. If unclear or truly global → set both to null.
+
+Other fields:
 - Provide 5–12 lowercase keywords.
-- eventDateUtc = feed publish date (or now if missing). isBreaking = true if within last {o.BreakingWindowHours} hours.
+- eventDateUtc = feed publish date (or now if missing).
+- isBreaking = true if within last {o.BreakingWindowHours} hours.
 ";
 
     public static string BuildUser(string title, string? summary, string? content, string category, string? countryName, string? countryCode)
@@ -594,8 +603,27 @@ internal static class RssIngest
         d.Category = category.ToString();
         d.EventDateUtc ??= item.Published ?? now;
         d.IsBreaking ??= (now - (d.EventDateUtc ?? now)) <= TimeSpan.FromHours(opts.BreakingWindowHours);
-        d.CountryName = countryName;
-        d.CountryCode = countryCode;
+
+        // Prefer AI-supplied country; only fall back to feed hints if missing
+        if (string.IsNullOrWhiteSpace(d.CountryCode) && string.IsNullOrWhiteSpace(d.CountryName))
+        {
+            if (!string.IsNullOrWhiteSpace(countryCode))
+            {
+                d.CountryCode = countryCode;
+                d.CountryName = countryName;
+            }
+        }
+        else
+        {
+            // If AI provided a country name without a code, try to derive the code from Countries.json
+            if (!string.IsNullOrWhiteSpace(d.CountryName) && string.IsNullOrWhiteSpace(d.CountryCode))
+            {
+                var countries = CountriesFile.Load(scopeSp, scopeSp.GetRequiredService<ILogger<GoogleNewsCategoryRotationService>>());
+                var cc = countries.FirstOrDefault(c =>
+                    c.Name.Equals(d.CountryName, StringComparison.OrdinalIgnoreCase))?.Code;
+                if (!string.IsNullOrWhiteSpace(cc)) d.CountryCode = cc;
+            }
+        }
 
         if (string.IsNullOrWhiteSpace(d.ArticleHtml) && opts.FillMissingHtml)
         {
@@ -858,7 +886,7 @@ public sealed class GoogleNewsLocalCountryService : BackgroundService
         var pick = items.First(); // use the lead headline for locality
         try
         {
-            var article = await RssIngest.ProcessOneAsync(sp, _opts, _ai, pick, Category.Info, c.Name, c.Code, ct);
+            var article = await RssIngest.ProcessOneAsync(sp, _opts, _ai, pick, Category.Info, null, null, ct);
             if (article is null) { _log.LogInformation("No article produced for {Code}", c.Code); return; }
             var svc = sp.GetRequiredService<ArticleServices>();
             await svc.Publish(ArticleMapping.MapToDto(article), article.AuthorId);
