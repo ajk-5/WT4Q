@@ -112,8 +112,8 @@ export default function DashboardClient() {
 
         const body = {
           title,
-          category: category ? UPLOADCATEGORIES.indexOf(category) + 1 : 0,
-          articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
+          category: category || undefined,
+          articleType: type || undefined,
           createdDate: new Date().toISOString(),
           content,
           images: imagesPayload,
