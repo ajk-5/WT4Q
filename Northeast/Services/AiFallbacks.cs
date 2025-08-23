@@ -27,6 +27,6 @@ internal static class AiFallbacks
 <p>We’ll watch for official updates and add confirmed information.</p>
 {kws}
 </div>";
-        return ArticleMapping.EnsureHtmlDiv(html, minWords);
+        return HtmlText.EnsureHtmlDivWithStructure(html, minWords);
     }
 }
