@@ -145,6 +145,8 @@
 }
 .kicker {
   font-variant: small-caps;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* Articles inside a column: first one prominent, others compact */
@@ -267,7 +269,6 @@
 
 /* re-use column/article styles you already had */
 .columnGrid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-.kicker { font-variant: small-caps; }
 
 /* Responsive: stack columns on small screens */
 @media (max-width: 1100px) {
