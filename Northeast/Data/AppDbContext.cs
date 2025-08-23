@@ -46,7 +46,9 @@ namespace Northeast.Data
                     .WithOne(i => i.Article)
                     .HasForeignKey(i => i.ArticleId);
 
-                b.HasIndex(a => a.Title)
+                b.HasIndex(a => a.Title);
+
+                b.HasIndex(a => a.UniqueKey)
                     .IsUnique();
 
                 b.Navigation(a => a.Images)
