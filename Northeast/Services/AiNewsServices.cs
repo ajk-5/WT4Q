@@ -418,8 +418,8 @@ Return JSON shape:
       ""title"": ""unique, specific headline"",
       ""category"": ""{category}"",
       ""articleHtml"": ""<div>..."",
-      ""countryName"": {(countryName != null ? $"""{Escape(countryName)}""" : "null")},
-      ""countryCode"": {(countryCode != null ? $"""{Escape(countryCode)}""" : "null")},
+      ""countryName"": null | ""France"" | ""United States"" | ..., 
+      ""countryCode"": null | ""FR"" | ""US"" | ...,
       ""keywords"": [""news""],
       ""images"": [],
       ""eventDateUtc"": ""<will be set by caller>"",
@@ -888,13 +888,10 @@ public static class AiNewsRegistration
             o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120);       // per-try
             o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150); // whole pipeline
 
-<<<<<<< HEAD
+
             // --- Circuit breaker (must satisfy SamplingDuration >= 2 * AttemptTimeout) ---
             o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(4);  // ✅ >= 120s
-=======
-            // --- Circuit breaker ---
-            o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(4);
->>>>>>> 581df61ce95c7428146af9239f96e9c70ccc9cd2
+
             o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(120);
             o.CircuitBreaker.FailureRatio = 0.2;
             o.CircuitBreaker.MinimumThroughput = 10;
