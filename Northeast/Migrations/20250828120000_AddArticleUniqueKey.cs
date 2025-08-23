@@ -8,58 +8,32 @@ namespace Northeast.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Articles_Title",
-                table: "Articles");
 
-            migrationBuilder.AddColumn<string>(
-                name: "SourceUrlCanonical",
-                table: "Articles",
-                type: "text",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Articles""
+                ADD COLUMN IF NOT EXISTS ""SourceUrlCanonical"" text NULL;
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "UniqueKey",
-                table: "Articles",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Articles""
+                ADD COLUMN IF NOT EXISTS ""UniqueKey"" text NULL;
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Articles_Title",
-                table: "Articles",
-                column: "Title");
+            migrationBuilder.Sql(@"
+                CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Articles_UniqueKey""
+                ON ""Articles""(""UniqueKey"")
+                WHERE ""UniqueKey"" IS NOT NULL;
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Articles_UniqueKey",
-                table: "Articles",
-                column: "UniqueKey",
-                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Articles_Title",
-                table: "Articles");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Articles_UniqueKey",
-                table: "Articles");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_Articles_UniqueKey"";");
+            migrationBuilder.Sql(@"ALTER TABLE ""Articles"" DROP COLUMN IF EXISTS ""SourceUrlCanonical"";");
+            migrationBuilder.Sql(@"ALTER TABLE ""Articles"" DROP COLUMN IF EXISTS ""UniqueKey"";");
 
-            migrationBuilder.DropColumn(
-                name: "SourceUrlCanonical",
-                table: "Articles");
-
-            migrationBuilder.DropColumn(
-                name: "UniqueKey",
-                table: "Articles");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Articles_Title",
-                table: "Articles",
-                column: "Title",
-                unique: true);
         }
     }
 }

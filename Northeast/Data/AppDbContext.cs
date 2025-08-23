@@ -49,7 +49,9 @@ namespace Northeast.Data
                 b.HasIndex(a => a.Title);
 
                 b.HasIndex(a => a.UniqueKey)
-                    .IsUnique();
+
+                    .IsUnique()
+                    .HasFilter("\"UniqueKey\" IS NOT NULL");
 
                 b.Navigation(a => a.Images)
                     .AutoInclude();

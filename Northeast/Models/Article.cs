@@ -42,8 +42,8 @@ namespace Northeast.Models
 
         public string? SourceUrlCanonical { get; set; }   // publisher URL (unwrapped)
 
-        [Required]
-        public string UniqueKey { get; set; } = string.Empty; // host+path+normalized title
+        public string? UniqueKey { get; set; }   // host+path+normalized title
+
 
         public List<string>? Keywords { get; set; }
 
