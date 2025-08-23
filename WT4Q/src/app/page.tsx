@@ -2,6 +2,7 @@
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
 import type { BreakingArticle } from '@/components/BreakingNewsSlider';
+import PrefetchLink from '@/components/PrefetchLink';
 import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
@@ -105,7 +106,12 @@ export default async function Home() {
           {leftRail.map(({ category, articles }) => (
             <section key={category} className={styles.section}>
               <h2 className={styles.heading}>
-                <span className={styles.kicker}>{category}</span>
+                <PrefetchLink
+                  href={`/category/${encodeURIComponent(category)}`}
+                  className={styles.kicker}
+                >
+                  {category}
+                </PrefetchLink>
               </h2>
               <div className={styles.columnGrid}>
                 {articles.slice(0, 5).map((a) => (
@@ -124,9 +130,14 @@ export default async function Home() {
           {rightRail.map(({ category, articles }) => (
             <section key={category} className={styles.section}>
               <h2 className={styles.heading}>
-                <span className={styles.kicker}>{category}</span>
+                <PrefetchLink
+                  href={`/category/${encodeURIComponent(category)}`}
+                  className={styles.kicker}
+                >
+                  {category}
+                </PrefetchLink>
               </h2>
-              
+
               <div className={styles.columnGrid}>
                 {articles.slice(0, 5).map((a) => (
                   <ArticleCard key={a.id} article={a} />
@@ -145,7 +156,12 @@ export default async function Home() {
           {row.map(({ category, articles }) => (
             <section key={category} className={`${styles.section} ${styles.column}`}>
               <h2 className={styles.heading}>
-                <span className={styles.kicker}>{category}</span>
+                <PrefetchLink
+                  href={`/category/${encodeURIComponent(category)}`}
+                  className={styles.kicker}
+                >
+                  {category}
+                </PrefetchLink>
               </h2>
               <div className={styles.columnGrid}>
                 {articles.slice(0, 5).map((a) => (
