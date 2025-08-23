@@ -40,6 +40,10 @@ namespace Northeast.Models
 
         public string? CountryCode { get; set; }   // e.g., "FR"
 
+        public string? SourceUrlCanonical { get; set; }   // publisher URL (unwrapped)
+
+        public string? UniqueKey { get; set; }   // host+path+normalized title
+
         public List<string>? Keywords { get; set; }
 
         [NotMapped]

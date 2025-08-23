@@ -61,16 +61,25 @@ namespace Northeast.Migrations
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .HasColumnType("text[]");
 
+                    b.Property<string>("SourceUrlCanonical")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UniqueKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("Title")
-                        .IsUnique();
+                    b.HasIndex("Title");
+
+                    b.HasIndex("UniqueKey")
+                        .IsUnique()
+                        .HasFilter("\"UniqueKey\" IS NOT NULL");
 
                     b.ToTable("Articles");
                 });

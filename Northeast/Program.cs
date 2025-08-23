@@ -105,6 +105,8 @@ builder.Services.AddHttpClient("default")
 // --- AI News (Gemini + hosted services) ---
 builder.Services.AddAiNews(o =>
 {
+    o.DefaultLang = "en-US";
+    o.DefaultCountry = "US";
     o.ApiKey = builder.Configuration["AiNews:ApiKey"]
                ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");

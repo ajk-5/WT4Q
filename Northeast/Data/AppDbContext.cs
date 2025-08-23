@@ -46,8 +46,11 @@ namespace Northeast.Data
                     .WithOne(i => i.Article)
                     .HasForeignKey(i => i.ArticleId);
 
-                b.HasIndex(a => a.Title)
-                    .IsUnique();
+                b.HasIndex(a => a.Title);
+
+                b.HasIndex(a => a.UniqueKey)
+                    .IsUnique()
+                    .HasFilter("\"UniqueKey\" IS NOT NULL");
 
                 b.Navigation(a => a.Images)
                     .AutoInclude();
