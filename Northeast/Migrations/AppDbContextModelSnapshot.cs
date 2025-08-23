@@ -83,7 +83,6 @@ namespace Northeast.Migrations
 
                         .IsUnique()
                         .HasFilter("\"UniqueKey\" IS NOT NULL");
-n
 
                     b.ToTable("Articles");
                 });
