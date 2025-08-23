@@ -9,6 +9,7 @@
         Health,
         Lifestyle,
         Technology,
+        Science,
         Sports,
         Info
     }

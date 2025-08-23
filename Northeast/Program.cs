@@ -114,7 +114,6 @@ builder.Services.AddAiNews(o =>
     o.MinWordCount = 150;            // still decent length
     o.PreInsertMinWordCount = 80;    // forgiving first gate
     o.FillMissingHtml = true;
-    o.AcceptStaleAsAnalysis = true;  // turns “too old” into analysis (non-breaking)
     o.UseExternalImages = false;     // keep things simple/stable
 });
 
