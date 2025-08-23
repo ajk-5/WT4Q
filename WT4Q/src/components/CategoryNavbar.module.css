@@ -1,9 +1,9 @@
 .nav {
   position: relative;
   display: flex;
-  gap: 0.5rem;
+  gap: 0.15rem;
   overflow: visible;
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 0.5rem;
   
   border-radius: 0 0 var(--radius) var(--radius);
    color: #0c0248;
@@ -28,10 +28,16 @@
   z-index: -1;
   border-radius: inherit;
 }
-
-@media (min-width: 1025px) {
+@media (min-width: 1300px) {
   .nav {
     justify-content: center;
+    
+  }
+}
+@media (min-width: 1200px) {
+  .nav {
+    justify-content: center;
+    
   }
 }
 
@@ -39,8 +45,8 @@
   text-decoration: none;
   color: inherit;
   white-space: nowrap;
-  font-size: 0.875rem;
-  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 999px;
   border: 2px solid transparent;
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;

@@ -22,8 +22,8 @@
   gap: 0.25rem;
   font-weight: 600;
   text-decoration: none;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10%;
   background: var(--primary);
   color: #ffffff;
 }
