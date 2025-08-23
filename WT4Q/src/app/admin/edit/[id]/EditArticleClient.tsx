@@ -14,8 +14,8 @@ interface ArticleDetails {
   title: string;
   content: string;
   createdDate: string;
-  articleType: number;
-  category: number;
+  articleType: string;
+  category: string;
   images?: ArticleImage[];
   embededCode?: string;
   countryName?: string;
@@ -52,8 +52,8 @@ export default function EditArticleClient({ id }: { id: string }) {
         const data: ArticleDetails = await res.json();
         setTitle(data.title);
         setContent(data.content);
-        setType(ARTICLE_TYPES[data.articleType] ?? '');
-        setCategory(CATEGORIES[data.category - 1] ?? '');
+        setType(data.articleType || '');
+        setCategory(data.category || '');
         setCreatedDate(data.createdDate.slice(0, 16));
         setEmbededCode(data.embededCode || '');
         setImages(
@@ -124,8 +124,8 @@ export default function EditArticleClient({ id }: { id: string }) {
 
         const body = {
           title,
-          category: category ? CATEGORIES.indexOf(category) + 1 : 0,
-          articleType: type ? ARTICLE_TYPES.indexOf(type) : 0,
+          category: category || undefined,
+          articleType: type || undefined,
           createdDate: new Date(createdDate).toISOString(),
           content,
           images: imagesPayload,

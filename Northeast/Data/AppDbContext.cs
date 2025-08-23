@@ -34,23 +34,32 @@ namespace Northeast.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Article>()
-                .HasOne(a => a.Author)
-                .WithMany(u => u.Articles)
-                .HasForeignKey(a => a.AuthorId);
+            base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Article>()
-                .HasMany(a => a.Images)
-                .WithOne(i => i.Article)
-                .HasForeignKey(i => i.ArticleId);
+            modelBuilder.Entity<Article>(b =>
+            {
+                b.HasOne(a => a.Author)
+                    .WithMany(u => u.Articles)
+                    .HasForeignKey(a => a.AuthorId);
 
-            modelBuilder.Entity<Article>()
-                .HasIndex(a => a.Title)
-                .IsUnique();
+                b.HasMany(a => a.Images)
+                    .WithOne(i => i.Article)
+                    .HasForeignKey(i => i.ArticleId);
 
-            modelBuilder.Entity<Article>()
-                .Navigation(a => a.Images)
-                .AutoInclude();
+                b.HasIndex(a => a.Title)
+                    .IsUnique();
+
+                b.Navigation(a => a.Images)
+                    .AutoInclude();
+
+                b.Property(a => a.Category)
+                    .HasConversion<string>()
+                    .HasMaxLength(32);
+
+                b.Property(a => a.ArticleType)
+                    .HasConversion<string>()
+                    .HasMaxLength(32);
+            });
 
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.ParentComment)

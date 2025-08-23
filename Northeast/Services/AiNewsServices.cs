@@ -464,6 +464,7 @@ internal static class ArticleMapping
 
     public static Article MapToArticle(
         AiArticleDraft d,
+        Category enforcedCategory,
         ArticleType type,
         Guid authorId,
         AiNewsOptions opts,
@@ -492,7 +493,7 @@ internal static class ArticleMapping
         {
             AuthorId = authorId,
             ArticleType = type,
-            Category = ParseCategoryStrict(d.Category),
+            Category = enforcedCategory,
             Title = (d.Title ?? string.Empty).Trim(),
             CreatedDate = DateTime.UtcNow,
             Content = html,
@@ -602,7 +603,7 @@ internal static class RssIngest
             d.ArticleHtml = $"<div><h2>Summary</h2><p>{safe}</p></div>";
         }
 
-        var article = ArticleMapping.MapToArticle(d, ArticleType.News,
+        var article = ArticleMapping.MapToArticle(d, category, ArticleType.News,
             authorId: await ResolveAdminIdAsync(db, ct), opts, now);
         return article;
     }
