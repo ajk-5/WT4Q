@@ -155,6 +155,35 @@ internal static class HtmlText
 }
 #endregion
 
+#region Link canonicalization
+internal static class LinkCanon
+{
+    public static Uri? TryExtractPublisherUri(string link)
+    {
+        if (!Uri.TryCreate(link, UriKind.Absolute, out var u)) return null;
+
+        if (!u.Host.Contains("news.google.com", StringComparison.OrdinalIgnoreCase))
+            return u;
+
+        var q = System.Web.HttpUtility.ParseQueryString(u.Query);
+        var raw = q.Get("url");
+        if (!string.IsNullOrWhiteSpace(raw) && Uri.TryCreate(WebUtility.UrlDecode(raw), UriKind.Absolute, out var inner))
+            return inner;
+
+        return u;
+    }
+
+    public static string Fingerprint(RssItem item)
+    {
+        var uri = TryExtractPublisherUri(item.Link);
+        var host = uri?.Host.ToLowerInvariant() ?? "";
+        var path = uri?.AbsolutePath ?? "";
+        var titleNorm = Regex.Replace((item.Title ?? "").ToLowerInvariant(), @"\s+", " ").Trim();
+        return $"{host}{path}|{titleNorm}";
+    }
+}
+#endregion
+
 #region Google News RSS utilities
 internal static class GoogleNews
 {
@@ -578,11 +607,11 @@ internal static class RssIngest
         string? countryCode,
         CancellationToken ct)
     {
+        var key = LinkCanon.Fingerprint(item);
         var db = scopeSp.GetRequiredService<AppDbContext>();
         var now = DateTimeOffset.UtcNow;
 
-        // Basic duplicate guard by title
-        var exists = await db.Set<Article>().AnyAsync(a => a.Title.ToLower() == item.Title.Trim().ToLower(), ct);
+        var exists = await db.Set<Article>().AnyAsync(a => a.UniqueKey == key, ct);
         if (exists) return null;
 
         var system = ParaphrasePrompt.BuildSystem(opts);
@@ -633,6 +662,9 @@ internal static class RssIngest
 
         var article = ArticleMapping.MapToArticle(d, category, ArticleType.News,
             authorId: await ResolveAdminIdAsync(db, ct), opts, now);
+
+        article.SourceUrlCanonical = LinkCanon.TryExtractPublisherUri(item.Link)?.ToString();
+        article.UniqueKey = key;
         return article;
     }
 
@@ -797,9 +829,15 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
         var items = await GoogleNews.FetchAsync(_http, url, ct);
         if (items.Count == 0) { _log.LogInformation("No global top stories."); return; }
 
-        // Try up to 3 insertions from the first 12 items
+        // Try up to 3 insertions from the first 12 items, avoiding duplicates
         var rnd = new Random();
-        var picks = items.Take(12).OrderBy(_ => rnd.Next()).Take(3).ToList();
+        var seen = new HashSet<string>();
+        var picks = items
+            .Where(i => seen.Add(LinkCanon.Fingerprint(i)))
+            .Take(12)
+            .OrderBy(_ => rnd.Next())
+            .Take(3)
+            .ToList();
 
         var svc = sp.GetRequiredService<ArticleServices>();
         var db = sp.GetRequiredService<AppDbContext>();
@@ -946,7 +984,6 @@ public static class AiNewsRegistration
         // Hosted services — NEW
         services.AddHostedService<GoogleNewsCategoryRotationService>();
         services.AddHostedService<GoogleNewsTopStoriesService>();
-        services.AddHostedService<GoogleNewsLocalCountryService>();
 
         return services;
     }
