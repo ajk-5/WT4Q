@@ -48,13 +48,14 @@ export default async function CategoryPage({
   const articles = await fetchArticles(category);
   return (
     <div className={styles.container}>
-      <LocalArticleSection />
+
       <h1 className={styles.title}>{category}</h1>
       <div className={styles.grid}>
         {articles.map((a) => (
           <ArticleCard key={a.id} article={a} />
         ))}
       </div>
+            <LocalArticleSection />
     </div>
   );
 }

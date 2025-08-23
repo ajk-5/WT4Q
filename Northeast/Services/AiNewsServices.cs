@@ -983,8 +983,8 @@ public static class AiNewsRegistration
             o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150); // whole pipeline
 
             // --- Circuit breaker (must satisfy SamplingDuration >= 2 * AttemptTimeout) ---
-            o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2);  // ✅ >= 120s
-            o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(60);
+            o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(4);  // ✅ >= 120s
+            o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(120);
             o.CircuitBreaker.FailureRatio = 0.2;
             o.CircuitBreaker.MinimumThroughput = 10;
 

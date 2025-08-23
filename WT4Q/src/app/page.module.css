@@ -70,6 +70,7 @@
   font-size: .95rem;
   margin-top: .5rem;
   color: var(--muted-ink);
+  justify-self: start;
 }
 .weather {
   grid-column: 3;
@@ -218,6 +219,14 @@
   .column { border-left: 0; padding-left: 0; }
   .banner { height: 70px; }
   .tower  { height: 320px; }
+  .dateline {font-size: .5rem;
+  margin-top: .25rem;
+}
+.weather {
+  grid-column: 3;
+  font-size: 0.5rem;
+  justify-self: end;
+}
 }
 
 /* --- Print (optional) --- */
