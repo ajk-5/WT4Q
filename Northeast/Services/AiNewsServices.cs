@@ -215,7 +215,11 @@ internal static class GoogleNews
     }
 
     public static string BuildCrimeUrl(string lang, string country)
-        => $"https://news.google.com/rss/search?q={Uri.EscapeDataString("crime OR police OR arrest OR investigation")}&hl={Uri.EscapeDataString(lang)}&gl={Uri.EscapeDataString(country)}&ceid={Uri.EscapeDataString(country)}:{Uri.EscapeDataString(lang)}";
+    {
+        var query =
+            "(crime OR police OR arrest OR investigation OR shooting OR stabbing OR homicide OR murder OR assault OR kidnapping OR fraud OR trafficking)";
+        return $"https://news.google.com/rss/search?q={Uri.EscapeDataString(query)}&hl={Uri.EscapeDataString(lang)}&gl={Uri.EscapeDataString(country)}&ceid={Uri.EscapeDataString(country)}:{Uri.EscapeDataString(lang)}";
+    }
 
     /// <summary>Basic RSS parser that supports Google News Atom/RSS variants.</summary>
     public static async Task<List<RssItem>> FetchAsync(HttpClient http, string url, CancellationToken ct)
@@ -629,7 +633,6 @@ internal static class RssIngest
         var d = batch.Items[0];
 
         // Ensure critical fields
-        d.Category = category.ToString();
         d.EventDateUtc ??= item.Published ?? now;
         d.IsBreaking ??= (now - (d.EventDateUtc ?? now)) <= TimeSpan.FromHours(opts.BreakingWindowHours);
 
@@ -660,7 +663,14 @@ internal static class RssIngest
             d.ArticleHtml = $"<div><h2>Summary</h2><p>{safe}</p></div>";
         }
 
-        var article = ArticleMapping.MapToArticle(d, category, ArticleType.News,
+        var finalCategory = category;
+        var aiCat = ArticleMapping.ParseCategoryStrict(d.Category);
+        if (finalCategory == Category.Info && aiCat != Category.Info)
+            finalCategory = aiCat;
+        else if (finalCategory == Category.Info)
+            finalCategory = CategoryHeuristics.Guess(item.Title, item.Summary, item.Content);
+
+        var article = ArticleMapping.MapToArticle(d, finalCategory, ArticleType.News,
             authorId: await ResolveAdminIdAsync(db, ct), opts, now);
 
         article.SourceUrlCanonical = LinkCanon.TryExtractPublisherUri(item.Link)?.ToString();
@@ -790,6 +800,12 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
     private readonly IGenerativeTextClient _ai;
     private readonly HttpClient _http;
 
+    private static readonly (string Lang, string Country)[] GlobalEditions =
+    {
+        ("en", "US"), ("en", "GB"), ("en", "CA"), ("en", "AU"), ("en", "IN"), ("en", "SG"), ("fr", "FR")
+    };
+    private int _edIdx = 0;
+
     public GoogleNewsTopStoriesService(
         ILogger<GoogleNewsTopStoriesService> log,
         IServiceScopeFactory scopeFactory,
@@ -825,7 +841,8 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var sp = scope.ServiceProvider;
 
-        var url = GoogleNews.BuildTopStoriesUrl(_opts.DefaultLang, _opts.DefaultCountry);
+        var (lang, country) = GlobalEditions[_edIdx++ % GlobalEditions.Length];
+        var url = GoogleNews.BuildTopStoriesUrl(lang, country);
         var items = await GoogleNews.FetchAsync(_http, url, ct);
         if (items.Count == 0) { _log.LogInformation("No global top stories."); return; }
 
