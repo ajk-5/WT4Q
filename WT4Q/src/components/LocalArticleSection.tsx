@@ -1,13 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import countries from '../../public/datas/Countries.json';
 import styles from './LocalArticleSection.module.css';
 
+const ROTATE_MS = 5000;
+
 export default function LocalArticleSection() {
-  const [article, setArticle] = useState<Article | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [index, setIndex] = useState(0);
+
+  const next = useCallback(() => {
+    if (articles.length < 2) return;
+    setIndex((i) => (i + 1) % articles.length);
+  }, [articles.length]);
+
+  const prev = useCallback(() => {
+    if (articles.length < 2) return;
+    setIndex((i) => (i - 1 + articles.length) % articles.length);
+  }, [articles.length]);
 
   useEffect(() => {
     const fetchLocal = async () => {
@@ -27,20 +40,26 @@ export default function LocalArticleSection() {
           const res = await fetch(
             `${API_ROUTES.ARTICLE.FILTER}?${param}=${encodeURIComponent(value)}`
           );
-          if (!res.ok) return null;
+          if (!res.ok) return [] as Article[];
           const list: Article[] = await res.json();
-          return list.length > 0 ? list[0] : null;
+          return list
+            .sort(
+              (a, b) =>
+                new Date(b.createdDate ?? 0).getTime() -
+                new Date(a.createdDate ?? 0).getTime()
+            )
+            .slice(0, 5);
         };
 
-        let art: Article | null = null;
+        let arts: Article[] = [];
         if (country?.code) {
-          art = await fetchBy('countryCode', country.code);
+          arts = await fetchBy('countryCode', country.code);
         }
-        if (!art && country?.name) {
-          art = await fetchBy('countryName', country.name);
+        if (arts.length === 0 && country?.name) {
+          arts = await fetchBy('countryName', country.name);
         }
 
-        if (art) setArticle(art);
+        if (arts.length > 0) setArticles(arts);
       } catch {
         // swallow errors
       }
@@ -48,12 +67,42 @@ export default function LocalArticleSection() {
     fetchLocal();
   }, []);
 
-  if (!article) return null;
+  useEffect(() => {
+    if (articles.length < 2) return;
+    const t = setInterval(next, ROTATE_MS);
+    return () => clearInterval(t);
+  }, [articles.length, next]);
+
+  if (articles.length === 0) return null;
+
+  const current = articles[index];
 
   return (
     <section className={styles.container} aria-label="Local news">
       <h2 className={styles.heading}>Local News based on your location</h2>
-      <ArticleCard article={article} />
+      <div className={styles.slider}>
+        {articles.length > 1 && (
+          <>
+            <button
+              className={`${styles.arrow} ${styles.left}`}
+              onClick={prev}
+              aria-label="Previous article"
+              type="button"
+            >
+              ‹
+            </button>
+            <button
+              className={`${styles.arrow} ${styles.right}`}
+              onClick={next}
+              aria-label="Next article"
+              type="button"
+            >
+              ›
+            </button>
+          </>
+        )}
+        <ArticleCard key={current.id} article={current} />
+      </div>
     </section>
   );
 }
