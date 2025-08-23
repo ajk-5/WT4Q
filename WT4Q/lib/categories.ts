@@ -6,6 +6,7 @@ export const UPLOADCATEGORIES = [
   'Health',
   'Lifestyle',
   'Technology',
+  'Science',
   'Sports',
   'Info'
 ];
@@ -15,12 +16,14 @@ export const CATEGORIES = [
   'Crime',
   'Entertainment',
   'Business',
-    'Health',
-    'Lifestyle',
+  'Health',
+  'Lifestyle',
   'Technology',
+  'Science',
   'Sports',
   'Info'
 ];
+
 /*namespace Northeast.Models
 {
     public enum Category
@@ -32,6 +35,7 @@ export const CATEGORIES = [
         Health,
         Lifestyle,
         Technology,
+        Science,
         Sports,
         Info
     }
