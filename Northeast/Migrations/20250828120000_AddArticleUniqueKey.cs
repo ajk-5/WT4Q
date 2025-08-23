@@ -8,6 +8,7 @@ namespace Northeast.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+
             migrationBuilder.Sql(@"
                 ALTER TABLE ""Articles""
                 ADD COLUMN IF NOT EXISTS ""SourceUrlCanonical"" text NULL;
@@ -23,13 +24,16 @@ namespace Northeast.Migrations
                 ON ""Articles""(""UniqueKey"")
                 WHERE ""UniqueKey"" IS NOT NULL;
             ");
+
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+
             migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_Articles_UniqueKey"";");
             migrationBuilder.Sql(@"ALTER TABLE ""Articles"" DROP COLUMN IF EXISTS ""SourceUrlCanonical"";");
             migrationBuilder.Sql(@"ALTER TABLE ""Articles"" DROP COLUMN IF EXISTS ""UniqueKey"";");
+
         }
     }
 }

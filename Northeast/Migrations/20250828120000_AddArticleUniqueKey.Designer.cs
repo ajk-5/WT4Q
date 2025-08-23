@@ -71,6 +71,7 @@ namespace Northeast.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UniqueKey")
+
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -80,6 +81,7 @@ namespace Northeast.Migrations
                     b.HasIndex("Title");
 
                     b.HasIndex("UniqueKey")
+
                         .IsUnique()
                         .HasFilter("\"UniqueKey\" IS NOT NULL");
 
