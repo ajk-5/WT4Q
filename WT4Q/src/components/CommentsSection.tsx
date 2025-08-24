@@ -31,9 +31,8 @@ export default function CommentsSection({
 
   useEffect(() => {
     apiFetch(API_ROUTES.USERS.ME)
-
-      .then((res) => setLoggedIn(res.ok))
-      .catch(() => setLoggedIn(false));
+      .then((res) => setLoggedInState(res.ok))
+      .catch(() => setLoggedInState(false));
 
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
