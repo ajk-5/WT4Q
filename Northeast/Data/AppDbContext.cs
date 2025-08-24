@@ -21,6 +21,7 @@ namespace Northeast.Data
         public DbSet<Article> Articles { get; set; }
         public DbSet<ArticleImage> ArticleImages { get; set; }
         public DbSet<IdToken> IdTokens { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<LikeEntity> Likes { get; set; }
         public DbSet<OTP> OTPs { get; set; }
         public DbSet<Visitors> Visitors { get; set; }
