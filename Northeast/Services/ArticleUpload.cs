@@ -42,10 +42,6 @@ namespace Northeast.Services
         {
             if (article != null)
             {
-                if (string.IsNullOrEmpty(article.Slug))
-                {
-                    article.Slug = Northeast.Utilities.HtmlText.Slug(article.Title);
-                }
 
                 article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Slug}");
             }
