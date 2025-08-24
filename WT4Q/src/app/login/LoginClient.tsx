@@ -6,6 +6,7 @@ import Image from 'next/image';
 import styles from './Login.module.css';
 import Button from '@/components/Button';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { setLoggedIn } from '@/lib/auth';
 
 interface LoginRequest {
   email: string;
