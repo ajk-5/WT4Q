@@ -58,6 +58,7 @@ const LoginClient: FC<Props> = ({ from }) => {
           throw new Error(data.message || 'Login failed');
         }
 
+        setLoggedIn(true);
         router.replace('/');
       } catch (err) {
         if (err instanceof Error) {

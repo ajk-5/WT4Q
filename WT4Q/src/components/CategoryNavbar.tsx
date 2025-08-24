@@ -45,7 +45,7 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
             Mememaker
           </PrefetchLink>
           <PrefetchLink
-            href="/tools/qr-code-scanner"
+            href="/tools/qr-code-generator"
             className={styles.link}
             onClick={onNavigate}
           >

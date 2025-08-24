@@ -31,8 +31,8 @@ export default function ToolsPage() {
         </li>
         <li className={styles.item}>
           <PrefetchLink
-            href="/tools/qr-code-scanner"
-            title="QR Code Scanner – free online tool, no sign up or login required"
+            href="/tools/qr-code-generator"
+            title="QR Code Generator – free online tool, no sign up or login required"
           >
             QR Code Scanner
           </PrefetchLink>

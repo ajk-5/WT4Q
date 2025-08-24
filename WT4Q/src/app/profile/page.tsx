@@ -40,8 +40,18 @@ export default function Profile() {
   useEffect(() => {
     apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setLoggedIn(false);
+      });
 
     apiFetch(API_ROUTES.USERS.ACTIVITY)
       .then((res) => (res.ok ? res.json() : null))

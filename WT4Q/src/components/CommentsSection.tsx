@@ -26,13 +26,15 @@ export default function CommentsSection({
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reported, setReported] = useState<Record<string, boolean>>({});
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedInState] = useState(false);
   const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => {
     apiFetch(API_ROUTES.USERS.ME)
+
       .then((res) => setLoggedIn(res.ok))
       .catch(() => setLoggedIn(false));
+
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
     );

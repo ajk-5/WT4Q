@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import PrefetchLink from "@/components/PrefetchLink";
-import { API_ROUTES } from "@/lib/api";
+import { API_ROUTES, apiFetch } from "@/lib/api";
+import { isLoggedIn, setLoggedIn } from "@/lib/auth";
 import styles from "./NotificationBell.module.css";
 
 interface Notification {
@@ -12,16 +13,24 @@ interface Notification {
 
 export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    fetch(API_ROUTES.NOTIFICATIONS.GET, { credentials: "include" })
+    if (!isLoggedIn()) return;
+    setShow(true);
+    apiFetch(API_ROUTES.NOTIFICATIONS.GET)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Notification[]) => {
         const count = data.filter((n) => !n.isRead).length;
         setUnread(count);
       })
-      .catch(() => {});
+      .catch(() => {
+        setShow(false);
+        setLoggedIn(false);
+      });
   }, []);
+
+  if (!show) return null;
 
   return (
     <PrefetchLink href="/notifications" className={styles.bell} aria-label="Notifications">

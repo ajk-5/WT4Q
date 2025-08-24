@@ -20,8 +20,18 @@ export default function UserMenu() {
   useEffect(() => {
     apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setLoggedIn(false);
+      });
   }, []);
 
   const initials = user?.userName
@@ -38,6 +48,7 @@ export default function UserMenu() {
       method: 'POST',
     });
     setUser(null);
+    setLoggedIn(false);
     router.refresh();
   };
 
