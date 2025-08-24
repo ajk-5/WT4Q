@@ -49,6 +49,7 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
       )
       .map((a) => ({
         id: a.id,
+        slug: a.slug,
         title: a.title,
         content: a.content,
         images: a.images as ArticleImage[],

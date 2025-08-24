@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Northeast.Models
 {
+    [Index(nameof(Slug), IsUnique = true)]
     public class Article
     {
         [Key]
@@ -17,6 +19,9 @@ namespace Northeast.Models
         public Category Category { get; set; }
         [Required]
         public string Title { get; set; }
+
+        [Required]
+        public string Slug { get; set; } = string.Empty;
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]
