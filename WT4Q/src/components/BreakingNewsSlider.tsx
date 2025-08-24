@@ -8,6 +8,7 @@ import { API_ROUTES } from '@/lib/api';
 
 export interface BreakingArticle {
   id: string;
+  slug: string;
   title: string;
   content?: string;
   images?: ArticleImage[];
@@ -83,7 +84,7 @@ export default function BreakingNewsSlider({
         // don’t silently loop on 4xx/5xx
         throw new Error(`HTTP ${res.status}`);
       }
-      const data: { id: string; title: string; createdDate?: string }[] = await res.json();
+      const data: { id: string; slug: string; title: string; createdDate?: string }[] = await res.json();
       setArticles(
         data
           .sort(
@@ -92,7 +93,7 @@ export default function BreakingNewsSlider({
               new Date(a.createdDate ?? 0).getTime(),
           )
           .slice(0, 20)
-          .map((a) => ({ id: a.id, title: a.title, createdDate: a.createdDate })),
+          .map((a) => ({ id: a.id, slug: a.slug, title: a.title, createdDate: a.createdDate })),
       );
       setIndex(0);
     })().catch((err: unknown) => {
@@ -180,7 +181,7 @@ export default function BreakingNewsSlider({
           )}
           <h3 className={styles.detailTitle}>{current.title}</h3>
           {snippet && <p className={styles.snippet}>{snippet}</p>}
-          <PrefetchLink href={`/articles/${current.id}`} className={styles.readMore}>
+          <PrefetchLink href={`/articles/${current.slug}`} className={styles.readMore}>
             Read more
           </PrefetchLink>
         </div>
@@ -190,7 +191,7 @@ export default function BreakingNewsSlider({
             direction === 'next' ? styles.slideLeft : styles.slideRight
           }`}
         >
-          <PrefetchLink href={`/articles/${current.id}`} className={styles.item}>
+          <PrefetchLink href={`/articles/${current.slug}`} className={styles.item}>
             <span ref={textRef}>{current.title}</span>
           </PrefetchLink>
         </div>

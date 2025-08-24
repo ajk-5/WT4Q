@@ -1,4 +1,4 @@
-// app/articles/[id]/page.tsx
+// app/articles/[title]/page.tsx
 
 import Image from 'next/image';
 import CommentsSection, { Comment } from '@/components/CommentsSection';
@@ -14,6 +14,7 @@ import LocalArticleSection from '@/components/LocalArticleSection';
 
 interface ArticleDetails {
   id: string;
+  slug?: string;
   title: string;
   summary?: string;
   content: string;
@@ -29,7 +30,7 @@ interface ArticleDetails {
 }
 
 interface RelatedArticle {
-  id: string;
+  slug: string;
   title: string;
 }
 
@@ -63,9 +64,9 @@ function toAbsoluteIfRelative(src: string, siteUrl: string): string {
 
 /* ---------------------- data ---------------------- */
 
-async function fetchArticle(id: string): Promise<ArticleDetails | null> {
+async function fetchArticle(slug: string): Promise<ArticleDetails | null> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), { cache: 'no-store' });
+    const res = await fetch(API_ROUTES.ARTICLE.GET_BY_SLUG(slug), { cache: 'no-store' });
     if (!res.ok) return null;
     const raw = await res.json();
     return raw as ArticleDetails;
@@ -74,9 +75,9 @@ async function fetchArticle(id: string): Promise<ArticleDetails | null> {
   }
 }
 
-async function fetchRelated(id: string): Promise<RelatedArticle[]> {
+async function fetchRelated(slug: string): Promise<RelatedArticle[]> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(id), { cache: 'no-store' });
+    const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(slug), { cache: 'no-store' });
     if (!res.ok) return [];
     return (await res.json()) as RelatedArticle[];
   } catch {
@@ -87,15 +88,15 @@ async function fetchRelated(id: string): Promise<RelatedArticle[]> {
 /* ---------------------- metadata ---------------------- */
 
 export async function generateMetadata(
-  props: { params: Promise<{ id: string }> }   // <-- accept async params
+  props: { params: Promise<{ title: string }> }   // <-- accept async params
 ): Promise<Metadata> {
-  const { id } = await props.params;           // <-- await before using
-  const article = await fetchArticle(id);
+  const { title } = await props.params;           // <-- await before using
+  const article = await fetchArticle(title);
   if (!article) return {};
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
-  const url = new URL(`/articles/${id}`, siteUrl).toString();
+  const url = new URL(`/articles/${title}`, siteUrl).toString();
 
   const description =
     article.summary || (article.content || '').slice(0, 160);
@@ -126,11 +127,11 @@ export async function generateMetadata(
 /* ---------------------- page ---------------------- */
 
 export default async function ArticlePage(
-  props: { params: Promise<{ id: string }> }   // <-- accept async params
+  props: { params: Promise<{ title: string }> }   // <-- accept async params
 ) {
-  const { id } = await props.params;           // <-- await before using
+  const { title } = await props.params;           // <-- await before using
 
-  const article = await fetchArticle(id);
+  const article = await fetchArticle(title);
   if (!article) {
     return <div className={styles.container}>Article not found.</div>;
   }
@@ -139,7 +140,7 @@ export default async function ArticlePage(
     !!article.isBreakingNews &&
     new Date(article.createdDate) >= new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
-  const related = await fetchRelated(id);
+  const related = await fetchRelated(title);
 
   const likeCount = article.like?.filter((l) => l.type === 0).length ?? 0;
   const dislikeCount = article.like?.filter((l) => l.type === 2).length ?? 0;
@@ -214,12 +215,12 @@ export default async function ArticlePage(
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
         <ReactionButtons
-          articleId={id}
+          articleId={article.id}
           initialLikes={likeCount}
           initialDislikes={dislikeCount}
         />
         <CommentsSection
-          articleId={id}
+          articleId={article.id}
           initialComments={article.comments ?? []}
         />
       </article>
@@ -228,7 +229,7 @@ export default async function ArticlePage(
           <h2 className={styles.relatedHeading}>Related Articles</h2>
           <div className={styles.relatedBar}>
             {related.map((a) => (
-              <PrefetchLink key={a.id} href={`/articles/${a.id}`}>
+              <PrefetchLink key={a.slug} href={`/articles/${a.slug}`}>
                 {a.title}
               </PrefetchLink>
             ))}

@@ -42,7 +42,11 @@ namespace Northeast.Services
         {
             if (article != null)
             {
-                article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Id}");
+                if (string.IsNullOrEmpty(article.Slug))
+                {
+                    article.Slug = Northeast.Utilities.HtmlText.Slug(article.Title);
+                }
+                article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Slug}");
             }
         }
 
@@ -76,6 +80,7 @@ namespace Northeast.Services
             {
                 AuthorId = authorId,
                 Title = articleDto.Title,
+                Slug = Northeast.Utilities.HtmlText.Slug(articleDto.Title),
                 Category = articleDto.Category,
                 CreatedDate = DateTime.UtcNow,
                 ArticleType = articleDto.ArticleType,
@@ -111,6 +116,17 @@ namespace Northeast.Services
                 .Include(a => a.Like)
                 .Include(a => a.Comments)
                 .FirstOrDefaultAsync(a => a.Id == Id);
+            await SetViewsAsync(article);
+            return article;
+        }
+
+        public async Task<Article?> GetArticleBySlug(string slug)
+        {
+            var article = await _appDbContext.Articles
+                .AsNoTracking()
+                .Include(a => a.Like)
+                .Include(a => a.Comments)
+                .FirstOrDefaultAsync(a => a.Slug == slug);
             await SetViewsAsync(article);
             return article;
         }
@@ -195,6 +211,7 @@ namespace Northeast.Services
             }
 
             article.Title = articleDto.Title;
+            article.Slug = Northeast.Utilities.HtmlText.Slug(articleDto.Title);
             article.Category = articleDto.Category;
             article.ArticleType = articleDto.ArticleType;
             article.Content = articleDto.Content;

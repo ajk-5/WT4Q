@@ -75,7 +75,56 @@ namespace Northeast.Controllers
             return Ok(articles);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                return BadRequest(new { message = "Please enter a title" });
+            }
+
+            var article = await articleUpload.GetArticleBySlug(slug);
+            if (article == null)
+            {
+                return NotFound(new { message = "Sorry, no article found with this title" });
+            }
+
+            return Ok(article);
+        }
+
+        [HttpGet("{slug}/recommendations")]
+        public async Task<IActionResult> GetRecommendations(string slug, [FromQuery] int count = 5)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                return BadRequest(new { message = "Please enter a title" });
+            }
+
+            var article = await articleUpload.GetArticleBySlug(slug);
+            if (article == null)
+            {
+                return NotFound(new { message = "Sorry, no article found with this title" });
+            }
+
+            var results = await _recommendations.GetRecommendationsAsync(article.Id, count);
+            if (!results.Any())
+            {
+                return NotFound(new { message = "No related articles found" });
+            }
+
+            var dto = results.Select(a => new ArticleRecommendationDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Slug = a.Slug ?? Northeast.Utilities.HtmlText.Slug(a.Title),
+                Category = a.Category,
+                ArticleType = a.ArticleType
+            });
+
+            return Ok(dto);
+        }
+
+        [HttpGet("id/{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             if (id == Guid.Empty)
@@ -90,31 +139,6 @@ namespace Northeast.Controllers
             }
 
             return Ok(article);
-        }
-
-        [HttpGet("{id}/recommendations")]
-        public async Task<IActionResult> GetRecommendations(Guid id, [FromQuery] int count = 5)
-        {
-            if (id == Guid.Empty)
-            {
-                return BadRequest(new { message = "Please enter an Id" });
-            }
-
-            var results = await _recommendations.GetRecommendationsAsync(id, count);
-            if (!results.Any())
-            {
-                return NotFound(new { message = "No related articles found" });
-            }
-
-            var dto = results.Select(a => new ArticleRecommendationDto
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Category = a.Category,
-                ArticleType = a.ArticleType
-            });
-
-            return Ok(dto);
         }
         [Authorize(Policy = "AdminOnly")]
         [HttpPut]

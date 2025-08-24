@@ -9,3 +9,10 @@ export function truncateWords(text = '', count = 50): string {
 export function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '');
 }
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+}
