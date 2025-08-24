@@ -85,16 +85,18 @@ namespace Northeast.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ArticleType = table.Column<int>(type: "integer", nullable: false),
-                    Category = table.Column<int>(type: "integer", nullable: false),
+                    ArticleType = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    Category = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
+                    Slug = table.Column<string>(type: "text", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     IsBreakingNews = table.Column<bool>(type: "boolean", nullable: false),
-                    EmbededCode = table.Column<string>(type: "text", nullable: true),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
                     CountryName = table.Column<string>(type: "text", nullable: true),
                     CountryCode = table.Column<string>(type: "text", nullable: true),
+                    SourceUrlCanonical = table.Column<string>(type: "text", nullable: true),
+                    UniqueKey = table.Column<string>(type: "text", nullable: true),
                     Keywords = table.Column<List<string>>(type: "text[]", nullable: true)
                 },
                 constraints: table =>
@@ -375,10 +377,22 @@ namespace Northeast.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Articles_Slug",
+                table: "Articles",
+                column: "Slug",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Articles_Title",
                 table: "Articles",
-                column: "Title",
-                unique: true);
+                column: "Title");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Articles_UniqueKey",
+                table: "Articles",
+                column: "UniqueKey",
+                unique: true,
+                filter: "\"UniqueKey\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comment_ArticleId",

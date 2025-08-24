@@ -61,6 +61,9 @@ namespace Northeast.Migrations
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .HasColumnType("text[]");
 
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
+
                     b.Property<string>("SourceUrlCanonical")
                         .HasColumnType("text");
 
@@ -69,18 +72,18 @@ namespace Northeast.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UniqueKey")
-
-
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
                     b.HasIndex("Title");
 
                     b.HasIndex("UniqueKey")
-
                         .IsUnique()
                         .HasFilter("\"UniqueKey\" IS NOT NULL");
 
