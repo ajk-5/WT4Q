@@ -3,6 +3,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { isLoggedIn as authLoggedIn, setLoggedIn as setAuthLoggedIn } from '@/lib/auth';
 import styles from './CommentsSection.module.css';
 
 export interface Comment {
@@ -26,13 +27,28 @@ export default function CommentsSection({
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reported, setReported] = useState<Record<string, boolean>>({});
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedInState] = useState(false);
   const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => {
-    apiFetch(API_ROUTES.USERS.ME)
-      .then((res) => setLoggedIn(res.ok))
-      .catch(() => setLoggedIn(false));
+    if (authLoggedIn()) {
+      apiFetch(API_ROUTES.USERS.ME)
+        .then((res) => {
+          if (res.ok) {
+            setLoggedInState(true);
+            setAuthLoggedIn(true);
+          } else {
+            setLoggedInState(false);
+            setAuthLoggedIn(false);
+          }
+        })
+        .catch(() => {
+          setLoggedInState(false);
+          setAuthLoggedIn(false);
+        });
+    } else {
+      setLoggedInState(false);
+    }
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
     );

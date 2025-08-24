@@ -5,6 +5,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { isLoggedIn, setLoggedIn } from '@/lib/auth';
 
 interface User {
   id: string;
@@ -18,10 +19,20 @@ export default function UserMenu() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!isLoggedIn()) return;
     apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
+      .then((data) => {
+        if (data) {
+          setUser(data);
+        } else {
+          setLoggedIn(false);
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setLoggedIn(false);
+      });
   }, []);
 
   const initials = user?.userName
@@ -38,6 +49,7 @@ export default function UserMenu() {
       method: 'POST',
     });
     setUser(null);
+    setLoggedIn(false);
     router.refresh();
   };
 
