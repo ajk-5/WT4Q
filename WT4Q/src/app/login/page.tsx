@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import LoginClient from './LoginClient';
 
 export const metadata = {
@@ -12,11 +10,6 @@ export default async function LoginPage({
 }: {
   searchParams?: Promise<{ from?: string }>;
 }) {
-  const cookieStore = await cookies();
-  if (cookieStore.get('JwtToken')) {
-    redirect('/');
-  }
-
   const params = await searchParams;
   return <LoginClient from={params?.from} />;
 }

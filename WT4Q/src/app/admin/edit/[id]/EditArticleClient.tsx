@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
 import { slugify } from '@/lib/text';
@@ -46,9 +46,7 @@ export default function EditArticleClient({ id }: { id: string }) {
     async function load() {
       if (!admin) return;
       try {
-        const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(id), {
-          credentials: 'include',
-        });
+        const res = await apiFetch(API_ROUTES.ARTICLE.GET_BY_ID(id));
         if (!res.ok) throw new Error('Failed to load');
         const data: ArticleDetails = await res.json();
         setTitle(data.title);
@@ -139,10 +137,9 @@ export default function EditArticleClient({ id }: { id: string }) {
             .filter((k) => k.length > 0),
         } as Record<string, unknown>;
 
-          const res = await fetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
+          const res = await apiFetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
             body: JSON.stringify(body),
           });
           const data = await res.json().catch(() => ({}));

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import styles from './ReactionButtons.module.css';
 
 interface Props {
@@ -24,12 +24,11 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
 
   const send = async (type: 0 | 2) => {
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         API_ROUTES.ARTICLE.LIKE(articleId),
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ type }),
         }
       );

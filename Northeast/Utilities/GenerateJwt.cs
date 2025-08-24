@@ -26,11 +26,13 @@ namespace Northeast.Utilities
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
+            var now = DateTime.UtcNow;
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"])),
+                notBefore: now,
+                expires: now.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"])),
                 signingCredentials: credentials
             );
 
