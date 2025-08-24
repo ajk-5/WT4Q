@@ -52,8 +52,9 @@ namespace Northeast.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = Request.IsHttps,
-                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
             };
 
@@ -70,8 +71,10 @@ namespace Northeast.Controllers
             {
                 Response.Cookies.Delete("JwtToken", new CookieOptions
                 {
-                    Secure = Request.IsHttps,
-                    SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
                 });
             }
 

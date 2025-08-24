@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
 using Microsoft.IdentityModel.Tokens;
 using Northeast.Data;
@@ -165,6 +166,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -177,6 +179,16 @@ builder.Services.AddAuthentication(options =>
         {
             context.Token = context.Request.Cookies["JwtToken"];
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var raw = context.HttpContext.Request.Cookies["JwtToken"];
+            var record = await db.IdTokens.FirstOrDefaultAsync(t => t.Token == raw);
+            if (record == null || record.IsRevoked || record.ExpiryDate <= DateTime.UtcNow)
+            {
+                context.Fail("Token revoked or expired");
+            }
         }
     };
 })
