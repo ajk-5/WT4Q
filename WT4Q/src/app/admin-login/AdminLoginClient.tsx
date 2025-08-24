@@ -4,7 +4,7 @@ import { FC, useState, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './AdminLogin.module.css';
 import Button from '@/components/Button';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 interface LoginRequest {
   email: string;
@@ -43,24 +43,15 @@ const AdminLoginClient: FC = () => {
 
     startTransition(async () => {
       try {
-        const res = await fetch(API_ROUTES.ADMIN_AUTH.LOGIN, {
+        const res = await apiFetch(API_ROUTES.ADMIN_AUTH.LOGIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ email, password } as LoginRequest),
         });
         const data: { response?: string; message?: string } = await res.json();
 
         if (!res.ok) {
           throw new Error(data.message || 'Login failed');
-        }
-
-        if (data.response) {
-          const cookieBase = `JwtToken=${data.response}; path=/;`;
-          const secure = window.location.protocol === 'https:'
-            ? 'Secure; SameSite=None'
-            : 'SameSite=Lax';
-          document.cookie = `${cookieBase} ${secure}`;
         }
 
         router.replace('/admin/dashboard');

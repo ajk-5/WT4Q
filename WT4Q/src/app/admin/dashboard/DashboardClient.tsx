@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import PrefetchLink from '@/components/PrefetchLink';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { UPLOADCATEGORIES } from '@/lib/categories';
 import styles from './dashboard.module.css';
@@ -41,9 +41,9 @@ export default function DashboardClient() {
     async function load() {
       if (!admin?.id) return;
       try {
-        const res = await fetch(API_ROUTES.ARTICLE.SEARCH_BY_AUTHOR(admin.id), {
-          credentials: 'include',
-        });
+        const res = await apiFetch(
+          API_ROUTES.ARTICLE.SEARCH_BY_AUTHOR(admin.id)
+        );
         if (!res.ok) return;
         const data: { id: string; title: string; createdDate?: string }[] =
           await res.json();
@@ -62,13 +62,11 @@ export default function DashboardClient() {
 
 
   const handleLogout = async () => {
-    await fetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
+    await apiFetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
       method: 'POST',
-      credentials: 'include',
     });
-      document.cookie = 'JwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      router.replace('/admin-login');
-    };
+    router.replace('/admin-login');
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,10 +124,9 @@ export default function DashboardClient() {
             .map((k) => k.trim())
             .filter((k) => k.length > 0),
         } as Record<string, unknown>;
-        const res = await fetch(API_ROUTES.ARTICLE.CREATE, {
+        const res = await apiFetch(API_ROUTES.ARTICLE.CREATE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify(body),
         });
         const data = await res.json().catch(() => ({}));
@@ -345,9 +342,8 @@ export default function DashboardClient() {
                 type="button"
                 onClick={async () => {
                   if (!confirm('Delete article?')) return;
-                  await fetch(`${API_ROUTES.ARTICLE.DELETE}?Id=${a.id}`, {
+                  await apiFetch(`${API_ROUTES.ARTICLE.DELETE}?Id=${a.id}`, {
                     method: 'DELETE',
-                    credentials: 'include',
                   });
                   setArticles(articles.filter((art) => art.id !== a.id));
                 }}

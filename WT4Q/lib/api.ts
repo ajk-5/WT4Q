@@ -13,6 +13,7 @@ export const API_ROUTES = {
     LOGIN: `${API_BASE_URL}/api/UserAuth/login`,
     REGISTER: `${API_BASE_URL}/api/UserRegistration`,
     LOGOUT: `${API_BASE_URL}/api/UserAuth/logout`,
+    REFRESH: `${API_BASE_URL}/api/auth/refresh`,
   },
 
   USERS: {
@@ -88,3 +89,21 @@ export const API_ROUTES = {
     POST: `${API_BASE_URL}/api/Contact`,
   },
 };
+
+export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const res = await fetch(input, { ...init, credentials: 'include' });
+  if (res.status !== 401) {
+    return res;
+  }
+
+  const refresh = await fetch(API_ROUTES.AUTH.REFRESH, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (refresh.ok) {
+    return fetch(input, { ...init, credentials: 'include' });
+  }
+
+  return res;
+}

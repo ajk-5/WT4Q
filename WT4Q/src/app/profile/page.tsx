@@ -2,7 +2,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Profile.module.css';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import VisitorMap from '@/components/VisitorMap';
 
 interface User {
@@ -38,12 +38,12 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch(API_ROUTES.USERS.ME, { credentials: 'include' })
+    apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
       .catch(() => setUser(null));
 
-    fetch(API_ROUTES.USERS.ACTIVITY, { credentials: 'include' })
+    apiFetch(API_ROUTES.USERS.ACTIVITY)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setActivity(data))
       .catch(() => setActivity(null));
@@ -52,9 +52,8 @@ export default function Profile() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    await fetch(API_ROUTES.USERS.UPDATE, {
+    await apiFetch(API_ROUTES.USERS.UPDATE, {
       method: 'PUT',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userName: user.userName,
@@ -67,9 +66,8 @@ export default function Profile() {
 
   const handleDelete = async () => {
     if (!password) return;
-    const res = await fetch(API_ROUTES.USERS.DELETE, {
+    const res = await apiFetch(API_ROUTES.USERS.DELETE, {
       method: 'DELETE',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
@@ -88,9 +86,8 @@ export default function Profile() {
       setPasswordError('Passwords do not match');
       return;
     }
-    const res = await fetch(API_ROUTES.USERS.CHANGE_PASSWORD, {
+    const res = await apiFetch(API_ROUTES.USERS.CHANGE_PASSWORD, {
       method: 'PUT',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
     });

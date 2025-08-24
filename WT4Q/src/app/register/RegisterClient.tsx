@@ -5,7 +5,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import Image from 'next/image';
 import styles from './Register.module.css';
 import Button from '@/components/Button';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 interface RegisterRequest {
   username: string;
@@ -51,10 +51,9 @@ const Register: FC = () => {
 
     startTransition(async () => {
       try {
-        const response = await fetch(API_ROUTES.AUTH.REGISTER, {
+        const response = await apiFetch(API_ROUTES.AUTH.REGISTER, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             username,
             email,
