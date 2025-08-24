@@ -7,6 +7,7 @@ namespace Northeast.DTOs
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
         public Category Category { get; set; }
         public ArticleType ArticleType { get; set; }
     }

@@ -8,8 +8,8 @@ async function fetchArticlePaths(): Promise<string[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { cache: 'no-store' });
     if (!res.ok) return [];
-    const articles: { id: string }[] = await res.json();
-    return articles.map(a => `/articles/${a.id}`);
+    const articles: { slug: string }[] = await res.json();
+    return articles.map(a => `/articles/${a.slug}`);
   } catch {
     return [];
   }
