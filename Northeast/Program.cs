@@ -289,7 +289,7 @@ if (app.Environment.IsDevelopment())
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = CookieSecurePolicy.Always
+    Secure = CookieSecurePolicy.SameAsRequest
 });
 
 app.UseHttpsRedirection();

@@ -3,7 +3,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
-import { setLoggedIn as setAuthLoggedIn } from '@/lib/auth';
 import styles from './CommentsSection.module.css';
 
 export interface Comment {
@@ -32,19 +31,10 @@ export default function CommentsSection({
 
   useEffect(() => {
     apiFetch(API_ROUTES.USERS.ME)
-      .then((res) => {
-        if (res.ok) {
-          setLoggedInState(true);
-          setAuthLoggedIn(true);
-        } else {
-          setLoggedInState(false);
-          setAuthLoggedIn(false);
-        }
-      })
-      .catch(() => {
-        setLoggedInState(false);
-        setAuthLoggedIn(false);
-      });
+
+      .then((res) => setLoggedIn(res.ok))
+      .catch(() => setLoggedIn(false));
+
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
     );

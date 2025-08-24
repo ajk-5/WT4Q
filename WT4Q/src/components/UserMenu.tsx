@@ -5,7 +5,6 @@ import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
-import { setLoggedIn } from '@/lib/auth';
 
 interface User {
   id: string;

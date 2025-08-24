@@ -22,8 +22,9 @@ using Northeast.Utilities;
 
 namespace Northeast.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class UserAuthController : ControllerBase
     {
         private readonly UserAuthentification _userAuth;
@@ -78,6 +79,7 @@ namespace Northeast.Controllers
                 var refreshRaw = GenerateSecureToken();
                 var refreshExp = DateTime.UtcNow.AddDays(14);
                 var refreshEntity = new RefreshToken
+
                 {
                     Id = Guid.NewGuid(),
                     UserId = user.Id,
@@ -91,10 +93,11 @@ namespace Northeast.Controllers
                 await _db.RefreshTokens.AddAsync(refreshEntity);
                 await _db.SaveChangesAsync();
 
+                var secure = Request.IsHttps;
                 var accessCookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    Secure = secure,
                     SameSite = SameSiteMode.Lax,
                     Path = "/",
                     Expires = accessExp
@@ -102,11 +105,12 @@ namespace Northeast.Controllers
                 var refreshCookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    Secure = secure,
                     SameSite = SameSiteMode.Lax,
                     Path = "/",
                     Expires = refreshExp
                 };
+
 
                 Response.Cookies.Append("JwtToken", token, accessCookie);
                 Response.Cookies.Append("RefreshToken", refreshRaw, refreshCookie);
@@ -142,10 +146,13 @@ namespace Northeast.Controllers
 
             await _db.SaveChangesAsync();
 
+
+            var secure = Request.IsHttps;
             var opts = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = secure,
+
                 SameSite = SameSiteMode.Lax,
                 Path = "/"
             };
@@ -197,10 +204,13 @@ namespace Northeast.Controllers
 
             await _db.SaveChangesAsync();
 
+
+            var secure = Request.IsHttps;
             var accessCookie = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = secure,
+
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
                 Expires = idToken.ExpiryDate
@@ -208,7 +218,9 @@ namespace Northeast.Controllers
             var refreshCookie = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+
+                Secure = secure,
+
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
                 Expires = newRt.ExpiresAtUtc
