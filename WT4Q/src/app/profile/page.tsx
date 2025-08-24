@@ -3,6 +3,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Profile.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { isLoggedIn, setLoggedIn } from '@/lib/auth';
 import VisitorMap from '@/components/VisitorMap';
 
 interface User {
@@ -38,10 +39,21 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!isLoggedIn()) return;
     apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setLoggedIn(false);
+      });
 
     apiFetch(API_ROUTES.USERS.ACTIVITY)
       .then((res) => (res.ok ? res.json() : null))
