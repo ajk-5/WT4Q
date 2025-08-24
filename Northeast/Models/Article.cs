@@ -20,8 +20,10 @@ namespace Northeast.Models
         [Required]
         public string Title { get; set; }
 
-        [Required]
-        public string Slug { get; set; } = string.Empty;
+
+        public string? Slug { get; set; }
+
+
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         [Required]
