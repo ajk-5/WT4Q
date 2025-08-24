@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import styles from './VisitorMap.module.css';
 
 interface VisitorInfo {
@@ -14,7 +14,7 @@ export default function VisitorMap() {
   const [info, setInfo] = useState<VisitorInfo | null>(null);
 
   useEffect(() => {
-    fetch(API_ROUTES.USER_LOCATION.GET, { credentials: 'include' })
+    apiFetch(API_ROUTES.USER_LOCATION.GET)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setInfo(data))
       .catch(() => {});

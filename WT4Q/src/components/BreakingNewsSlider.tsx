@@ -4,7 +4,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
 import { stripHtml, truncateWords } from '@/lib/text';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 export interface BreakingArticle {
   id: string;
@@ -73,10 +73,8 @@ export default function BreakingNewsSlider({
 
     const ac = new AbortController();
     (async () => {
-      const res = await fetch(API_ROUTES.ARTICLE.BREAKING, {
+      const res = await apiFetch(API_ROUTES.ARTICLE.BREAKING, {
         signal: ac.signal,
-        // If your API lives on another subdomain and uses cookie auth, uncomment:
-        // credentials: 'include',
         headers: { Accept: 'application/json' },
         cache: 'no-store',
       });

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 interface User {
   id: string;
@@ -18,7 +18,7 @@ export default function UserMenu() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch(API_ROUTES.USERS.ME, { credentials: 'include' })
+    apiFetch(API_ROUTES.USERS.ME)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
       .catch(() => setUser(null));
@@ -34,11 +34,9 @@ export default function UserMenu() {
 
   const handleLogout = async () => {
     if (!confirm('Log out?')) return;
-    await fetch(API_ROUTES.AUTH.LOGOUT, {
+    await apiFetch(API_ROUTES.AUTH.LOGOUT, {
       method: 'POST',
-      credentials: 'include',
     });
-    document.cookie = 'JwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     setUser(null);
     router.refresh();
   };

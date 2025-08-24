@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 export interface AdminInfo {
   id?: string;
@@ -27,8 +27,7 @@ export function useAdminGuard() {
 
     async function check() {
       try {
-        const res = await fetch(API_ROUTES.ADMIN_AUTH.ME, {
-          credentials: 'include',
+        const res = await apiFetch(API_ROUTES.ADMIN_AUTH.ME, {
           signal: controller.signal,
         });
         if (!res.ok) {

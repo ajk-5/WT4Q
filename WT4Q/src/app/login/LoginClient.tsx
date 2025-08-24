@@ -5,7 +5,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import Image from 'next/image';
 import styles from './Login.module.css';
 import Button from '@/components/Button';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 
 interface LoginRequest {
   email: string;
@@ -47,10 +47,9 @@ const LoginClient: FC<Props> = ({ from }) => {
 
     startTransition(async () => {
       try {
-        const response = await fetch(API_ROUTES.AUTH.LOGIN, {
+        const response = await apiFetch(API_ROUTES.AUTH.LOGIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ email, password } as LoginRequest),
         });
         const data: { message?: string } = await response.json();

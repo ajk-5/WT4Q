@@ -1,7 +1,7 @@
 'use client';
 import { useState, FormEvent, useTransition } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
 import { useAdminGuard } from '@/hooks/useAdminGuard';
 
@@ -42,10 +42,9 @@ export default function CocktailDashboardClient() {
           content,
           ingredients,
         };
-        const res = await fetch(API_ROUTES.COCKTAIL.CREATE, {
+        const res = await apiFetch(API_ROUTES.COCKTAIL.CREATE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify(body),
         });
         if (!res.ok) {

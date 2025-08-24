@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
-import { API_ROUTES } from '@/lib/api';
+import { API_ROUTES, apiFetch } from '@/lib/api';
 import styles from './CommentsSection.module.css';
 
 export interface Comment {
@@ -30,7 +30,7 @@ export default function CommentsSection({
   const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => {
-    fetch(API_ROUTES.USERS.ME, { credentials: 'include' })
+    apiFetch(API_ROUTES.USERS.ME)
       .then((res) => setLoggedIn(res.ok))
       .catch(() => setLoggedIn(false));
     setLoginHref(
@@ -45,11 +45,11 @@ export default function CommentsSection({
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_ROUTES.ARTICLE.COMMENT}?ArticleId=${articleId}&Comment=${encodeURIComponent(trimmed)}${
           replyTo ? `&ParentCommentId=${replyTo}` : ''
         }`,
-        { method: 'POST', credentials: 'include' }
+        { method: 'POST' }
       );
       if (res.ok) {
         let newComment: Comment | null = null;
@@ -78,9 +78,9 @@ export default function CommentsSection({
   const handleReport = async (id: string) => {
     if (reported[id]) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_ROUTES.ARTICLE.REPORT_COMMENT}?CommentId=${id}`,
-        { method: 'POST', credentials: 'include' }
+        { method: 'POST' }
       );
       if (res.ok) {
         setComments((prev) =>
