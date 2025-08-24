@@ -3,6 +3,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Profile.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { setLoggedIn } from '@/lib/auth';
 import VisitorMap from '@/components/VisitorMap';
 
 interface User {
