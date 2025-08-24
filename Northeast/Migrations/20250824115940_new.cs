@@ -88,7 +88,7 @@ namespace Northeast.Migrations
                     ArticleType = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     Category = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
-                    Slug = table.Column<string>(type: "text", nullable: true),
+                    Slug = table.Column<string>(type: "text", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     IsBreakingNews = table.Column<bool>(type: "boolean", nullable: false),

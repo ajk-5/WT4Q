@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250824114027_new")]
+    [Migration("20250824115940_new")]
     partial class @new
     {
         /// <inheritdoc />
@@ -65,6 +65,7 @@ namespace Northeast.Migrations
                         .HasColumnType("text[]");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SourceUrlCanonical")
