@@ -46,6 +46,7 @@ namespace Northeast.Services
                 {
                     article.Slug = Northeast.Utilities.HtmlText.Slug(article.Title);
                 }
+
                 article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Slug}");
             }
         }

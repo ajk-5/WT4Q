@@ -116,7 +116,9 @@ namespace Northeast.Controllers
             {
                 Id = a.Id,
                 Title = a.Title,
+
                 Slug = a.Slug ?? Northeast.Utilities.HtmlText.Slug(a.Title),
+
                 Category = a.Category,
                 ArticleType = a.ArticleType
             });
