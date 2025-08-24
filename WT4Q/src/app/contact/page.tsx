@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_ROUTES } from "@/lib/api";
+import { isLoggedIn } from "@/lib/auth";
 
 function ContactForm() {
   const [email, setEmail] = useState("");
@@ -12,15 +13,17 @@ function ContactForm() {
   const params = useSearchParams();
 
   useEffect(() => {
-    fetch(API_ROUTES.USERS.ME, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((user) => {
-        if (user && user.email) {
-          setEmail(user.email);
-          setConnected(true);
-        }
-      })
-      .catch(() => {});
+    if (isLoggedIn()) {
+      fetch(API_ROUTES.USERS.ME, { credentials: "include" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((user) => {
+          if (user && user.email) {
+            setEmail(user.email);
+            setConnected(true);
+          }
+        })
+        .catch(() => {});
+    }
     if (params.get("type") === "problem") {
       setMessage("I would like to report a problem: ");
     }

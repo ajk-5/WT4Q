@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import styles from './Profile.module.css';
 import { API_ROUTES } from '@/lib/api';
 import VisitorMap from '@/components/VisitorMap';
+import { isLoggedIn } from '@/lib/auth';
 
 interface User {
   userName: string;
@@ -38,6 +39,7 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!isLoggedIn()) return;
     fetch(API_ROUTES.USERS.ME, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
