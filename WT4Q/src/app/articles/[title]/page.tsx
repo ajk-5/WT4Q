@@ -14,7 +14,9 @@ import LocalArticleSection from '@/components/LocalArticleSection';
 
 interface ArticleDetails {
   id: string;
+
   slug: string;
+
   title: string;
   summary?: string;
   content: string;

@@ -42,6 +42,7 @@ namespace Northeast.Services
         {
             if (article != null)
             {
+
                 article.Views = await _pageVisitRepository.CountVisitsAsync($"/articles/{article.Slug}");
             }
         }

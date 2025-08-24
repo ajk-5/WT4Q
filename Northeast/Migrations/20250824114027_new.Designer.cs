@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Northeast.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250821180213_database updatee")]
-    partial class databaseupdatee
+    [Migration("20250824114027_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,14 +32,18 @@ namespace Northeast.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ArticleType")
-                        .HasColumnType("integer");
+                    b.Property<string>("ArticleType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -54,25 +58,37 @@ namespace Northeast.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EmbededCode")
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsBreakingNews")
                         .HasColumnType("boolean");
 
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .HasColumnType("text[]");
 
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceUrlCanonical")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UniqueKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("Title")
+                    b.HasIndex("Slug")
                         .IsUnique();
+
+                    b.HasIndex("Title");
+
+                    b.HasIndex("UniqueKey")
+                        .IsUnique()
+                        .HasFilter("\"UniqueKey\" IS NOT NULL");
 
                     b.ToTable("Articles");
                 });

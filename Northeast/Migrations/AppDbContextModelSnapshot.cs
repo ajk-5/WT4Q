@@ -62,7 +62,9 @@ namespace Northeast.Migrations
                         .HasColumnType("text[]");
 
                     b.Property<string>("Slug")
+
                         .IsRequired()
+
                         .HasColumnType("text");
 
                     b.Property<string>("SourceUrlCanonical")

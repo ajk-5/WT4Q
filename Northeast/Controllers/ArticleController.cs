@@ -116,7 +116,9 @@ namespace Northeast.Controllers
             {
                 Id = a.Id,
                 Title = a.Title,
+
                 Slug = a.Slug,
+
                 Category = a.Category,
                 ArticleType = a.ArticleType
             });
