@@ -49,7 +49,8 @@ export const API_ROUTES = {
   COCKTAIL: {
     CREATE: `${API_BASE_URL}/api/Cocktail`,
     GET_ALL: `${API_BASE_URL}/api/Cocktail`,
-    GET_BY_ID: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/api/Cocktail/id/${id}`,
+    GET_BY_SLUG: (slug: string) => `${API_BASE_URL}/api/Cocktail/${slug}`,
     UPDATE: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
     SEARCH: (query: string) =>

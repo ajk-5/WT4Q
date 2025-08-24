@@ -7,6 +7,7 @@ import styles from './bar.module.css';
 interface Cocktail {
   id: number;
   name: string;
+  slug: string;
   content: string;
 }
 

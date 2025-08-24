@@ -31,10 +31,18 @@ namespace Northeast.Controllers
             return Ok(items);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("id/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _service.GetById(id);
+            if (item == null) return NotFound();
+            return Ok(item);
+        }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            var item = await _service.GetBySlug(slug);
             if (item == null) return NotFound();
             return Ok(item);
         }

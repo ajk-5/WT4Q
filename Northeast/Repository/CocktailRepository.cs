@@ -12,6 +12,9 @@ namespace Northeast.Repository
             _context = context;
         }
 
+        public Task<Cocktail?> GetBySlug(string slug) =>
+            _context.Cocktails.AsNoTracking().FirstOrDefaultAsync(c => c.Slug == slug);
+
         public async Task<IEnumerable<Cocktail>> Search(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -20,7 +23,10 @@ namespace Northeast.Repository
             }
             query = query.ToLower();
             return await _context.Cocktails.AsNoTracking()
-                .Where(c => c.Name.ToLower().Contains(query) || c.Content.ToLower().Contains(query))
+                .Where(c =>
+                    c.Name.ToLower().Contains(query) ||
+                    c.Content.ToLower().Contains(query) ||
+                    c.Slug.ToLower().Contains(query))
                 .ToListAsync();
         }
     }
