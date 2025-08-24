@@ -28,9 +28,10 @@ export const API_ROUTES = {
   ARTICLE: {
     CREATE: `${API_BASE_URL}/api/Article`,
     GET_ALL: `${API_BASE_URL}/api/Article`,
-    GET_BY_ID: (id: string) => `${API_BASE_URL}/api/Article/${id}`,
-    GET_RECOMMENDATIONS: (id: string, count = 5) =>
-      `${API_BASE_URL}/api/Article/${id}/recommendations?count=${count}`,
+    GET_BY_SLUG: (slug: string) => `${API_BASE_URL}/api/Article/${slug}`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/api/Article/id/${id}`,
+    GET_RECOMMENDATIONS: (slug: string, count = 5) =>
+      `${API_BASE_URL}/api/Article/${slug}/recommendations?count=${count}`,
     SEARCH: (query: string) =>
       `${API_BASE_URL}/api/ArticleSearch?query=${encodeURIComponent(query)}`,
     SEARCH_ADVANCED: `${API_BASE_URL}/api/ArticleSearch/advanced`,

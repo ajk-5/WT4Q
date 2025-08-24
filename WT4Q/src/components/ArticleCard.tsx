@@ -4,6 +4,7 @@ import { truncateWords } from '@/lib/text';
 
 export interface Article {
   id: string;
+  slug: string;
   title: string;
   summary: string;
   createdDate?: string;
@@ -13,7 +14,7 @@ export interface Article {
 export default function ArticleCard({ article }: { article: Article }) {
   const snippet = truncateWords(article.summary);
   return (
-    <PrefetchLink href={`/articles/${article.id}`} className={styles.card}>
+    <PrefetchLink href={`/articles/${article.slug}`} className={styles.card}>
       <h2 className={styles.title}>{article.title}</h2>
       <p className={styles.summary}>{snippet}</p>
       {typeof article.views === 'number' && (

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_ROUTES } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import { CATEGORIES } from '@/lib/categories';
+import { slugify } from '@/lib/text';
 import countries from '../../../../../public/datas/Countries.json';
 import styles from '../../dashboard/dashboard.module.css';
 import type { ArticleImage } from '@/lib/models';
@@ -148,7 +149,7 @@ export default function EditArticleClient({ id }: { id: string }) {
           if (!res.ok) {
             throw new Error(data.message || 'Failed to update');
           }
-          router.push(`/articles/${id}`);
+          router.push(`/articles/${slugify(title)}`);
         } catch (err) {
           if (err instanceof Error) setError(err.message);
           else setError('Failed to update');

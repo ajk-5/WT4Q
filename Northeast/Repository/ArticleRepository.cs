@@ -17,6 +17,9 @@ namespace Northeast.Repository
         public Task<Article?> GetByIdAsync(Guid id) =>
             _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
 
+        public Task<Article?> GetBySlugAsync(string slug) =>
+            _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Slug == slug);
+
         public Task<List<Article>> GetAllExceptAsync(Guid excludeId) =>
             _context.Articles.AsNoTracking().Where(a => a.Id != excludeId).ToListAsync();
         public async Task<IEnumerable<Article>> GetAllByCategory(Category category) {
