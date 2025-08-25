@@ -40,7 +40,7 @@ export const API_ROUTES = {
     FILTER: `${API_BASE_URL}/api/ArticleFilter`,
     UPDATE: `${API_BASE_URL}/api/Article`,
     DELETE: `${API_BASE_URL}/api/Article`,
-    LIKE: (id: string) => `${API_BASE_URL}/api/Article/${id}/Like`,
+    LIKE: (id: string) => `${API_BASE_URL}/api/Article/${id}/like`,
     COMMENT: `${API_BASE_URL}/api/Article/Comment`,
     MODIFY_COMMENT: `${API_BASE_URL}/api/Article/ModifyComment`,
     REPORT_COMMENT: `${API_BASE_URL}/api/Article/ReportComment`,

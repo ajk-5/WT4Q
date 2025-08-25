@@ -27,7 +27,7 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
       const res = await apiFetch(
         API_ROUTES.ARTICLE.LIKE(articleId),
         {
-          method: 'POST',
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type }),
         }
