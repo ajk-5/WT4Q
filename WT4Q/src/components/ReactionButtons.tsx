@@ -4,17 +4,32 @@ import { useState, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
 import styles from './ReactionButtons.module.css';
+import {
+  ReactionIcon,
+  ReactionName,
+  reactionType,
+} from '@/components/ReactionIcon';
 
 interface Props {
   articleId: string;
   initialLikes: number;
+  initialHappy: number;
   initialDislikes: number;
+  initialSad: number;
 }
 
-export default function ReactionButtons({ articleId, initialLikes, initialDislikes }: Props) {
+export default function ReactionButtons({
+  articleId,
+  initialLikes,
+  initialHappy,
+  initialDislikes,
+  initialSad,
+}: Props) {
   const [likes, setLikes] = useState(initialLikes);
+  const [happy, setHappy] = useState(initialHappy);
   const [dislikes, setDislikes] = useState(initialDislikes);
-  const [status, setStatus] = useState<'like' | 'dislike' | null>(null);
+  const [sad, setSad] = useState(initialSad);
+  const [status, setStatus] = useState<ReactionName | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [loginHref, setLoginHref] = useState('/login');
 
@@ -22,7 +37,32 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
     setLoginHref(`/login?returnUrl=${encodeURIComponent(window.location.href + '#reactions')}`);
   }, []);
 
-  const send = async (type: 0 | 2) => {
+  useEffect(() => {
+    setLikes(initialLikes);
+    setHappy(initialHappy);
+    setDislikes(initialDislikes);
+    setSad(initialSad);
+  }, [initialLikes, initialHappy, initialDislikes, initialSad]);
+
+  const adjust = (name: ReactionName, delta: number) => {
+    switch (name) {
+      case 'like':
+        setLikes((l) => l + delta);
+        break;
+      case 'happy':
+        setHappy((h) => h + delta);
+        break;
+      case 'dislike':
+        setDislikes((d) => d + delta);
+        break;
+      case 'sad':
+        setSad((s) => s + delta);
+        break;
+    }
+  };
+
+  const send = async (name: ReactionName) => {
+    const type = reactionType[name];
     try {
       const res = await apiFetch(
         API_ROUTES.ARTICLE.LIKE(articleId),
@@ -42,27 +82,16 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
       }
       const data = await res.json();
       if (data.message === 'unliked') {
-        if (type === 0) setLikes((l) => l - 1);
-        else setDislikes((d) => d - 1);
+        adjust(name, -1);
         setStatus(null);
       } else if (data.message === 'Like changed') {
-        if (type === 0) {
-          setLikes((l) => l + 1);
-          setDislikes((d) => d - 1);
-          setStatus('like');
-        } else {
-          setDislikes((d) => d + 1);
-          setLikes((l) => l - 1);
-          setStatus('dislike');
-        }
+        if (status) adjust(status, -1);
+        adjust(name, +1);
+        setStatus(name);
       } else if (data.message === 'Liked') {
-        if (type === 0) {
-          setLikes((l) => l + 1);
-          setStatus('like');
-        } else {
-          setDislikes((d) => d + 1);
-          setStatus('dislike');
-        }
+        if (status && status !== name) adjust(status, -1);
+        adjust(name, +1);
+        setStatus(name);
       }
     } catch {
       /* ignore */
@@ -73,18 +102,36 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
     <>
       <div className={styles.container}>
         <button
-          onClick={() => send(0)}
+          onClick={() => send('like')}
           className={styles.button}
           aria-pressed={status === 'like'}
         >
-          👍 <span className={styles.count}>{likes}</span>
+          <ReactionIcon name="like" />
+          <span className={styles.count}>{likes}</span>
         </button>
         <button
-          onClick={() => send(2)}
+          onClick={() => send('happy')}
+          className={styles.button}
+          aria-pressed={status === 'happy'}
+        >
+          <ReactionIcon name="happy" />
+          <span className={styles.count}>{happy}</span>
+        </button>
+        <button
+          onClick={() => send('dislike')}
           className={styles.button}
           aria-pressed={status === 'dislike'}
         >
-          👎 <span className={styles.count}>{dislikes}</span>
+          <ReactionIcon name="dislike" />
+          <span className={styles.count}>{dislikes}</span>
+        </button>
+        <button
+          onClick={() => send('sad')}
+          className={styles.button}
+          aria-pressed={status === 'sad'}
+        >
+          <ReactionIcon name="sad" />
+          <span className={styles.count}>{sad}</span>
         </button>
       </div>
       {showLogin && (

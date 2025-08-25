@@ -5,6 +5,11 @@ import styles from './Profile.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
 import { setLoggedIn } from '@/lib/auth';
 import VisitorMap from '@/components/VisitorMap';
+import {
+  ReactionIcon,
+  reactionNameFromType,
+  reactionLabel,
+} from '@/components/ReactionIcon';
 
 interface User {
   userName: string;
@@ -140,14 +145,20 @@ export default function Profile() {
             ))}
           </ul>
         )}
-        <h3>Likes</h3>
+        <h3>Reactions</h3>
         {activity.likes.length === 0 ? (
-          <p>No likes yet.</p>
+          <p>No reactions yet.</p>
         ) : (
           <ul className={styles.activityList}>
-            {activity.likes.map((l) => (
-              <li key={l.id}>Liked {l.articleTitle}</li>
-            ))}
+            {activity.likes.map((l) => {
+              const name = reactionNameFromType(l.type);
+              return (
+                <li key={l.id} className={styles.reactionItem}>
+                  <ReactionIcon name={name} className={styles.reactionIcon} />
+                  {reactionLabel[name]} {l.articleTitle}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
