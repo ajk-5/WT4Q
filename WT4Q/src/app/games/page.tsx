@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './Games.module.css';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Games',
@@ -20,10 +21,16 @@ export default function GamesPage() {
             2048
           </PrefetchLink>
           <div className={styles.preview}>
-            <img
-              src="https://via.placeholder.com/200?text=2048"
-              alt="2048 preview"
-            />
+          <Image
+            src="/images/2048.png"
+            alt="2048 game preview"
+            width={602}
+            height={470}
+            quality={100}
+            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+            className={styles.logoImage}
+            priority
+          />
           </div>
         </li>
         <li className={styles.item}>
@@ -31,10 +38,16 @@ export default function GamesPage() {
             Tetris
           </PrefetchLink>
           <div className={styles.preview}>
-            <img
-              src="https://via.placeholder.com/200?text=Tetris"
-              alt="Tetris preview"
-            />
+          <Image
+            src="/images/tetris.png"
+            alt="tetris game preview"
+            width={602}
+            height={470}
+            quality={100}
+            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+            className={styles.logoImage}
+            priority
+          />
           </div>
         </li>
         <li className={styles.item}>
@@ -45,10 +58,16 @@ export default function GamesPage() {
             Metropolotan Trader
           </PrefetchLink>
           <div className={styles.preview}>
-            <img
-              src="https://via.placeholder.com/200?text=Metro"
-              alt="Metropolotan Trader preview"
-            />
+          <Image
+            src="/images/metrotrade.png"
+            alt="Metrotrade preview"
+            width={602}
+            height={470}
+            quality={100}
+            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+            className={styles.logoImage}
+            priority
+          />
           </div>
         </li>
       </ul>

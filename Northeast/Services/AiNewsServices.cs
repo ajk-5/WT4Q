@@ -824,8 +824,8 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
     ("sr","RS"), ("hr","HR"), ("sl","SI"),
 
     // Middle East & North Africa
-    ("ar","AE"), ("ar","SA"), ("ar","EG"), ("ar","MA"), ("ar","DZ"), ("ar","TN"), ("ar","QA"), ("ar","KW"),
-    ("he","IL"), ("fa","IR"), ("tr","TR"),
+    ("ar","AE"), ("ar","SA"),  ("ar","QA"), ("ar","KW"),
+    ("he","IL"), ("tr","TR"), 
 
     // South & Southeast Asia
     ("hi","IN"), ("bn","BD"), ("ur","PK"),
