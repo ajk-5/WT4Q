@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ArticleCard.module.css';
 import { truncateWords } from '@/lib/text';
@@ -12,17 +15,53 @@ export interface Article {
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
-  const snippet = truncateWords(article.summary);
+  const [showPreview, setShowPreview] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const snippet = truncateWords(article.summary, 50);
+
+  function startPreview() {
+    timerRef.current = setTimeout(() => setShowPreview(true), 2000);
+  }
+
+  function stopPreview() {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setShowPreview(false);
+  }
+
   return (
-    <PrefetchLink href={`/articles/${article.slug}`} className={styles.card}>
+    <div
+      className={styles.card}
+      onMouseEnter={startPreview}
+      onMouseLeave={stopPreview}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        startPreview();
+      }}
+      onTouchEnd={stopPreview}
+      onTouchCancel={stopPreview}
+    >
       <h2 className={styles.title}>{article.title}</h2>
-      <p className={styles.summary}>{snippet}</p>
       {typeof article.views === 'number' && (
         <p className={styles.views}>
           {article.views.toLocaleString()} views
         </p>
       )}
-      <span className={styles.readMore}>Read more</span>
-    </PrefetchLink>
+      {showPreview && (
+        <div className={styles.preview}>
+          <p
+            className={styles.summary}
+            dangerouslySetInnerHTML={{ __html: snippet }}
+          />
+          <PrefetchLink
+            href={`/articles/${article.slug}`}
+            className={styles.readMore}
+          >
+            Read more
+          </PrefetchLink>
+        </div>
+      )}
+    </div>
   );
 }
