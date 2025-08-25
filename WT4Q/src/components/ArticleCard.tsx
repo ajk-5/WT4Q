@@ -1,7 +1,6 @@
 
 "use client";
 
-
 import { useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ArticleCard.module.css';
@@ -20,10 +19,12 @@ export interface Article {
 export default function ArticleCard({ article }: { article: Article }) {
   const [showPreview, setShowPreview] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const snippet = truncateWords(article.content, 50);
+
+  const snippet = truncateWords(article.summary, 50);
 
   function startPreview() {
-    timerRef.current = setTimeout(() => setShowPreview(true), 600);
+    timerRef.current = setTimeout(() => setShowPreview(true), 2000);
+
   }
 
   function stopPreview() {
@@ -75,6 +76,22 @@ export default function ArticleCard({ article }: { article: Article }) {
           </PrefetchLink>
         </div>
       )}
+
+      {showPreview && (
+        <div className={styles.preview}>
+          <p
+            className={styles.summary}
+            dangerouslySetInnerHTML={{ __html: snippet }}
+          />
+          <PrefetchLink
+            href={`/articles/${article.slug}`}
+            className={styles.readMore}
+          >
+            Read more
+          </PrefetchLink>
+        </div>
+      )}
+
     </div>
   );
 }
