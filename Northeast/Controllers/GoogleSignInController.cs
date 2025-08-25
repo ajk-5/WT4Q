@@ -93,7 +93,7 @@ namespace Northeast.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 Path = "/",
                 Expires = DateTime.UtcNow.AddMinutes(
                     Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))

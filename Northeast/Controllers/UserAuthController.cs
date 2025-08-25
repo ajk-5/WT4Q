@@ -98,7 +98,7 @@ namespace Northeast.Controllers
                 {
                     HttpOnly = true,
                     Secure = secure,
-                    SameSite = SameSiteMode.Lax,
+                    SameSite = SameSiteMode.None,
                     Path = "/",
                     Expires = accessExp
                 };
@@ -106,7 +106,7 @@ namespace Northeast.Controllers
                 {
                     HttpOnly = true,
                     Secure = secure,
-                    SameSite = SameSiteMode.Lax,
+                    SameSite = SameSiteMode.None,
                     Path = "/",
                     Expires = refreshExp
                 };
@@ -153,7 +153,7 @@ namespace Northeast.Controllers
                 HttpOnly = true,
                 Secure = secure,
 
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 Path = "/"
             };
             Response.Cookies.Delete("JwtToken", opts);
@@ -211,7 +211,7 @@ namespace Northeast.Controllers
                 HttpOnly = true,
                 Secure = secure,
 
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 Path = "/",
                 Expires = idToken.ExpiryDate
             };
@@ -221,7 +221,7 @@ namespace Northeast.Controllers
 
                 Secure = secure,
 
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 Path = "/",
                 Expires = newRt.ExpiresAtUtc
             };
