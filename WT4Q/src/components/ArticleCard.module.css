@@ -6,15 +6,14 @@
   background: #ffffff00;
   font-family: "Georgia", "Times New Roman", serif;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.211);
-  transition: transform 0.3s, box-shadow 0.3s;
-  /*border: 2px solid transparent;*/
+  transition: transform 0.3s, box-shadow 0.3s, z-index 0s;
   border-image: var(--metal-gradient) 1;
   transform-style: preserve-3d;
   text-decoration: none;
   color: inherit;
   position: relative;
-  
-  
+  isolation: isolate; /* ensure local stacking context */
+  z-index: 0;
 }
 
 .card:hover {
@@ -29,11 +28,10 @@
   background: var(--metal-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  
 }
 
 .summary {
-  font-size: 0.5rem;
+  font-size: 1rem;
   margin-bottom: 0.2rem;
   color: var(--muted);
 }
@@ -49,23 +47,70 @@
   text-decoration: underline;
 }
 
+/* ====== PREVIEW OVERLAY (Portal) ====== */
 .preview {
-  position: absolute;
+  position: fixed;          /* anchor to viewport */
+  box-sizing: border-box;
+
   background-image: url('/images/paper_background.webp');
-  top: 100%;
-  left: 0;
-  width: 100%;
-  font-size: medium ;
-  max-width: calc(100vw - 2rem);
-  padding: 0.5rem;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: white;  /* fallback if image missing */
+
+  padding: 0.75rem;
   border-radius: 0.75rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-  max-height: 50vh;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  z-index: 10000;
   overflow: auto;
+
+  /* Prevent OS image/save callout on long-press */
+  -webkit-touch-callout: none;
+
+  /* Avoid accidental selection on the container; re-enable inside content */
+  user-select: none;
+
+  /* prevent horizontal overflow due to long tokens/HTML */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
 }
-@media(max-width: 1000px){
-  .card{
+.preview::-webkit-scrollbar { display: none; }
+
+/* Transparent overlay to intercept long-press on the background image.
+   It sits ABOVE the background, but BELOW the actual content. */
+.hitArea {
+  position: absolute;
+  inset: 0;
+  z-index: 1;                /* below .previewInner, above bg */
+  background: transparent;
+
+  /* Allow normal scrolling gestures to bubble */
+  touch-action: pan-x pan-y;
+
+  /* No selection or iOS callout on long-press */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Real preview content sits above the hitArea */
+.previewInner {
+  position: relative;
+  z-index: 2;
+  /* Re-enable text selection for actual content */
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Small screens: turn into a bottom sheet */
+.sheet {
+  border-radius: 1rem 1rem 0 0;
+}
+
+@media (max-width: 1000px) {
+  .card {
     padding: 0.25rem;
     margin: 0.25rem 0;
   }
