@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Northeast.Data;
+using Northeast.Models;
 using Northeast.Services;
 using Northeast.Utilities;
 
@@ -15,17 +20,32 @@ namespace Northeast.Controllers
         private readonly GenerateJwt _generateJwt;
         private readonly IConfiguration _configuration;
         private readonly ILogger<GoogleSignInController> _logger;
+        private readonly AppDbContext _db;
 
         public GoogleSignInController(
             UserRegistration userService,
             GenerateJwt generateJwt,
             IConfiguration configuration,
+            AppDbContext db,
             ILogger<GoogleSignInController> logger)
         {
             _userService = userService;
             _generateJwt = generateJwt;
             _configuration = configuration;
+            _db = db;
             _logger = logger;
+        }
+
+        private static string GenerateSecureToken()
+        {
+            var bytes = RandomNumberGenerator.GetBytes(32);
+            return Convert.ToBase64String(bytes);
+        }
+
+        private static string HashToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(bytes).ToLowerInvariant();
         }
 
         // Single endpoint for BOTH initiating Google login and handling the callback
@@ -83,22 +103,55 @@ namespace Northeast.Controllers
             string name = nameClaim?.Value ?? "Unknown";
             var user = await _userService.RegisterOrGetUserAsync(name, email);
 
-            // Generate JWT token for the user
-            var token = _generateJwt.GenerateJwtToken(user);
+            var accessToken = _generateJwt.GenerateJwtToken(user);
+            var accessExp = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]));
 
-            _logger.LogInformation("Google login successful for {Email}", email);
+            await _db.IdTokens.AddAsync(new IdToken
+            {
+                UserId = user.Id,
+                Token = accessToken,
+                ExpiryDate = accessExp
+            });
 
-            // Optional: Set JWT in a cookie 
-            var cookieOptions = new CookieOptions
+            var refreshRaw = GenerateSecureToken();
+            var refreshExp = DateTime.UtcNow.AddDays(14);
+
+            await _db.RefreshTokens.AddAsync(new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                TokenHash = HashToken(refreshRaw),
+                ExpiresAtUtc = refreshExp,
+                CreatedAtUtc = DateTime.UtcNow,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                UserAgent = Request.Headers["User-Agent"].ToString()
+            });
+
+            await _db.SaveChangesAsync();
+
+            var secure = Request.IsHttps;
+
+            var accessCookie = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = secure,
                 SameSite = SameSiteMode.None,
                 Path = "/",
-                Expires = DateTime.UtcNow.AddMinutes(
-                    Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
+                Expires = accessExp
             };
-            Response.Cookies.Append("JwtToken", token, cookieOptions);
+            var refreshCookie = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = secure,
+                SameSite = SameSiteMode.None,
+                Path = "/",
+                Expires = refreshExp
+            };
+
+            Response.Cookies.Append("JwtToken", accessToken, accessCookie);
+            Response.Cookies.Append("RefreshToken", refreshRaw, refreshCookie);
+
+            _logger.LogInformation("Google login successful for {Email}", email);
 
             // Redirect back to the requesting client
             var targetUrl = "/";
