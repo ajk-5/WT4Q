@@ -34,6 +34,7 @@ export default function ArticleCard({ article }: { article: Article }) {
   }
 
   return (
+    
     <div
       className={styles.card}
       onMouseEnter={startPreview}
@@ -52,13 +53,7 @@ export default function ArticleCard({ article }: { article: Article }) {
         </p>
         
       )}
-               <PrefetchLink
-            href={`/articles/${article.slug}`}
-            className={styles.readMore}
-          >
-            Read more
-          </PrefetchLink>
-        
+      
       {showPreview && (
         <div className={styles.preview}>
 
