@@ -39,25 +39,32 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
-    apiFetch(API_ROUTES.USERS.ME)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setUser(data);
-          setLoggedIn(true);
-        } else {
-          setLoggedIn(false);
+    apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
+      .then((res) => res.json())
+      .then(
+        async (sess: { authenticated: boolean; user?: User }) => {
+          if (sess.authenticated && sess.user) {
+            setUser(sess.user);
+            setLoggedIn(true);
+            try {
+              const activityRes = await apiFetch(API_ROUTES.USERS.ACTIVITY);
+              const act = activityRes.ok ? await activityRes.json() : null;
+              setActivity(act);
+            } catch {
+              setActivity(null);
+            }
+          } else {
+            setUser(null);
+            setLoggedIn(false);
+            setActivity(null);
+          }
         }
-      })
+      )
       .catch(() => {
         setUser(null);
         setLoggedIn(false);
+        setActivity(null);
       });
-
-    apiFetch(API_ROUTES.USERS.ACTIVITY)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setActivity(data))
-      .catch(() => setActivity(null));
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {

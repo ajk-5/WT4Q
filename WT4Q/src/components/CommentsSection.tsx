@@ -30,8 +30,11 @@ export default function CommentsSection({
   const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => {
-    apiFetch(API_ROUTES.USERS.ME)
-      .then((res) => setLoggedInState(res.ok))
+    apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
+      .then((res) => res.json())
+      .then((sess: { authenticated: boolean }) =>
+        setLoggedInState(sess.authenticated)
+      )
       .catch(() => setLoggedInState(false));
 
     setLoginHref(
