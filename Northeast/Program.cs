@@ -134,6 +134,8 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
         ? CookieSecurePolicy.None
         : CookieSecurePolicy.Always;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.Domain = ".wt4q.com";
 
     options.Events = new CookieAuthenticationEvents
     {
