@@ -12,15 +12,8 @@ namespace Northeast.Repository
             _context = context;
         }
 
-        public async Task<LikeEntity?> GetLikeByUserAndArticle(Guid UserId, Guid ArticleId) {
-            var liked = await UserAlreadyLiked(UserId, ArticleId);
-            if (liked) {
-                var like = await _context.Likes
-       .FirstOrDefaultAsync(l => l.UserId == UserId && l.ArticleId == ArticleId);
-                return like;
-            }
-            return null;
-        }
+        public Task<LikeEntity?> GetLikeByUserAndArticle(Guid userId, Guid articleId) =>
+            _context.Likes.FirstOrDefaultAsync(l => l.UserId == userId && l.ArticleId == articleId);
 
         public async Task<bool> UserAlreadyLiked(Guid userId, Guid articleId)
         {

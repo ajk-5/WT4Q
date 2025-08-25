@@ -70,6 +70,10 @@ namespace Northeast.Data
                 .HasOne(c => c.ParentComment)
                 .WithMany()
                 .HasForeignKey(c => c.ParentCommentId);
+
+            modelBuilder.Entity<LikeEntity>()
+                .HasIndex(l => new { l.UserId, l.ArticleId })
+                .IsUnique();
         }
     }
 }

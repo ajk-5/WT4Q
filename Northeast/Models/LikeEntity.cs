@@ -7,7 +7,7 @@ namespace Northeast.Models
     {
         [Key]
         [Required]
-        public int Id { get; set; } = new int(); // Primary Key
+        public int Id { get; set; } // Primary Key
         public LikeType Type { get; set; } // Enum for Like, Sad, etc.
 
         [ForeignKey(nameof(User))]

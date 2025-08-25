@@ -182,15 +182,15 @@ namespace Northeast.Services
             await SetViewsAsync(results);
             return results;
         }
-        public async Task<LikeEntity> GetLikeByUserAndArticle(Guid ArticleId)
+        public async Task<LikeEntity?> GetLikeByUserAndArticle(Guid articleId)
         {
-           var UserId = _connectedUser.Id;
-            if (UserId == Guid.Empty) {
+            var userId = _connectedUser.Id;
+            if (userId == Guid.Empty)
+            {
                 return null;
             }
-            var like = await _likeRepository.GetLikeByUserAndArticle(UserId,ArticleId);
+            var like = await _likeRepository.GetLikeByUserAndArticle(userId, articleId);
             return like;
-
         }
 
 

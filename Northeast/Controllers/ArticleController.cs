@@ -18,17 +18,20 @@ namespace Northeast.Controllers
         private readonly LikeRepository _likeRepository;
         private readonly GetConnectedUser _connectedUser;
         private readonly IArticleRecommendationService _recommendations;
+        private readonly CommentRepository _commentRepository;
 
         public ArticleController(
             ArticleServices _articleUpload,
             LikeRepository likeRepository,
             GetConnectedUser connectedUser,
-            IArticleRecommendationService recommendations)
+            IArticleRecommendationService recommendations,
+            CommentRepository commentRepository)
         {
             articleUpload = _articleUpload;
             _likeRepository = likeRepository;
             _connectedUser = connectedUser;
             _recommendations = recommendations;
+            _commentRepository = commentRepository;
         }
 
         [Authorize(Policy = "AdminOnly")]
@@ -263,16 +266,14 @@ namespace Northeast.Controllers
         [HttpPost("ModifyComment")]
         public async Task<IActionResult> ModifyComment(Guid CommentId, string Comment)
         {
-
             if (CommentId == Guid.Empty || Comment == null)
             {
                 return BadRequest(new { message = " Error Occoured while performing task" });
             }
-            var article = await articleUpload.GetArticleByID(CommentId);
-
-            if (article == null)
+            var comment = await _commentRepository.GetByGUId(CommentId);
+            if (comment == null)
             {
-                return NotFound(new { message = "Article doesnot exists" });
+                return NotFound(new { message = "Comment does not exist" });
             }
             await articleUpload.ModifyComment(CommentId, Comment);
 
