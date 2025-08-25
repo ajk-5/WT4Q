@@ -802,7 +802,40 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
 
     private static readonly (string Lang, string Country)[] GlobalEditions =
     {
-        ("en", "US"), ("en", "GB"), ("en", "CA"), ("en", "AU"), ("en", "IN"), ("en", "SG"), ("fr", "FR")
+        // English-dominant
+    ("en","US"), ("en","GB"), ("en","CA"), ("en","AU"), ("en","NZ"),
+    ("en","IE"), ("en","SG"), ("en","IN"), ("en","ZA"), ("en","PH"),
+
+    // Western Europe
+    ("fr","FR"), ("fr","CA"), ("fr","BE"), ("fr","CH"),
+    ("es","ES"), ("es","MX"), ("es","AR"), ("es","CO"), ("es","CL"), ("es","PE"), ("es","US"),
+    ("pt","BR"), ("pt","PT"),
+    ("de","DE"), ("de","AT"), ("de","CH"),
+    ("it","IT"),
+    ("nl","NL"), ("nl","BE"),
+
+    // Nordics + nearby
+    ("sv","SE"), ("no","NO"), ("da","DK"), ("fi","FI"), ("is","IS"),
+
+    // Central & Eastern Europe
+    ("pl","PL"), ("cs","CZ"), ("sk","SK"), ("hu","HU"),
+    ("ro","RO"), ("bg","BG"), ("el","GR"),
+    ("ru","RU"), ("uk","UA"), ("lt","LT"), ("lv","LV"), ("et","EE"),
+    ("sr","RS"), ("hr","HR"), ("sl","SI"),
+
+    // Middle East & North Africa
+    ("ar","AE"), ("ar","SA"), ("ar","EG"), ("ar","MA"), ("ar","DZ"), ("ar","TN"), ("ar","QA"), ("ar","KW"),
+    ("he","IL"), ("fa","IR"), ("tr","TR"),
+
+    // South & Southeast Asia
+    ("hi","IN"), ("bn","BD"), ("ur","PK"),
+    ("ta","IN"), ("ta","LK"), ("te","IN"), ("ml","IN"), ("mr","IN"),
+    ("id","ID"), ("ms","MY"), ("ms","SG"),
+    ("th","TH"), ("vi","VN"),
+
+    // East Asia
+    ("zh","CN"), ("zh","TW"), ("zh","HK"),
+    ("ja","JP"), ("ko","KR"),
     };
     private int _edIdx = 0;
 
