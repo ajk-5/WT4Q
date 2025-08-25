@@ -12,6 +12,7 @@
   transform-style: preserve-3d;
   text-decoration: none;
   color: inherit;
+  position: relative;
 }
 
 .card:hover {
@@ -43,6 +44,27 @@
   font-size: 0.75rem;
   color: var(--accent);
   text-decoration: underline;
+}
+
+.preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-width: calc(100vw - 2rem);
+  background: var(--background, #fff);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  max-height: 50vh;
+  overflow: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.preview::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 @media(max-width: 1000px){
   .card{
