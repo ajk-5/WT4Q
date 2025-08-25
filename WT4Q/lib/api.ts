@@ -89,21 +89,18 @@ export const API_ROUTES = {
     POST: `${API_BASE_URL}/api/Contact`,
   },
 };
-
+// Wrapper around fetch that always includes credentials and retries once on 401
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  const res = await fetch(input, { ...init, credentials: 'include' });
-  if (res.status !== 401) {
-    return res;
+  const request = () => fetch(input as any, { credentials: 'include', ...init });
+  let res = await request();
+  if (res.status === 401) {
+    const refresh = await fetch(API_ROUTES.AUTH.REFRESH, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (refresh.ok) {
+      res = await request();
+    }
   }
-
-  const refresh = await fetch(API_ROUTES.AUTH.REFRESH, {
-    method: 'POST',
-    credentials: 'include',
-  });
-
-  if (refresh.ok) {
-    return fetch(input, { ...init, credentials: 'include' });
-  }
-
   return res;
 }

@@ -5,11 +5,10 @@ export const metadata = {
   description: 'Sign in to your WT4Q account',
 };
 
-export default async function LoginPage({
+export default function LoginPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ from?: string }>;
+  searchParams?: { from?: string };
 }) {
-  const params = await searchParams;
-  return <LoginClient from={params?.from} />;
+  return <LoginClient from={searchParams?.from} />;
 }
