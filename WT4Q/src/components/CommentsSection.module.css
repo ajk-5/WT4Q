@@ -47,6 +47,54 @@
   gap: 0.5rem;
 }
 
+.menuWrapper {
+  position: relative;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  color: var(--ink);
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.menuItem {
+  display: block;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: #f0f0f0;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .replyButton {
   background: none;
   border: none;
