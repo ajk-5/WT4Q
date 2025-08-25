@@ -14,7 +14,7 @@ export interface Article {
   summary: string;
   createdDate?: string;
   views?: number;
-  content: string;
+  content:string;
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
@@ -53,7 +53,12 @@ export default function ArticleCard({ article }: { article: Article }) {
       )}
       {showPreview && (
         <div className={styles.preview}>
-          <p className={styles.summary}>{snippet}</p>
+
+          <p
+            className={styles.content}
+            dangerouslySetInnerHTML={{ __html: snippet }}
+          />
+
           <PrefetchLink
             href={`/articles/${article.slug}`}
             className={styles.readMore}
