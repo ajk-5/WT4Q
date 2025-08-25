@@ -93,11 +93,10 @@ namespace Northeast.Controllers
                 await _db.RefreshTokens.AddAsync(refreshEntity);
                 await _db.SaveChangesAsync();
 
-                var secure = Request.IsHttps;
                 var accessCookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = secure,
+                    Secure = true,
                     SameSite = SameSiteMode.None,
                     Path = "/",
                     Expires = accessExp
@@ -105,7 +104,7 @@ namespace Northeast.Controllers
                 var refreshCookie = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = secure,
+                    Secure = true,
                     SameSite = SameSiteMode.None,
                     Path = "/",
                     Expires = refreshExp
@@ -147,12 +146,10 @@ namespace Northeast.Controllers
             await _db.SaveChangesAsync();
 
 
-            var secure = Request.IsHttps;
             var opts = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = secure,
-
+                Secure = true,
                 SameSite = SameSiteMode.None,
                 Path = "/"
             };
@@ -205,12 +202,10 @@ namespace Northeast.Controllers
             await _db.SaveChangesAsync();
 
 
-            var secure = Request.IsHttps;
             var accessCookie = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = secure,
-
+                Secure = true,
                 SameSite = SameSiteMode.None,
                 Path = "/",
                 Expires = idToken.ExpiryDate
@@ -218,9 +213,7 @@ namespace Northeast.Controllers
             var refreshCookie = new CookieOptions
             {
                 HttpOnly = true,
-
-                Secure = secure,
-
+                Secure = true,
                 SameSite = SameSiteMode.None,
                 Path = "/",
                 Expires = newRt.ExpiresAtUtc
