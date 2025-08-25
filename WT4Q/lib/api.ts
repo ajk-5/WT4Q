@@ -22,7 +22,7 @@ export const API_ROUTES = {
     ME: `${API_BASE_URL}/api/User/me`,
     UPDATE: `${API_BASE_URL}/api/User`,
     DELETE: `${API_BASE_URL}/api/User`,
-    ACTIVITY: `${API_BASE_URL}/User/activity`,
+    ACTIVITY: `${API_BASE_URL}/api/User/activity`,
     CHANGE_PASSWORD: `${API_BASE_URL}/api/User/password`,
   },
 
@@ -90,8 +90,11 @@ export const API_ROUTES = {
   },
 };
 // Wrapper around fetch that always includes credentials and retries once on 401
-export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  const request = () => fetch(input as any, { credentials: 'include', ...init });
+export async function apiFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<Response> {
+  const request = () => fetch(input, { credentials: 'include', ...init });
   let res = await request();
   if (res.status === 401) {
     const refresh = await fetch(API_ROUTES.AUTH.REFRESH, {
@@ -103,4 +106,16 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     }
   }
   return res;
+}
+
+// Convenience wrapper that returns parsed JSON with strong typing
+export async function apiJson<T>(
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<T> {
+  const res = await apiFetch(input, init);
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  return (await res.json()) as T;
 }
