@@ -71,6 +71,7 @@
   margin-top: .5rem;
   color: var(--muted-ink);
   justify-self: start;
+  
 }
 .weather {
   grid-column: 3;

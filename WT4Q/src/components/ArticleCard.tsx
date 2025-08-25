@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRef, useState } from 'react';
@@ -12,15 +13,18 @@ export interface Article {
   summary: string;
   createdDate?: string;
   views?: number;
+  content:string;
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
   const [showPreview, setShowPreview] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const snippet = truncateWords(article.summary, 50);
 
   function startPreview() {
     timerRef.current = setTimeout(() => setShowPreview(true), 2000);
+
   }
 
   function stopPreview() {
@@ -47,7 +51,32 @@ export default function ArticleCard({ article }: { article: Article }) {
         <p className={styles.views}>
           {article.views.toLocaleString()} views
         </p>
+        
       )}
+               <PrefetchLink
+            href={`/articles/${article.slug}`}
+            className={styles.readMore}
+          >
+            Read more
+          </PrefetchLink>
+        
+      {showPreview && (
+        <div className={styles.preview}>
+
+          <p
+            className={styles.content}
+            dangerouslySetInnerHTML={{ __html: snippet }}
+          />
+
+          <PrefetchLink
+            href={`/articles/${article.slug}`}
+            className={styles.readMore}
+          >
+            Read more
+          </PrefetchLink>
+        </div>
+      )}
+
       {showPreview && (
         <div className={styles.preview}>
           <p
@@ -62,6 +91,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           </PrefetchLink>
         </div>
       )}
+
     </div>
   );
 }
