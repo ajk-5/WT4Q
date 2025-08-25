@@ -1,3 +1,7 @@
+
+"use client";
+
+
 import { useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ArticleCard.module.css';
