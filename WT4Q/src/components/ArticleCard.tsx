@@ -50,7 +50,15 @@ export default function ArticleCard({ article }: { article: Article }) {
         <p className={styles.views}>
           {article.views.toLocaleString()} views
         </p>
+        
       )}
+               <PrefetchLink
+            href={`/articles/${article.slug}`}
+            className={styles.readMore}
+          >
+            Read more
+          </PrefetchLink>
+        
       {showPreview && (
         <div className={styles.preview}>
 
