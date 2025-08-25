@@ -14,6 +14,7 @@ export const API_ROUTES = {
     REGISTER: `${API_BASE_URL}/api/UserRegistration`,
     LOGOUT: `${API_BASE_URL}/api/auth/logout`,
     REFRESH: `${API_BASE_URL}/api/auth/refresh`,
+    SESSION: `${API_BASE_URL}/api/auth/session`,
   },
 
   USERS: {

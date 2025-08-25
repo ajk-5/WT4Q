@@ -19,20 +19,29 @@ export default function UserMenu() {
   const router = useRouter();
 
   useEffect(() => {
-    apiFetch(API_ROUTES.USERS.ME)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setUser(data);
+    let mounted = true;
+
+    apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
+      .then((res) => res.json())
+      .then((sess: { authenticated: boolean; user?: User }) => {
+        if (!mounted) return;
+        if (sess.authenticated && sess.user) {
+          setUser(sess.user);
           setLoggedIn(true);
         } else {
+          setUser(null);
           setLoggedIn(false);
         }
       })
       .catch(() => {
+        if (!mounted) return;
         setUser(null);
         setLoggedIn(false);
       });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const initials = user?.userName

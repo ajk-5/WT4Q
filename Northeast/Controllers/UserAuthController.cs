@@ -224,6 +224,29 @@ namespace Northeast.Controllers
             return Ok();
         }
 
+        [HttpGet("session")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Session([FromServices] AppDbContext db)
+        {
+            var raw = Request.Cookies["JwtToken"];
+            if (string.IsNullOrEmpty(raw))
+                return Ok(new { authenticated = false });
+
+            var id = await db.IdTokens.FirstOrDefaultAsync(t => t.Token == raw);
+            if (id == null || id.IsRevoked || id.ExpiryDate <= DateTime.UtcNow)
+                return Ok(new { authenticated = false });
+
+            var u = await db.Users.FindAsync(id.UserId);
+            if (u == null)
+                return Ok(new { authenticated = false });
+
+            return Ok(new
+            {
+                authenticated = true,
+                user = new { id = u.Id, userName = u.UserName, email = u.Email }
+            });
+        }
+
 
     }
 }
