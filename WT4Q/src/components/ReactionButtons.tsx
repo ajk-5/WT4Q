@@ -27,7 +27,7 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
       const res = await apiFetch(
         API_ROUTES.ARTICLE.LIKE(articleId),
         {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type }),
         }
@@ -42,25 +42,25 @@ export default function ReactionButtons({ articleId, initialLikes, initialDislik
       }
       const data = await res.json();
       if (data.message === 'unliked') {
-        if (type === 0) setLikes(likes - 1);
-        else setDislikes(dislikes - 1);
+        if (type === 0) setLikes((l) => l - 1);
+        else setDislikes((d) => d - 1);
         setStatus(null);
       } else if (data.message === 'Like changed') {
         if (type === 0) {
-          setLikes(likes + 1);
-          setDislikes(dislikes - 1);
+          setLikes((l) => l + 1);
+          setDislikes((d) => d - 1);
           setStatus('like');
         } else {
-          setDislikes(dislikes + 1);
-          setLikes(likes - 1);
+          setDislikes((d) => d + 1);
+          setLikes((l) => l - 1);
           setStatus('dislike');
         }
       } else if (data.message === 'Liked') {
         if (type === 0) {
-          setLikes(likes + 1);
+          setLikes((l) => l + 1);
           setStatus('like');
         } else {
-          setDislikes(dislikes + 1);
+          setDislikes((d) => d + 1);
           setStatus('dislike');
         }
       }
