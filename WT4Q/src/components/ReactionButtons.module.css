@@ -15,6 +15,11 @@
   transition: color 0.2s;
 }
 
+.button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .count {
   margin-left: 0.25rem;
 }

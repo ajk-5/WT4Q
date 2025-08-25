@@ -145,7 +145,9 @@ export default async function ArticlePage(
   const related = await fetchRelated(title);
 
   const likeCount = article.like?.filter((l) => l.type === 0).length ?? 0;
+  const happyCount = article.like?.filter((l) => l.type === 3).length ?? 0;
   const dislikeCount = article.like?.filter((l) => l.type === 2).length ?? 0;
+  const sadCount = article.like?.filter((l) => l.type === 1).length ?? 0;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
 
@@ -219,7 +221,9 @@ export default async function ArticlePage(
         <ReactionButtons
           articleId={article.id}
           initialLikes={likeCount}
+          initialHappy={happyCount}
           initialDislikes={dislikeCount}
+          initialSad={sadCount}
         />
         <CommentsSection
           articleId={article.id}
