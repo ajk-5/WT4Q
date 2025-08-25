@@ -14,15 +14,16 @@ export interface Article {
   summary: string;
   createdDate?: string;
   views?: number;
+  content:string;
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
   const [showPreview, setShowPreview] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const snippet = truncateWords(article.summary, 50);
+  const snippet = truncateWords(article.content, 50);
 
   function startPreview() {
-    timerRef.current = setTimeout(() => setShowPreview(true), 2000);
+    timerRef.current = setTimeout(() => setShowPreview(true), 900);
   }
 
   function stopPreview() {
@@ -52,7 +53,12 @@ export default function ArticleCard({ article }: { article: Article }) {
       )}
       {showPreview && (
         <div className={styles.preview}>
-          <p className={styles.summary}>{snippet}</p>
+
+          <p
+            className={styles.content}
+            dangerouslySetInnerHTML={{ __html: snippet }}
+          />
+
           <PrefetchLink
             href={`/articles/${article.slug}`}
             className={styles.readMore}
