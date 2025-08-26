@@ -24,7 +24,6 @@
   grid-template-columns: 320px 1fr;
   gap: 16px;
   padding: 16px;
-  min-height: 100vh;
 }
 
 @media (max-width: 900px) {
@@ -35,6 +34,7 @@
 }
 
 .panel {
+  order:2;
   background: var(--panel);
   border-radius: 16px;
   padding: 16px;
@@ -153,8 +153,9 @@
 }
 
 .canvas {
-  width: 100%;
-  height: calc(100vh - 64px);
+  order:1;
+  width: 90%;
+  height: calc(60vh - 64px);
   background: #0b122007;
   border-radius: 16px;
   display: block;

@@ -62,7 +62,13 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
           >
             QR Code Scanner
           </PrefetchLink>
-
+            <PrefetchLink
+           href="/tools/typing-practice"
+        className={styles.link}
+        onClick={onNavigate}
+                >
+             Typing Practice
+       </PrefetchLink>
         </div>
       </div>
       <div className={styles.dropdown}>
