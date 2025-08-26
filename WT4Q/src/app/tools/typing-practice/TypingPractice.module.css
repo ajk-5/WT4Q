@@ -1,4 +1,4 @@
-:root {
+.main {
   --bg: #c0c8d900;
   --panel: #2b0a86;
   --text: #e5e7eb;
@@ -7,9 +7,6 @@
   --ok: #22c55e;
   --bad: #ef4444;
   --warn: #cd8f25;
-}
-
-.main {
   padding: 1rem;
 }
 
