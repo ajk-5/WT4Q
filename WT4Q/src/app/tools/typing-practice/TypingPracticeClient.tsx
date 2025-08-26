@@ -48,6 +48,8 @@ export default function TypingPracticeClient({ initialText }: Props) {
       const accEl = document.getElementById('accuracy') as HTMLDivElement;
       const timeEl = document.getElementById('time') as HTMLDivElement;
 
+      const statusEl = document.getElementById('status') as HTMLDivElement;
+
       // === Canvas state ===
       const DPR = window.devicePixelRatio || 1;
       const PADDING = 32; // css pixels
@@ -184,6 +186,12 @@ export default function TypingPracticeClient({ initialText }: Props) {
         wpmEl.textContent = Math.round(wpmNow()).toString();
         accEl.textContent = `${Math.round(accuracyNow())}%`;
         timeEl.textContent = formatTime(elapsedMs());
+
+        const prog = Math.min(100, Math.round((typed.length / Math.max(1, target.length)) * 100));
+        statusEl.textContent =
+          `${prog}% \u2022 Errors: ${errorCount}` +
+          (completed ? ' \u2022 Completed! \ud83c\udf89' : paused ? ' \u2022 Paused' : '');
+
       }
 
       function start() {
@@ -368,11 +376,7 @@ export default function TypingPracticeClient({ initialText }: Props) {
           ctx.strokeStyle = accent;
           ctx.stroke();
         }
-        const prog = Math.min(100, Math.round((typed.length / Math.max(1, target.length)) * 100));
-        const footer = `${prog}% \u2022 Errors: ${errorCount}` + (completed ? ' \u2022 Completed! \ud83c\udf89' : (paused ? ' \u2022 Paused' : ''));
-        ctx.font = `500 14px ${FONT_FAMILY}`;
-        ctx.fillStyle = '#6b7280';
-        ctx.fillText(footer, PADDING, canvas.clientHeight - 28);
+
         ctx.restore();
       }
 
@@ -497,10 +501,7 @@ export default function TypingPracticeClient({ initialText }: Props) {
               <div className={styles.label}>Time</div>
             </div>
           </div>
-          <div className={styles.footer}>
-            Tip: Click the canvas (or press <span className={styles.kbd}>Start</span>) and just type. Use{' '}
-            <span className={styles.kbd}>Backspace</span> to correct.
-          </div>
+
         </div>
         <div className={`${styles.panel} ${styles.canvasWrap}`}>
           <canvas
@@ -527,6 +528,15 @@ export default function TypingPracticeClient({ initialText }: Props) {
               top: -9999,
             }}
           />
+
+          <div id="status" className={styles.status}>
+            0% • Errors: 0
+          </div>
+          <div className={styles.footer}>
+            Tip: Click the canvas (or press <span className={styles.kbd}>Start</span>) and just type. Use{' '}
+            <span className={styles.kbd}>Backspace</span> to correct.
+          </div>
+
         </div>
       </div>
     </main>
