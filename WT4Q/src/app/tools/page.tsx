@@ -37,6 +37,14 @@ export default function ToolsPage() {
             QR Code Scanner
           </PrefetchLink>
         </li>
+        <li className={styles.item}>
+          <PrefetchLink
+            href="/tools/typing-practice"
+            title="Typing Practice – test and improve your speed"
+          >
+            Typing Practice
+          </PrefetchLink>
+        </li>
       </ul>
     </main>
   );
