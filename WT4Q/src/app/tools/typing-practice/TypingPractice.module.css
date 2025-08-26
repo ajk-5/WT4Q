@@ -163,6 +163,13 @@
   display: block;
 }
 
+
+.status {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .kbd {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
