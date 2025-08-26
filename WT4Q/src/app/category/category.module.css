@@ -17,6 +17,17 @@
   gap: 2rem;
 }
 
+.categoryLink {
+  text-decoration: none;
+  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.categoryLink:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 700px) {
   .grid {
     grid-template-columns: 1fr;
