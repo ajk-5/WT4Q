@@ -15,16 +15,27 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
         <HomeIcon className={styles.homeIcon} />
         <span className={styles.homeText}>Home</span>
       </PrefetchLink>
-      {CATEGORIES.map((c) => (
+      <div className={styles.dropdown}>
         <PrefetchLink
-          key={c}
-          href={`/category/${c}`}
+          href="/category"
           className={styles.link}
           onClick={onNavigate}
         >
-          {c}
+          Category
         </PrefetchLink>
-      ))}
+        <div className={styles.dropdownMenu}>
+          {CATEGORIES.map((c) => (
+            <PrefetchLink
+              key={c}
+              href={`/category/${c}`}
+              className={styles.link}
+              onClick={onNavigate}
+            >
+              {c}
+            </PrefetchLink>
+          ))}
+        </div>
+      </div>
       <div className={styles.dropdown}>
         <PrefetchLink href="/tools" className={styles.link} onClick={onNavigate}>
           Tools
