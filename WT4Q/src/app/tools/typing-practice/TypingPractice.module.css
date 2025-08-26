@@ -1,12 +1,12 @@
 :root {
-  --bg: #0f172a;
-  --panel: #111827;
+  --bg: #c0c8d900;
+  --panel: #2b0a86;
   --text: #e5e7eb;
   --muted: #9ca3af;
   --accent: #60a5fa;
   --ok: #22c55e;
   --bad: #ef4444;
-  --warn: #f59e0b;
+  --warn: #cd8f25;
 }
 
 .main {
@@ -158,7 +158,7 @@
 .canvas {
   width: 100%;
   height: calc(100vh - 64px);
-  background: #0b1220;
+  background: #0b122007;
   border-radius: 16px;
   display: block;
 }
