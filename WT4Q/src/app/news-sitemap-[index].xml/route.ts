@@ -1,9 +1,11 @@
 import { chunkArticles, buildNewsXml, fetchRecentArticles, MAX_NEWS_ARTICLES } from '@/lib/news-sitemap';
 
-interface Params { params: { index: string } }
-
-export async function GET(_req: Request, { params }: Params): Promise<Response> {
-  const idx = Number(params.index);
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ index: string }> },
+): Promise<Response> {
+  const { index } = await params;
+  const idx = Number(index);
   if (!Number.isInteger(idx)) {
     return new Response('Not found', { status: 404 });
   }
