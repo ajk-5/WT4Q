@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import TypingPracticeClient from './TypingPracticeClient';
+import TypingPracticeClient from './components/TypingPracticeClient';
 import { API_ROUTES } from '@/lib/api';
 import { stripHtml } from '@/lib/text';
 
