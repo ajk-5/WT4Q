@@ -23,11 +23,11 @@ interface Activity {
     articleTitle: string;
     content: string;
   }[];
-  likes: {
-    id: number;
-    articleTitle: string;
-    type: number;
-  }[];
+    likes: {
+      id: number;
+      articleTitle: string;
+      type: number | string;
+    }[];
 }
 
 export default function Profile() {

@@ -4,20 +4,33 @@ export type ReactionName = 'like' | 'happy' | 'dislike' | 'sad';
 
 export const reactionType: Record<ReactionName, number> = {
   like: 0,
-  happy: 3,
-  dislike: 2,
-  sad: 1,
+  dislike: 1,
+  happy: 2,
+  sad: 3,
 };
 
-export function reactionNameFromType(type: number): ReactionName {
+export function reactionNameFromType(type: number | string): ReactionName {
+  if (typeof type === 'string') {
+    switch (type.toLowerCase()) {
+      case 'like':
+        return 'like';
+      case 'dislike':
+        return 'dislike';
+      case 'happy':
+        return 'happy';
+      case 'sad':
+      default:
+        return 'sad';
+    }
+  }
   switch (type) {
     case 0:
       return 'like';
-    case 3:
-      return 'happy';
-    case 2:
-      return 'dislike';
     case 1:
+      return 'dislike';
+    case 2:
+      return 'happy';
+    case 3:
     default:
       return 'sad';
   }

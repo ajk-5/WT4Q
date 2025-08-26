@@ -9,6 +9,7 @@ import styles from '../article.module.css';
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
 import LocalArticleSection from '@/components/LocalArticleSection';
+import { reactionNameFromType } from '@/components/ReactionIcon';
 
 /* ---------------------- types ---------------------- */
 
@@ -26,7 +27,7 @@ interface ArticleDetails {
   images?: ArticleImage[];
   embededCode?: string;
   comments?: Comment[];
-  like?: { id: number; type: number }[];
+  like?: { id: number; type: number | string }[];
   views?: number;
   keywords?: string[];
 }
@@ -144,10 +145,11 @@ export default async function ArticlePage(
 
   const related = await fetchRelated(title);
 
-  const likeCount = article.like?.filter((l) => l.type === 0).length ?? 0;
-  const happyCount = article.like?.filter((l) => l.type === 3).length ?? 0;
-  const dislikeCount = article.like?.filter((l) => l.type === 2).length ?? 0;
-  const sadCount = article.like?.filter((l) => l.type === 1).length ?? 0;
+  const counts = { like: 0, happy: 0, dislike: 0, sad: 0 };
+  (article.like ?? []).forEach((l) => {
+    counts[reactionNameFromType(l.type)]++;
+  });
+  const { like: likeCount, happy: happyCount, dislike: dislikeCount, sad: sadCount } = counts;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
 
