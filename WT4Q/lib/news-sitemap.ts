@@ -7,7 +7,7 @@ export interface NewsArticle {
 }
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
-const PUBLICATION_NAME = 'WT4Q';
+const PUBLICATION_NAME = 'WT4Q News';
 const LANGUAGE = 'en';
 export const MAX_NEWS_ARTICLES = 1000;
 const MS_48_HOURS = 48 * 60 * 60 * 1000;

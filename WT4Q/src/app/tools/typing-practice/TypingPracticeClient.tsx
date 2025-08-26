@@ -431,10 +431,8 @@ export default function TypingPracticeClient({ initialText }: Props) {
       </p>
       <div className={styles.container}>
         <div className={`${styles.panel} ${styles.controls}`}>
-          <h2>Canvas Typing Practice</h2>
-          <div className={styles.sub}>
-            Front‑end only • Renders on <span className={styles.kbd}>&lt;canvas&gt;</span> • No Tailwind
-          </div>
+          <h2> Typing Practice </h2>
+
           <div className={styles.group}>
             <label htmlFor="mode">Mode</label>
             <div className={styles.row}>

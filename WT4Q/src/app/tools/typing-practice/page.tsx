@@ -6,7 +6,7 @@ import { stripHtml } from '@/lib/text';
 export const metadata: Metadata = {
   title: 'Typing Practice',
   description:
-    'Practice typing online using the latest technology article. Typing test1, practice typing test, typing online practice81, typing online, practice typing online, typing master.',
+    'Practice typing online using the our latest technology article. Typing test1, practice typing test, typing online practice81, typing online, practice typing online, typing master.',
   keywords: [
     'typing test1',
     'practice typing test',
