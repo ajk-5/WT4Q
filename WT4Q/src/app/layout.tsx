@@ -75,6 +75,23 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2858608482723109"
           crossOrigin="anonymous"
         />
+        <Script
+          async
+          type="application/javascript"
+          src="https://news.google.com/swg/js/v1/swg-basic.js"
+        />
+        <Script id="swg-basic" strategy="afterInteractive">
+          {`
+            (self.SWG_BASIC = self.SWG_BASIC || []).push(basicSubscriptions => {
+              basicSubscriptions.init({
+                type: "NewsArticle",
+                isPartOfType: ["Product"],
+                isPartOfProductId: "CAowzfDADA:openaccess",
+                clientOptions: { theme: "light", lang: "en" },
+              });
+            });
+          `}
+        </Script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PageVisitReporter />
