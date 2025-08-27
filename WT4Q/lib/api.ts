@@ -38,7 +38,7 @@ export const API_ROUTES = {
       `${API_BASE_URL}/api/ArticleSearch?query=${encodeURIComponent(query)}`,
     SEARCH_ADVANCED: `${API_BASE_URL}/api/ArticleSearch/advanced`,
     FILTER: `${API_BASE_URL}/api/ArticleFilter`,
-    UPDATE: `${API_BASE_URL}/api/Article`,
+    UPDATE: (id: string) => `${API_BASE_URL}/api/Article/${id}`,
     DELETE: `${API_BASE_URL}/api/Article`,
     LIKE: (id: string) => `${API_BASE_URL}/api/Article/${id}/like`,
     COMMENT: `${API_BASE_URL}/api/Article/Comment`,
