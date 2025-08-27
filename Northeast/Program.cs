@@ -10,6 +10,7 @@ using Northeast.Data;
 using Northeast.Interface;
 
 using Northeast.Models;
+using Northeast.Options;
 using Northeast.Repository;
 using Northeast.Services;
 using Northeast.Services.Similarity;
@@ -57,6 +58,9 @@ builder.Services.AddTransient<SendEmail>();
 builder.Services.AddScoped<SiteVisitorServices>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient(); // generic (no special policies)
+builder.Services.Configure<IndexNowOptions>(builder.Configuration.GetSection("IndexNow"));
+builder.Services.AddHttpClient("IndexNow");
+builder.Services.AddSingleton<IIndexNowService, IndexNowService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<UserRepository>();

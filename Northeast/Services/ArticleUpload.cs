@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Northeast.Repository;
 using Northeast.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Northeast.Services;
 
 
 namespace Northeast.Services
@@ -23,19 +25,33 @@ namespace Northeast.Services
         private readonly CommentReportRepository _commentReportRepository;
         private readonly AppDbContext _appDbContext;
         private readonly PageVisitRepository _pageVisitRepository;
+        private readonly IIndexNowService _indexNowService;           // <-- add
+        private readonly ILogger<ArticleServices> _logger;            // <-- add
 
-        public ArticleServices(GetConnectedUser connectedUser,ArticleRepository articleRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, NotificationRepository notificationRepository, CommentReportRepository commentReportRepository, AppDbContext appDbContext, PageVisitRepository pageVisitRepository) {
-
+        public ArticleServices(
+            GetConnectedUser connectedUser,
+            ArticleRepository articleRepository,
+            UserRepository userRepository,
+            LikeRepository likeRepository,
+            CommentRepository commentRepository,
+            NotificationRepository notificationRepository,
+            CommentReportRepository commentReportRepository,
+            AppDbContext appDbContext,
+            PageVisitRepository pageVisitRepository,
+            IIndexNowService indexNowService,
+            ILogger<ArticleServices> logger)
+        {
             _connectedUser = connectedUser;
-            _articleRepository= articleRepository;
-            _userRepository= userRepository;
-            _likeRepository= likeRepository;
-            _commentRepository= commentRepository;
+            _articleRepository = articleRepository;
+            _userRepository = userRepository;
+            _likeRepository = likeRepository;
+            _commentRepository = commentRepository;
             _notificationRepository = notificationRepository;
             _commentReportRepository = commentReportRepository;
             _appDbContext = appDbContext;
             _pageVisitRepository = pageVisitRepository;
-
+            _indexNowService = indexNowService;
+            _logger = logger;
         }
 
         private async Task SetViewsAsync(Article article)
@@ -98,6 +114,17 @@ namespace Northeast.Services
                 article.CountryCode = articleDto.CountryCode ?? null;
             }
             await _articleRepository.Add(article);
+
+            // 🔔 Submit to IndexNow (non-blocking on failure unless configured to throw)
+            try
+            {
+                await _indexNowService.SubmitArticleAsync(article.Slug);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "IndexNow submission failed for article slug {Slug}", article.Slug);
+                // By default we don’t rethrow to avoid breaking publish flow.
+            }
 
         }
 
