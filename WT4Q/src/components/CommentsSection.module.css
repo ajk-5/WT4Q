@@ -25,9 +25,22 @@
   margin-bottom: 0.75rem;
   background: #f7f5ef;
   background-image: url('/images/paper_background.webp');
-  border: 1px solid #ddd;
+  border: 3px double var(--ink);
   color: var(--ink);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.replies {
+  margin-top: 0.5rem;
+}
+
+.reply {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f7f5ef;
+  background-image: url('/images/paper_background.webp');
+  border: 3px double var(--ink);
+  color: var(--ink);
 }
 
 .commentAuthor {
