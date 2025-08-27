@@ -146,27 +146,29 @@ namespace Northeast.Controllers
             return Ok(article);
         }
         [Authorize(Policy = "AdminOnly")]
-        [HttpPut]
-        public async Task<IActionResult> EditArticle(Guid Id, ArticleDto Article)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> EditArticle([FromRoute] Guid id, [FromBody] ArticleDto articleDto)
         {
-            if (Id == Guid.Empty)
+            if (id == Guid.Empty)
             {
                 return BadRequest(new { message = "Please enter an Id" });
             }
 
-            if (Article == null)
+            if (articleDto == null)
             {
                 return BadRequest(new { message = "Sorry, there is no ID" });
             }
-            var article = await articleUpload.GetArticleByID(Id);
-            if (article == null)
+
+            var existing = await articleUpload.GetArticleByID(id);
+            if (existing == null)
             {
                 return NotFound(new { message = "Sorry, there is no Articles with this ID" });
             }
             try
             {
-                await articleUpload.ModifyArticle(Id, Article);
-                return Ok(article);
+                await articleUpload.ModifyArticle(id, articleDto);
+                var updated = await articleUpload.GetArticleByID(id);
+                return Ok(updated);
             }
             catch (ArgumentException ex)
             {

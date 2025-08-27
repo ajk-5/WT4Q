@@ -137,11 +137,11 @@ export default function EditArticleClient({ id }: { id: string }) {
             .filter((k) => k.length > 0),
         } as Record<string, unknown>;
 
-          const res = await apiFetch(`${API_ROUTES.ARTICLE.UPDATE}?Id=${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
+        const res = await apiFetch(API_ROUTES.ARTICLE.UPDATE(id), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {
             throw new Error(data.message || 'Failed to update');
