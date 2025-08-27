@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
 
+  async rewrites() {
+    return [
+      {
+        source: "/:indexnowApi.txt",
+        destination: "/api/indexnow/:indexnowApi",
+      },
+    ];
+  },
+
   async headers() {
     return [
       // Build assets: cache hard for a year
