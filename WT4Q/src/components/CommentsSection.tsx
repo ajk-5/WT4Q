@@ -11,6 +11,7 @@ export interface Comment {
   writer?: { userName?: string };
   parentCommentId?: string;
   reportCount?: number;
+  createdDate?: string;
 }
 
 export default function CommentsSection({
@@ -69,7 +70,12 @@ export default function CommentsSection({
         }
         setComments([
           ...comments,
-          newComment || { id: Date.now().toString(), content: trimmed },
+          newComment || {
+            id: Date.now().toString(),
+            content: trimmed,
+            createdDate: new Date().toISOString(),
+            parentCommentId: replyTo || undefined,
+          },
         ]);
         setContent('');
         setReplyTo(null);
@@ -151,16 +157,36 @@ export default function CommentsSection({
     setMenuOpen(null);
   };
 
+  const topLevelComments = comments.filter((c) => !c.parentCommentId);
+  const repliesByParent = comments.reduce<Record<string, Comment[]>>(
+    (acc, c) => {
+      if (c.parentCommentId) {
+        (acc[c.parentCommentId] ||= []).push(c);
+      }
+      return acc;
+    },
+    {}
+  );
+
+  const formatDate = (iso?: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString();
+  };
+
   return (
     <section id="comments" className={styles.section}>
       <h2 className={styles.heading}>Comments</h2>
-      {comments.length === 0 ? (
+      {topLevelComments.length === 0 ? (
         <p>No comments yet.</p>
       ) : (
         <ul className={styles.commentList}>
-          {comments.map((c) => (
+          {topLevelComments.map((c) => (
             <li key={c.id} className={styles.comment}>
-              <span className={styles.commentAuthor}>{c.writer?.userName || 'Anonymous'}:</span>
+              <span className={styles.commentAuthor}>
+                {c.writer?.userName || 'Anonymous'} wrote on {formatDate(c.createdDate)}:
+              </span>
               {editingId === c.id ? (
                 <form
                   onSubmit={(e) => handleEditSubmit(e, c.id)}
@@ -257,6 +283,119 @@ export default function CommentsSection({
                   ) : null}
                 </button>
               </div>
+              {repliesByParent[c.id]?.length ? (
+                <div className={styles.replies}>
+                  {repliesByParent[c.id]
+                    .sort(
+                      (a, b) =>
+                        new Date(a.createdDate || 0).getTime() -
+                        new Date(b.createdDate || 0).getTime()
+                    )
+                    .map((r) => (
+                      <div key={r.id} className={styles.reply}>
+                        <span className={styles.commentAuthor}>
+                          {r.writer?.userName || 'Anonymous'} replied on {formatDate(r.createdDate)}:
+                        </span>
+                        {editingId === r.id ? (
+                          <form
+                            onSubmit={(e) => handleEditSubmit(e, r.id)}
+                            className={styles.editForm}
+                          >
+                            <textarea
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              rows={3}
+                              required
+                              className={styles.textarea}
+                            />
+                            <div className={styles.editActions}>
+                              <button type="submit" className={styles.button}>
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.button}
+                                onClick={() => {
+                                  setEditingId(null);
+                                  setEditingText('');
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <p className={styles.commentContent}>{r.content}</p>
+                        )}
+                        <div className={styles.commentActions}>
+                          {currentUser && currentUser === r.writer?.userName && (
+                            <div className={styles.menuWrapper}>
+                              <button
+                                type="button"
+                                className={styles.menuButton}
+                                onClick={() =>
+                                  setMenuOpen(menuOpen === r.id ? null : r.id)
+                                }
+                                aria-label="Comment options"
+                              >
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 4 16"
+                                  fill="currentColor"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <circle cx="2" cy="2" r="2" />
+                                  <circle cx="2" cy="8" r="2" />
+                                  <circle cx="2" cy="14" r="2" />
+                                </svg>
+                              </button>
+                              {menuOpen === r.id && (
+                                <div className={styles.menu}>
+                                  <button
+                                    type="button"
+                                    className={styles.menuItem}
+                                    onClick={() => handleEditStart(r)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.menuItem}
+                                    onClick={() => handleDelete(r.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {loggedIn && editingId !== r.id && (
+                            <button
+                              type="button"
+                              className={styles.replyButton}
+                              onClick={() => setReplyTo(r.id)}
+                            >
+                              Reply
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className={styles.reportButton}
+                            onClick={() => handleReport(r.id)}
+                            disabled={reported[r.id]}
+                            aria-label="Report comment"
+                          >
+                            <img src="/report.svg" alt="Report" />
+                            {r.reportCount ? (
+                              <span className={styles.reportCount}>{r.reportCount}</span>
+                            ) : null}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>
