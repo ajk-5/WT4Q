@@ -8,6 +8,7 @@ using Northeast.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Northeast.Services;
+using Northeast.Interface;
 
 
 namespace Northeast.Services

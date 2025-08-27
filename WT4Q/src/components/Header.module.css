@@ -138,6 +138,12 @@
   .categories {
     z-index: 40;
   }
+    .search {
+    width: auto;
+    justify-content: flex-start;
+    margin-left: 20%;
+  
+  }
 }
 
 @keyframes slideIn {

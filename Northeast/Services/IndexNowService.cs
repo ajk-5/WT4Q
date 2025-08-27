@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Northeast.Interface;
 using Northeast.Options;
 
 namespace Northeast.Services
