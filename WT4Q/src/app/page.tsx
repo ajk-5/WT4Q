@@ -196,16 +196,7 @@ export default async function Home() {
 
       <LocalArticleSection />
 
-     {/* <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
-      <footer className={styles.footer}>
-        <nav className={styles.footerNav}>
-          {CATEGORIES.map((c) => (
-            <PrefetchLink key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>
-              {c}
-            </PrefetchLink>
-          ))}
-        </nav>
-      </footer>*/}
+      {/* Footer section temporarily removed */}
     </div>
   );
 }
