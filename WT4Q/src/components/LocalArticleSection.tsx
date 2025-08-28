@@ -11,6 +11,7 @@ const ROTATE_MS = 5000;
 export default function LocalArticleSection() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [index, setIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const next = useCallback(() => {
     if (articles.length < 2) return;
@@ -68,10 +69,10 @@ export default function LocalArticleSection() {
   }, []);
 
   useEffect(() => {
-    if (articles.length < 2) return;
+    if (articles.length < 2 || isHovered) return;
     const t = setInterval(next, ROTATE_MS);
     return () => clearInterval(t);
-  }, [articles.length, next]);
+  }, [articles.length, isHovered, next]);
 
   if (articles.length === 0) return null;
 
@@ -80,7 +81,11 @@ export default function LocalArticleSection() {
   return (
     <section className={styles.container} aria-label="Local news">
       <h2 className={styles.heading}>Local News based on your location</h2>
-      <div className={styles.slider}>
+      <div
+        className={styles.slider}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         {articles.length > 1 && (
           <>
             <button

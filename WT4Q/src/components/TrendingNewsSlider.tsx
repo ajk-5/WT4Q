@@ -34,6 +34,7 @@ export default function TrendingNewsSlider({
   const [articles, setArticles] = useState<TrendingArticle[]>(() => initialArticles ?? []);
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [isHovered, setIsHovered] = useState(false);
 
   // prevent duplicate fetch in React 18 dev Strict Mode
   const fetchedOnceRef = useRef(false);
@@ -118,11 +119,11 @@ export default function TrendingNewsSlider({
 
   // Auto-rotate only with 2+ items
   useEffect(() => {
-    if (articles.length < 2) return;
+    if (articles.length < 2 || isHovered) return;
     const t = setInterval(next, ROTATE_MS);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articles.length]);
+  }, [articles.length, isHovered]);
 
   // Marquee if title overflows
   useEffect(() => {
@@ -149,7 +150,11 @@ export default function TrendingNewsSlider({
   const snippet = current.content ? truncateWords(stripHtml(current.content)) : undefined;
 
   return (
-    <div className={`${styles.slider} ${className ?? ''}`.trim()}>
+    <div
+      className={`${styles.slider} ${className ?? ''}`.trim()}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <button
         className={`${styles.arrow} ${styles.left}`}
         onClick={prev}
