@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Northeast.Services;
 using Northeast.Interface;
+using System.Linq;
 
 
 namespace Northeast.Services
@@ -209,6 +210,26 @@ namespace Northeast.Services
             var results = await _articleRepository.GetBreakingNews();
             await SetViewsAsync(results);
             return results;
+        }
+
+        public async Task<IEnumerable<Article>> GetTrendingArticles(int limit)
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-3);
+            var candidates = await _articleRepository.GetTrendingArticles(cutoff);
+            await SetViewsAsync(candidates);
+
+            var ranked = candidates
+                .Select(a => new
+                {
+                    Article = a,
+                    Score = a.Views + 2 * (a.Like?.Count ?? 0) + 3 * (a.Comments?.Count ?? 0)
+                })
+                .OrderByDescending(x => x.Score)
+                .Take(limit)
+                .Select(x => x.Article)
+                .ToList();
+
+            return ranked;
         }
         public async Task<LikeEntity?> GetLikeByUserAndArticle(Guid articleId)
         {

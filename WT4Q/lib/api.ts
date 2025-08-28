@@ -46,6 +46,7 @@ export const API_ROUTES = {
     REPORT_COMMENT: `${API_BASE_URL}/api/Article/ReportComment`,
     SEARCH_BY_AUTHOR: (id: string) => `${API_BASE_URL}/api/ArticleSearch/by-author/${id}`,
     BREAKING: `${API_BASE_URL}/api/Article/breaking`,
+    TRENDING: (limit = 5) => `${API_BASE_URL}/api/Article/trending?limit=${limit}`,
   },
 
   COCKTAIL: {

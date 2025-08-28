@@ -1,7 +1,9 @@
 // app/page.tsx
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
+import TrendingCenterpiece from '@/components/TrendingCenterpiece';
 import type { BreakingArticle } from '@/components/BreakingNewsSlider';
+import type { TrendingArticle } from '@/components/TrendingNewsSlider';
 import PrefetchLink from '@/components/PrefetchLink';
 import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
@@ -59,6 +61,23 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
   }
 }
 
+async function fetchTrendingNews(limit = 5): Promise<TrendingArticle[]> {
+  try {
+    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(limit), { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json()) as Article[];
+    return data.map((a) => ({
+      id: a.id,
+      slug: a.slug,
+      title: a.title,
+      content: a.content,
+      images: a.images as ArticleImage[],
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function Home() {
   const categoriesWithArticles = await Promise.all(
     CATEGORIES.map(async (c) => ({
@@ -67,6 +86,7 @@ export default async function Home() {
     }))
   );
   const breaking = await fetchBreakingNews();
+  const trendingArticles = await fetchTrendingNews();
 
   // Take the first 4 categories for the rails around the centerpiece
   const leftRail = categoriesWithArticles.slice(0, 2);
@@ -149,7 +169,7 @@ export default async function Home() {
         </div>
       </div>
         <div className={styles.centerColumn}>
-          <BreakingCenterpiece articles={breaking} />
+          <TrendingCenterpiece articles={trendingArticles} />
         </div>
       {/* The rest of the sections in rows (keeps vertical barres) */}
       {remainingRows.map((row, i) => (

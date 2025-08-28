@@ -213,6 +213,15 @@ namespace Northeast.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Article>> GetTrendingArticles(DateTime cutoff)
+        {
+            return await _context.Articles.AsNoTracking()
+                .Include(a => a.Like)
+                .Include(a => a.Comments)
+                .Where(a => a.CreatedDate >= cutoff)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Article>> GetRecentArticlesUsingProcedure(int limit)
         {
             return await _context.Articles

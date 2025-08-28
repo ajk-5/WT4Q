@@ -1,0 +1,115 @@
+.slider {
+  background:#c6bbbb00;
+  color: #0000006d;
+  padding: 0.5rem 0.7rem;
+  margin: 0.2rem 0;
+  border-radius: 4px;
+  text-align: center;
+  position: relative;
+  font-family: "Georgia", "Times New Roman", serif;
+
+}
+
+.item {
+  display: block;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+  gap: 0.25rem;
+  
+}
+
+.dot {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.271);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  position: absolute;
+}
+
+.active {
+  background: #fff;
+}
+
+.detail {
+  text-align: left;
+}
+
+.detailImage {
+  width: 100%;
+  height: auto;
+}
+
+.detailFigure {
+  margin: 0 0 0.5rem 0;
+}
+
+.detailCaption {
+  font-size: 0.75rem;
+  color: #0c0c0c;
+  text-align: center;
+}
+
+.detailTitle {
+  margin: 0.1rem 0;
+  font-size: x-large;
+  color: black;
+  overflow-wrap: anywhere;
+  
+}
+
+.snippet {
+  margin: 0.5rem 0;
+  font-size: large;
+  overflow-wrap: anywhere;
+}
+
+.readMore {
+  color: var(--ink);
+  font-size: medium;
+  text-decoration: underline;
+}
+
+.rank {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateX(10%);
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+  padding: 0 0.25rem;
+  z-index: 1;
+}
+
+.slider:hover .arrow {
+  opacity: 1;
+}
+
+.left {
+  left: 0.25rem;
+}
+
+.right {
+  right: 0.25rem;
+}
