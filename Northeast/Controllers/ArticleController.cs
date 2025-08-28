@@ -78,6 +78,17 @@ namespace Northeast.Controllers
             return Ok(articles);
         }
 
+        [HttpGet("trending")]
+        public async Task<IActionResult> GetTrending([FromQuery] int limit = 5)
+        {
+            var articles = await articleUpload.GetTrendingArticles(limit);
+            if (!articles.Any())
+            {
+                return NotFound(new { message = "No trending news available" });
+            }
+            return Ok(articles);
+        }
+
         [HttpGet("{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
         {
