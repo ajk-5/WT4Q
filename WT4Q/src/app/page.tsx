@@ -89,8 +89,8 @@ export default async function Home() {
   const trendingArticles = await fetchTrendingNews();
 
   // Take the first 4 categories for the rails around the centerpiece
-  const leftRail = categoriesWithArticles.slice(0, 2);
-  const rightRail = categoriesWithArticles.slice(2, 4);
+  const leftRail = categoriesWithArticles.slice(0, 1);
+  const rightRail = categoriesWithArticles.slice(3, 4);
   const remaining = categoriesWithArticles.slice(4);
   const remainingRows = chunk(remaining, 3);
 
@@ -123,6 +123,7 @@ export default async function Home() {
 
       {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
       <div className={styles.frontPageGrid}>
+               
         <div className={`${styles.rail} ${styles.leftRail}`}>
           {leftRail.map(({ category, articles }) => (
             <section key={category} className={styles.section}>
@@ -135,7 +136,7 @@ export default async function Home() {
                 </PrefetchLink>
               </h2>
               <div className={styles.columnGrid}>
-                {articles.slice(0, 5).map((a) => (
+                {articles.slice(0, 3).map((a) => (
                   <ArticleCard key={a.id} article={a} />
                 ))}
               </div>
@@ -143,7 +144,7 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className={styles.centerColumn}>
+ <div className={styles.centerColumn}>
           <BreakingCenterpiece articles={breaking} />
         </div>
 
@@ -160,7 +161,7 @@ export default async function Home() {
               </h2>
 
               <div className={styles.columnGrid}>
-                {articles.slice(0, 5).map((a) => (
+                {articles.slice(0, 3).map((a) => (
                   <ArticleCard key={a.id} article={a} />
                 ))}
               </div>
@@ -185,7 +186,7 @@ export default async function Home() {
                 </PrefetchLink>
               </h2>
               <div className={styles.columnGrid}>
-                {articles.slice(0, 5).map((a) => (
+                {articles.slice(0, 3).map((a) => (
                   <ArticleCard key={a.id} article={a} />
                 ))}
               </div>
@@ -196,8 +197,8 @@ export default async function Home() {
 
       <LocalArticleSection />
 
-     {/* <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
-      <footer className={styles.footer}>
+      <div className={`${styles.ruleThin} ${styles.mtLg}`} aria-hidden="true" />
+      {/*<footer className={styles.footer}>
         <nav className={styles.footerNav}>
           {CATEGORIES.map((c) => (
             <PrefetchLink key={c} href={`/category/${encodeURIComponent(c)}`} className={styles.footerLink}>

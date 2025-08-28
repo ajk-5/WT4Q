@@ -35,7 +35,11 @@ export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
             </PrefetchLink>
           ))}
         </div>
+        
       </div>
+            <PrefetchLink href="/trending" className={styles.link} onClick={onNavigate}>
+       Trending news 
+      </PrefetchLink>
       <div className={styles.dropdown}>
         <PrefetchLink href="/tools" className={styles.link} onClick={onNavigate}>
           Tools
