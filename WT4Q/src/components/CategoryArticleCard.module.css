@@ -4,7 +4,9 @@
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #ffffff00;
+  text-decoration: none;
+  color: inherit;
 }
 
 .title {
@@ -28,4 +30,10 @@
 
 .readMore:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .card {
+    flex-basis: 85vw;
+  }
 }

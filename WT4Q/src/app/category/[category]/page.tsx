@@ -5,6 +5,12 @@ import type { Article } from '@/components/ArticleCard';
 import CategoryArticleCard from '@/components/CategoryArticleCard';
 import baseStyles from '../../page.module.css';
 import styles from './categoryPage.module.css';
+import BreakingCenterpiece from '@/components/BreakingCenterpiece';
+import TrendingCenterpiece from '@/components/TrendingCenterpiece';
+import type { BreakingArticle } from '@/components/BreakingNewsSlider';
+import type { TrendingArticle } from '@/components/TrendingNewsSlider';
+import HorizontalScroller from '@/components/HorizontalScroller';
+import CategoryLazyDates from '@/components/CategoryLazyDates';
 
 async function fetchArticles(cat: string): Promise<Article[]> {
   try {
@@ -54,6 +60,29 @@ function groupByDate(articles: Article[]): Record<string, Article[]> {
   }, {} as Record<string, Article[]>);
 }
 
+function toBreakingArticles(list: Article[]): BreakingArticle[] {
+  return list.map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    content: a.content,
+    images: a.images,
+    createdDate: a.createdDate,
+  }));
+}
+
+function toTrendingArticles(list: Article[]): TrendingArticle[] {
+  return list.map((a, i) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    content: a.content,
+    images: a.images,
+    createdDate: a.createdDate,
+    rank: i + 1,
+  }));
+}
+
 export default async function CategoryPage({
   params,
 }: {
@@ -78,13 +107,26 @@ export default async function CategoryPage({
     (a, b) => new Date(b).getTime() - new Date(a).getTime()
   );
 
+  // Build category-scoped breaking and trending sections
+  const breakingInCategory: BreakingArticle[] = toBreakingArticles(
+    // Prefer today's posts; fall back to most recent overall
+    (todayArticles.length > 0 ? todayArticles : articles).slice(0, 10)
+  );
+
+  const trendingInCategory: TrendingArticle[] = toTrendingArticles(
+    [...articles]
+      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0) ||
+        new Date(b.createdDate ?? 0).getTime() - new Date(a.createdDate ?? 0).getTime())
+      .slice(0, 10)
+  );
+
   return (
     <div className={baseStyles.newspaper}>
       <header className={baseStyles.masthead} aria-label="Site masthead">
         <div className={baseStyles.mastheadInner}>
           <div className={baseStyles.brandBlock}>
             <h1 className={baseStyles.brand}>
-              WT4Q NEWS <span className={styles.categoryLabel}>| {category}</span>
+              WT4Q <span className={styles.categoryLabel}> {category}</span>
             </h1>
             <p className={baseStyles.tagline}>All the News That Matters</p>
           </div>
@@ -97,34 +139,39 @@ export default async function CategoryPage({
       <div className={baseStyles.ruleThick} aria-hidden="true" />
       <div className={baseStyles.ruleThin} aria-hidden="true" />
 
+{/* Category-specific breaking centerpiece between today's and the rest */}
+      {breakingInCategory.length > 0 && (
+        <div className={baseStyles.centerColumn}>
+          <BreakingCenterpiece articles={breakingInCategory} />
+        </div>
+      )}
       {todayArticles.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>Today&apos;s News</h2>
-          <div className={styles.horizontalCards}>
+          <HorizontalScroller className={styles.horizontalCards} ariaLabel="Today's news scroller">
             {todayArticles.map((a) => (
               <CategoryArticleCard key={a.id} article={a} />
             ))}
-          </div>
+          </HorizontalScroller>
         </section>
       )}
 
-      {pastDates.map((dateStr) => (
-        <section key={dateStr} className={styles.dateSection}>
-          <h2 className={styles.dateHeading}>
-            {new Date(dateStr).toLocaleDateString('en-GB', {
-              weekday: 'long',
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </h2>
-          <div className={styles.horizontalCards}>
-            {grouped[dateStr].map((a) => (
-              <CategoryArticleCard key={a.id} article={a} />
-            ))}
-          </div>
-        </section>
-      ))}
+      
+
+      {/* Category-specific trending centerpiece */}
+      {trendingInCategory.length > 0 && (
+        <div className={baseStyles.centerColumn}>
+          <TrendingCenterpiece articles={trendingInCategory} />
+        </div>
+      )}
+
+      <CategoryLazyDates
+        pastDates={pastDates}
+        grouped={grouped}
+        sectionClassName={styles.dateSection}
+        dateHeadingClassName={styles.dateHeading}
+        horizontalCardsClassName={styles.horizontalCards}
+      />
     </div>
   );
 }

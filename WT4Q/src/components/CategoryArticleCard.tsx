@@ -11,18 +11,11 @@ function truncateWords(html: string, words: number) {
 export default function CategoryArticleCard({ article }: { article: Article }) {
   const snippet = truncateWords(article.content || article.summary || '', 30);
   return (
-    <div className={styles.card}>
+    <PrefetchLink href={`/articles/${article.slug}`} className={styles.card}>
       <h3 className={styles.title}>{article.title}</h3>
-      <p
-        className={styles.snippet}
-        dangerouslySetInnerHTML={{ __html: snippet }}
-      />
-      <PrefetchLink
-        href={`/articles/${article.slug}`}
-        className={styles.readMore}
-      >
-        Read more
-      </PrefetchLink>
-    </div>
+      <p className={styles.snippet}>{snippet}</p>
+      <span className={styles.readMore}>Read more</span>
+    </PrefetchLink>
   );
 }
+

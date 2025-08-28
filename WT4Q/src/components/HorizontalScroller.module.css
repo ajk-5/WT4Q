@@ -1,44 +1,37 @@
-.container {
-  margin: 1rem 0;
-}
-
-.heading {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.slider {
+.wrap {
   position: relative;
 }
+
+.viewport {
+  overflow-x: auto;
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.viewport::-webkit-scrollbar { display: none; }
 
 .arrow {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  
   background: transparent;
   border: none;
-  color: inherit;
-  font-size: 1.25rem;
   cursor: pointer;
   opacity: 0;               /* only fade in/out */
   transition: opacity 0.2s ease-in-out;
   padding: 0;               /* prevent size change on hover */
-  z-index: 1;
+  z-index: 2;
   width: 36px;              /* fixed box avoids translateY recalc */
   height: 36px;
 }
 
-.slider:hover .arrow {
-  opacity: 1;
-}
+.wrap:hover .arrow { opacity: 1; }
 
-.left {
-  left: 0.25rem;
-}
-
-.right {
-  right: 0.25rem;
-}
+.left { left: 0.25rem; }
+.right { right: 0.25rem; }
 
 /* Grow icon slightly on hover without shifting position */
 .arrow svg {

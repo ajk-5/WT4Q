@@ -66,8 +66,8 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   flex-direction: column;
   padding: 0.5rem 0;
-  z-index: 10;
-  background-image: url('/images/paper_background.webp')  ;
+  z-index: 100;
+  background-image: url('/images/paper_background.webp');
 }
 
 .dropdownMenu .link {
@@ -145,4 +145,39 @@
     display: block;
     padding-left: 1rem;
   }
+}
+
+/* Large screens: show dropdowns as a full-width horizontal bar below the navbar */
+@media (min-width: 1025px) {
+  .nav { z-index: 20; position: relative; }
+  /* keep hover active while cursor moves to the bar */
+  .dropdown {
+    position: static;           /* menu will anchor to .nav (relative) */
+    padding-bottom: 3rem;       /* extend hover area below */
+    margin-bottom: -3rem;       /* neutralize extra space */
+  }
+  .dropdownMenu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0px); /* directly below navbar */
+    border-radius: 0;       /* flat bar */
+    box-shadow: none;       /* cleaner bar look */
+    border-top: 1px solid var(--thin-rule, #b6b6b6);
+    border-bottom: 1px solid var(--thin-rule, #b6b6b6);
+    padding: 0.4rem 0.75rem;
+    display: none;          /* only on hover */
+    flex-direction: row;    /* horizontal flow */
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    justify-content: center;
+    background-image: url('/images/paper_background.webp');
+  }
+  .dropdownMenu .link {
+    display: inline-flex;
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+  }
+  /* avoid vertical jump on link hover near the bar */
+  .link:hover { transform: none; box-shadow: 0 2px 4px rgba(0,0,0,.15); }
 }

@@ -90,9 +90,9 @@ export default async function Home() {
 
   // Take the first 4 categories for the rails around the centerpiece
   const leftRail = categoriesWithArticles.slice(0, 1);
-  const rightRail = categoriesWithArticles.slice(3, 4);
-  const remaining = categoriesWithArticles.slice(4);
-  const remainingRows = chunk(remaining, 3);
+  const rightRail = categoriesWithArticles.slice(1,2);
+  const remaining = categoriesWithArticles.slice(2,9);
+  const remainingRows = chunk(remaining, 7);
 
   const dateline = new Date().toLocaleDateString('en-GB', {
     weekday: 'long',
