@@ -1,0 +1,31 @@
+.card {
+  flex: 0 0 300px;
+  border: 1px solid var(--thin-rule, #b6b6b6);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.title {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.snippet {
+  flex-grow: 1;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+  color: var(--muted-ink, #333);
+}
+
+.readMore {
+  font-size: 0.9rem;
+  color: var(--accent, #6a0000);
+  text-decoration: none;
+}
+
+.readMore:hover {
+  text-decoration: underline;
+}
