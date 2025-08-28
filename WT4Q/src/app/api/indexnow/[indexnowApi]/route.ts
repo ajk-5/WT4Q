@@ -2,7 +2,7 @@ export async function GET(
   _req: Request,
   context: { params: Promise<{ indexnowApi: string }> }
 ) {
-  const apiKey = process.env.INDEXNOW_API ?? "e37c5166e3b64c0a97d1f5c7a97e4afc";
+  const apiKey = process.env.INDEXNOW_API ?? "bdb104bb52bb4139bcb509b70a5def73";
   const { indexnowApi } = await context.params;
 
   if (indexnowApi !== apiKey) {
