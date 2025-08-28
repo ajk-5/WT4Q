@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import PrefetchLink from "@/components/PrefetchLink";
 import styles from "./ArticleCard.module.css";
 import { useRouter } from "next/navigation";
+import type { ArticleImage } from "@/lib/models";
 
 /** Replace with your own helper if you already have one */
 function truncateWords(html: string, words: number) {
@@ -21,6 +22,7 @@ export interface Article {
   createdDate?: string;
   views?: number;
   content: string;
+  images?: ArticleImage[];
 }
 
 type FinalPos = {
