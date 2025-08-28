@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+/* Self-host Inter via next/font in layout; removed render-blocking @import */
 
 /* =========
    Design Tokens
@@ -166,7 +166,7 @@ main {
    ========= */
 button {
   padding: clamp(0.65rem, 0.6rem + 0.5vw, 0.9rem) clamp(0.9rem, 0.8rem + 0.8vw, 1rem);
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   font-size: clamp(0.8rem, 0.4rem + 0.3vw, 0.9rem);
   font-weight: 600;
   text-transform: uppercase;

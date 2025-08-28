@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap');
 
 /* Container: metal background + WT4Q logo watermark */
 .container {
@@ -168,3 +167,4 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+

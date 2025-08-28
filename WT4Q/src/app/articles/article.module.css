@@ -31,7 +31,7 @@
 }
 
 .container {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   padding: 1rem;
   
 }
@@ -135,3 +135,4 @@
     width: 100%;
   }
 }
+

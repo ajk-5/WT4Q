@@ -1,6 +1,6 @@
 .container {
   padding: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
 .title {
@@ -32,3 +32,4 @@
   border-radius: 0.5rem;
   background: var(--metal-base);
 }
+

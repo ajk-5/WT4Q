@@ -13,8 +13,7 @@
 
 .arrow {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc(50% - 18px);
   background: transparent;
   border: none;
   color: inherit;
