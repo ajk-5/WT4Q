@@ -11,7 +11,6 @@ import { CATEGORIES } from '@/lib/categories';
 import { chunk } from '@/lib/chunk';
 import type { Metadata } from 'next';
 import styles from './page.module.css';
-import WeatherWidget from '@/components/WeatherWidget';
 import LocalArticleSection from '@/components/LocalArticleSection';
 
 export const metadata: Metadata = {
@@ -94,12 +93,7 @@ export default async function Home() {
   const remaining = categoriesWithArticles.slice(2,9);
   const remainingRows = chunk(remaining, 7);
 
-  const dateline = new Date().toLocaleDateString('en-GB', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
+  // dateline was unused; removed to satisfy lint
 
   return (
     <div className={styles.newspaper}>

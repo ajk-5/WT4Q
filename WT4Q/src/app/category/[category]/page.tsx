@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import WeatherWidget from '@/components/WeatherWidget';
 import { API_ROUTES } from '@/lib/api';
 import type { Article } from '@/components/ArticleCard';
 import CategoryArticleCard from '@/components/CategoryArticleCard';
@@ -92,12 +91,6 @@ export default async function CategoryPage({
   const articles = await fetchArticles(category);
 
   const today = new Date();
-  const dateline = today.toLocaleDateString('en-GB', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
 
   const grouped = groupByDate(articles);
   const todayKey = today.toDateString();
