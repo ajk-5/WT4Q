@@ -1,6 +1,18 @@
 /* Self-host Inter via next/font in layout; removed render-blocking @import */
 
 /* =========
+   Fonts
+   ========= */
+/* Self-host CloisterBlack (provided TTF at public/fonts/CloisterBlack.ttf) */
+@font-face {
+  font-family: 'CloisterBlack';
+  src: url('/fonts/CloisterBlack.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =========
    Design Tokens
    ========= */
 :root {
@@ -52,6 +64,8 @@
   --transition-fast: 120ms;
   --shadow-elev: 0 6px 15px rgba(0,0,0,0.4);
   --shadow-elev-lg: 0 12px 25px rgba(0,0,0,0.45);
+  /* Fixed header height placeholder, updated at runtime */
+  --header-height: 120px;
 }
 
 /* Dark scheme tweaks (kept) */
@@ -91,6 +105,8 @@ body {
   position: relative;
   min-height: 100svh;
   min-height: -webkit-fill-available;
+  /* Reserve space below fixed header so content isn't hidden */
+  padding-top: var(--header-height);
 }
 
 body::before {
@@ -245,3 +261,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
    ========= */
 .metallicBg.rounded { border-radius: 1rem; }
 hr { border: 0; height: 1px; background: rgba(0,0,0,0.08); margin: var(--space-5) 0; }
+
+/* Hide the breaking bar when header is compacted */
+html.header-scrolled [data-component='breaking-bar'] {
+  display: none !important;
+}

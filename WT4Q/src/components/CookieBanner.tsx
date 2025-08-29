@@ -43,7 +43,7 @@ export default function CookieBanner() {
       {!manage ? (
         <div className={styles.message}>
           <p>
-            WT4Q uses cookies to personalize content and analyze traffic.
+            The Nineties Times uses cookies to personalize content and analyze traffic.
           </p>
           <div className={styles.actions}>
             <button className={styles.button} onClick={accept}>Accept</button>

@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
   const { city } = await params;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
   const url = `${siteUrl}/weather/${encodeURIComponent(city)}`;
-  const title = `Weather in ${city} - WT4Q`;
+  const title = `Weather in ${city} - The Nineties Times`;
   return {
     title,
     description: `Check current weather and forecasts for ${city}.`,

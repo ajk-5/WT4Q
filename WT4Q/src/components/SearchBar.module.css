@@ -4,7 +4,7 @@
   height: 2rem;
   overflow: hidden;
   padding: 0;
-  border: 1px solid var(--secondary);
+  border: 1px solid var(--thin-rule, #b6b6b6);
 }
 
 .input {
@@ -13,22 +13,20 @@
   font-size: 0.875rem;
   border: none;
   outline: none;
-  background: var(--background);
+  background: transparent;
 }
 
 .button {
-  padding: 0 0.75rem;
-  background: var(--secondary);
-  color: #fff;
-  border: none;
+  all: unset; /* match header menu button look */
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--ink, #111);
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
 }
 
-.button:hover {
-  background: var(--secondary);
-  transform: translateY(-1px);
-}
+.button svg { display: block; }
 
 @media (max-width: 768px) {
   .form {

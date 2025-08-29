@@ -4,11 +4,11 @@ Last Updated: August 20, 2025
 
 1. Introduction
 
-Welcome to WT4Q News ("WT4Q," "we," "our," or "us"). We respect your privacy and are committed to protecting your personal data in accordance with the General Data Protection Regulation (GDPR), the ePrivacy Directive, and other applicable regulations.
+Welcome to The Nineties Times ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data in accordance with the General Data Protection Regulation (GDPR), the ePrivacy Directive, and other applicable regulations.
 
-This Privacy Policy explains how we collect, use, share, and protect information when you visit https://www.wt4q.com, as well as your rights and choices.
+This Privacy Policy explains how we collect, use, share, and protect information when you visit https://www.90stimes.com, as well as your rights and choices.
 
-By using WT4Q, you consent to the practices described in this policy.
+By using The Nineties Times, you consent to the practices described in this policy.
 
 2. Data We Collect
 
@@ -30,7 +30,7 @@ We may collect the following categories of personal data:
 
 We use your data to:
 
-- Provide access to news, tools, and services on WT4Q.
+- Provide access to news, tools, and services on The Nineties Times.
 - Personalize your reading experience and recommend relevant articles.
 - Measure site performance and optimize user experience.
 - Deliver targeted advertising (via Google AdSense and other partners).

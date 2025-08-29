@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const metRes = await fetch(
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${latitude}&lon=${longitude}`,
       {
-        headers: { 'User-Agent': 'WT4Q/1.0 https://example.com' },
+        headers: { 'User-Agent': '90stimes/1.0 https://www.90stimes.com' },
       }
     );
     if (!metRes.ok) {

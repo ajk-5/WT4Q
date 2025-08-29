@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Production"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://server.wt4q.com"
+      "applicationUrl": "https://server.90stimes.com"
     },
     "https": {
       "commandName": "Project",
@@ -18,7 +18,7 @@
         "ASPNETCORE_ENVIRONMENT": "Production"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://server.wt4q.com"
+      "applicationUrl": "https://server.90stimes.com"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -45,7 +45,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "https://server.wt4q.com",
+      "applicationUrl": "https://server.90stimes.com",
       "sslPort": 443
     }
   }

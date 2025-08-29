@@ -2,7 +2,7 @@ import LoginClient from './LoginClient';
 
 export const metadata = {
   title: 'Login',
-  description: 'Sign in to your WT4Q account',
+  description: 'Sign in to your Nineties Times account',
 };
 
 type LoginSearchParams = { from?: string };

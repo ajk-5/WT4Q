@@ -1,5 +1,5 @@
 
-/* Container: metal background + WT4Q logo watermark */
+/* Container: metal background */
 .container {
   min-height: 100vh;
   display: flex;
@@ -7,7 +7,6 @@
   justify-content: center;
   background: var(--metal-base);
   background-image:
-    url('/images/wt4q-logo.png'),
     radial-gradient(circle at center, rgba(255,255,255,0.6), transparent 70%);
   background-repeat: no-repeat;
   background-position: center top 20px;

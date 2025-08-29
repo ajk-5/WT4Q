@@ -30,6 +30,7 @@ export function initGame(opts: InitOptions): GameState {
     players: makePlayers(opts),
     deckEvent: shuffledDeck(14, seed^0xabc),
     deckFund: shuffledDeck(14, seed^0xdef),
+    phase: 'await_roll',
     prompts: { canBuy:false, mustPay:0, landedTile:null },
     lastActionAt: Date.now(),
     rngSeed: seed,
@@ -44,6 +45,7 @@ export function rollAndAdvance(g: GameState): GameState {
   g = clone(g);
   const me = g.players[g.turn];
   if (me.bankrupt) return g;
+  if (g.phase !== 'await_roll') { g.log.push({t:Date.now(), text:`Wait: already rolled. Resolve first.`}); return g; }
   if (me.inJail) {
     // Try to leave jail after 1 turn by paying 50
     me.jailTurns++;
@@ -56,6 +58,7 @@ export function rollAndAdvance(g: GameState): GameState {
   if (next < old) { me.cash += PASS_START_BONUS; g.log.push({ t:Date.now(), text:`${me.name} passed Metro Hub (+${PASS_START_BONUS}).`}); }
   me.pos = next;
   g.prompts.landedTile = me.pos; g.prompts.canBuy = false; g.prompts.mustPay = 0;
+  g.phase = 'await_resolve';
   return g;
 }
 
@@ -68,6 +71,7 @@ export function resolveLanding(g: GameState): GameState {
   const me = g.players[g.turn];
   const tile = g.tiles[me.pos];
   if (!tile) return g;
+  if (g.phase !== 'await_resolve') { g.log.push({t:Date.now(), text:`Wait: roll first.`}); return g; }
 
   switch(tile.type){
     case "GO": g.log.push({t:Date.now(), text:`${me.name} is at Metro Hub.`}); break;
@@ -96,6 +100,8 @@ export function resolveLanding(g: GameState): GameState {
     case "VISIT": case "PARKING": default: { g.log.push({t:Date.now(), text:`${me.name} is safe at ${tile.name}.`}); }
   }
   adjustNetWorth(g);
+  // Next phase: if can buy, await action, else await end
+  g.phase = g.prompts.canBuy ? 'await_action' : 'await_end';
   return g;
 }
 
@@ -103,6 +109,7 @@ export function buyCurrent(g: GameState): GameState {
   g = clone(g);
   const me = g.players[g.turn];
   const tile = g.tiles[me.pos];
+  if (g.phase !== 'await_action') { g.log.push({t:Date.now(), text:`Wait: nothing to buy now.`}); return g; }
   if (tile.property && tile.property.owner===null && me.cash >= tile.property.cost){
     const before = clone(g);
     me.cash -= tile.property.cost; tile.property.owner = me.id;
@@ -115,6 +122,7 @@ export function buyCurrent(g: GameState): GameState {
     const before = clone(g); adjustNetWorth(before); const after = clone(g); adjustNetWorth(after);
     new LearningAgent(me.id).learnBuy(before, after, false);
   }
+  g.phase = 'await_end';
   return g;
 }
 
@@ -147,8 +155,13 @@ export function toggleMortgage(g: GameState, tileIndex: number): GameState {
 
 export function endTurn(g: GameState): GameState {
   g = clone(g);
+  if (g.phase === 'await_resolve' || g.phase === 'await_action') {
+    g.log.push({t:Date.now(), text:`Resolve your move before ending turn.`});
+    return g;
+  }
   g.turn = (g.turn + 1) % g.players.length;
   g.dice = null; g.prompts = { canBuy:false, mustPay:0, landedTile:null };
+  g.phase = 'await_roll';
   adjustNetWorth(g);
   return runUntilHuman(g);
 }
@@ -193,7 +206,7 @@ export function aiTakeTurn(g: GameState): GameState {
   }
   // 4) End turn (human-safe: no recursive AI)
   state.turn = (state.turn + 1) % state.players.length;
-  state.dice = null; state.prompts = { canBuy:false, mustPay:0, landedTile:null };
+  state.dice = null; state.prompts = { canBuy:false, mustPay:0, landedTile:null }; state.phase = 'await_roll';
   adjustNetWorth(state);
   return state;
 }

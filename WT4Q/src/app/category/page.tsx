@@ -3,7 +3,7 @@ import { CATEGORIES } from '@/lib/categories';
 import styles from './category.module.css';
 
 export const metadata = {
-  title: 'Categories - WT4Q',
+  title: 'Categories - The Nineties Times',
 };
 
 export default function CategoriesPage() {

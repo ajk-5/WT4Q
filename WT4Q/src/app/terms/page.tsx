@@ -9,7 +9,7 @@ export default function TermsPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Terms of Service &amp; Cookie Policy</h1>
       <p>
-        Welcome to the summary of WT4Q&apos;s Terms of Service and Cookie Policy.
+        Welcome to the summary of The Nineties Times&apos; Terms of Service and Cookie Policy.
         Visiting or using the site means you agree to the rules described here.
         This page highlights key points in plain language, but it is not a legal
         document. For the full text, please read the{' '}
@@ -18,19 +18,19 @@ export default function TermsPage() {
       </p>
       <h2 className={styles.heading}>Terms of Service Highlights</h2>
       <p>
-        WT4Q is a community-driven project intended for informational and
+        The Nineties Times is a community-driven project intended for informational and
         entertainment purposes. To keep things running smoothly we ask that you
         follow these guidelines:
       </p>
       <ul>
-        <li>Use WT4Q only in ways that are lawful and respectful of others.</li>
+        <li>Use The Nineties Times only in ways that are lawful and respectful of others.</li>
         <li>Keep your login credentials secure and do not share accounts.</li>
         <li>Your submissions remain yours, but you grant us permission to publish them.</li>
         <li>Do not post material that is defamatory, discriminatory, or misleading.</li>
         <li>We may remove content or suspend accounts that violate these rules.</li>
         <li>External links are offered for convenience; we do not control those sites.</li>
         <li>Features may change or disappear as we improve the service.</li>
-        <li>WT4Q is provided “as is,” without warranties about accuracy or availability.</li>
+        <li>The Nineties Times is provided “as is,” without warranties about accuracy or availability.</li>
         <li>We are not liable for damages that result from your use of the site.</li>
         <li>Local laws govern these terms, and continued use after updates signifies acceptance.</li>
         <li>You are responsible for ensuring your contributions do not infringe intellectual property rights.</li>
@@ -66,13 +66,13 @@ export default function TermsPage() {
       </p>
       <p>
         We update our terms occasionally as laws change or new features launch.
-        When we do, we post the revision date prominently. Continuing to use WT4Q
+        When we do, we post the revision date prominently. Continuing to use The Nineties Times
         after revisions means you agree to the updated rules, so check back
         periodically to stay informed.
       </p>
       <p>
         If you have questions about any of these terms or how we handle cookies,
-        please email <a href="mailto:privacy@wt4q.example.com">privacy@wt4q.example.com</a>
+        please email <a href="mailto:privacy@90stimes.example.com">privacy@90stimes.example.com</a>
         or use the contact page. We value transparency and are happy to explain
         our practices.
       </p>

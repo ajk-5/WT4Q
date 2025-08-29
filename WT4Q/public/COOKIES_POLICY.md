@@ -4,7 +4,7 @@ Last Updated: August 20, 2025
 
 1. What Are Cookies?
 
-Cookies are small text files stored on your device when you visit WT4Q. They help us improve performance, analyze traffic, and deliver relevant ads and content.
+Cookies are small text files stored on your device when you visit The Nineties Times. They help us improve performance, analyze traffic, and deliver relevant ads and content.
 
 2. Types of Cookies We Use
 
@@ -17,7 +17,7 @@ Cookies are small text files stored on your device when you visit WT4Q. They hel
 
 We allow trusted partners (Google, Facebook, Twitter, etc.) to place cookies for analytics, ads, or sharing features.
 
-These third parties may collect browsing data to show personalized ads both on WT4Q and elsewhere.
+These third parties may collect browsing data to show personalized ads both on The Nineties Times and elsewhere.
 
 4. Managing Cookies
 
@@ -29,5 +29,5 @@ You can manage cookies by:
 
 5. Consent
 
-When you first visit WT4Q, you are asked to accept or reject non-essential cookies. You can change your preference at any time.
+When you first visit The Nineties Times, you are asked to accept or reject non-essential cookies. You can change your preference at any time.
 

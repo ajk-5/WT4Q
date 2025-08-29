@@ -37,9 +37,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { category } = await params;
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
   const url = `${siteUrl}/category/${encodeURIComponent(category)}`;
-  const title = `${category} - WT4Q`;
+  const title = `${category} - The Nineties Times`;
   return {
     title,
     alternates: { canonical: url },
@@ -122,20 +122,9 @@ export default async function CategoryPage({
 
   return (
     <div className={baseStyles.newspaper}>
-      <header className={baseStyles.masthead} aria-label="Site masthead">
-        <div className={baseStyles.mastheadInner}>
-          <div className={baseStyles.brandBlock}>
             <h1 className={baseStyles.brand}>
-              WT4Q <span className={styles.categoryLabel}> {category}</span>
+              <span className={styles.categoryLabel}> {category}</span>
             </h1>
-            <p className={baseStyles.tagline}>All the News That Matters</p>
-          </div>
-          <div className={baseStyles.dateline}>{dateline}</div>
-          <div className={baseStyles.weather}>
-            <WeatherWidget />
-          </div>
-        </div>
-      </header>
       <div className={baseStyles.ruleThick} aria-hidden="true" />
       <div className={baseStyles.ruleThin} aria-hidden="true" />
 

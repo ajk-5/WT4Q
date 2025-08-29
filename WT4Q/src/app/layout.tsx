@@ -1,22 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
+import BreakingNewsBar from "@/components/BreakingNewsBar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import PageVisitReporter from "@/components/PageVisitReporter";
-import BreakingNewsBar from "@/components/BreakingNewsBar";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,21 +14,22 @@ const inter = Inter({
   display: "swap",
 });
 
+
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
 
 export const metadata: Metadata = {
   title: {
-    default: 'WT4Q News',
-    template: '%s | WT4Q'
+    default: 'The Nineties Times',
+    template: '%s | The Nineties Times'
   },
-  description: 'Latest news and updates from WT4Q',
+  description: 'Latest news and updates from The Nineties Times',
   metadataBase: new URL(siteUrl),
   openGraph: {
-    title: 'WT4Q News',
-    description: 'Latest news and updates from WT4Q',
+    title: 'The Nineties Times',
+    description: 'Latest news and updates from The Nineties Times',
     url: siteUrl,
-    siteName: 'WT4Q News',
+    siteName: 'The Nineties Times',
     type: 'website',
   },
   alternates: {
@@ -99,7 +90,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}>
+      <body className={`${inter.variable}`}>
         <PageVisitReporter />
         <Header />
         <BreakingNewsBar />

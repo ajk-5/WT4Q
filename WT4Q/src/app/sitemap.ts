@@ -38,7 +38,7 @@ async function getSubPaths(dir: string): Promise<string[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
   const [articlePaths, categoryPaths, toolPaths, gamePaths] = await Promise.all([
     fetchArticlePaths(),
     getCategoryPaths(),

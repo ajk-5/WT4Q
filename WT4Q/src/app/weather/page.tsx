@@ -1,7 +1,7 @@
 import WeatherClient from './WeatherClient';
 
 export const metadata = {
-  title: 'WT4Q Weather: Live Forecasts & Real-Time Weather Updates',
+  title: 'The Nineties Times Weather: Live Forecasts & Real-Time Weather Updates',
   description:
     'Get today’s weather, hourly and 7-day forecasts, real-time radar, air quality index, UV index, and severe weather alerts for cities worldwide.',
   keywords: [

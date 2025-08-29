@@ -144,7 +144,7 @@ namespace Northeast.Controllers
                 {
                     var alertRequest = new HttpRequestMessage(HttpMethod.Get,
                         $"https://api.met.no/weatherapi/metalerts/2.0/complete?lat={lat}&lon={lon}");
-                    alertRequest.Headers.Add("User-Agent", "WT4Q/1.0 https://example.com");
+                    alertRequest.Headers.Add("User-Agent", "90stimes/1.0 https://example.com");
                     alertRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     var alertResponse = await _httpClient.SendAsync(alertRequest);
                     if (alertResponse.IsSuccessStatusCode)
@@ -229,7 +229,7 @@ namespace Northeast.Controllers
 
             var request = new HttpRequestMessage(HttpMethod.Get,
                 $"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}");
-            request.Headers.Add("User-Agent", "WT4Q/1.0 https://example.com");
+            request.Headers.Add("User-Agent", "90stimes/1.0 https://example.com");
 
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)

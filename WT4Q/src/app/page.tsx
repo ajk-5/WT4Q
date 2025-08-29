@@ -15,9 +15,9 @@ import WeatherWidget from '@/components/WeatherWidget';
 import LocalArticleSection from '@/components/LocalArticleSection';
 
 export const metadata: Metadata = {
-  title: 'WT4Q.com: Reliable, Exclusive News Website',
+  title: 'The Nineties Times: Reliable, Exclusive News Website',
   alternates: { canonical: '/' },
-  openGraph: { title: 'WT4Q:website for News, Articles, Informations, Politics ,Crime,lifestyle and luxury  ', url: '/', type: 'website' },
+  openGraph: { title: 'The Nineties Times: website for News, Articles, Informations, Politics ,Crime,lifestyle and luxury', url: '/', type: 'website' },
 };
 
 async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
@@ -104,21 +104,16 @@ export default async function Home() {
   return (
     <div className={styles.newspaper}>
       {/* Masthead */}
-      <header className={styles.masthead} aria-label="Site masthead">
+      {/*<header className={styles.masthead} aria-label="Site masthead">
         <div className={styles.mastheadInner}>
           <div className={styles.brandBlock}>
-            <h1 className={styles.brand}>WT4Q NEWS</h1>
+            <h1 className={styles.brand}>The Nineties Times</h1>
             <p className={styles.tagline}>All the News That Matters</p>
           </div>
-          <div className={styles.dateline}>{dateline}</div>
-          <div className={styles.weather}>
-            <WeatherWidget />
-          </div>
-        </div>
-      </header>
 
-      <div className={styles.ruleThick} aria-hidden="true" />
-      <div className={styles.ruleThin} aria-hidden="true" />
+        </div>
+      </header>*/}
+      {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
 
 
       {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}

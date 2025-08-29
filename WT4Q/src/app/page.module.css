@@ -44,7 +44,7 @@
 }
 .mastheadInner {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto 1fr; /* left edge | center | right edge */
   align-items: end;
   gap: 1rem;
 }
@@ -66,15 +66,14 @@
   color: var(--muted-ink);
 }
 .dateline {
-  grid-column: 2;
+  grid-column: 1;         /* left edge */
   font-size: .95rem;
   margin-top: .5rem;
   color: var(--muted-ink);
   justify-self: start;
-  
 }
 .weather {
-  grid-column: 3;
+  grid-column: 3;        /* right edge */
   justify-self: end;
 }
 

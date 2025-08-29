@@ -47,7 +47,7 @@ namespace Northeast.Controllers
                 return BadRequest(new { message = "Invalid request" });
             }
 
-            await _sendEmail.SendPersonalizedEmail(email, "Thank you for contacting WT4Q", "Thank you for your message. We will get back to you soon.");
+            await _sendEmail.SendPersonalizedEmail(email, "Thank you for contacting The 90s times", "Thank you for your message. We will get back to you soon.");
 
             return Ok(new { message = "Message sent" });
         }

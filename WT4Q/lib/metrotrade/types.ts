@@ -43,6 +43,8 @@ export interface GameState {
   players: Player[];
   deckEvent: number[];
   deckFund: number[];
+  /** Simple turn phase to gate UI actions */
+  phase: 'await_roll' | 'await_resolve' | 'await_action' | 'await_end';
   prompts: {
     canBuy: boolean;
     mustPay: number; // rent/tax just computed

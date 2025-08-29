@@ -2,12 +2,14 @@
 .topBar {}
 .controls {}
 .layout {}
-.boardWrap {}
+.boardWrap { display: grid; place-items: center; width: 100%; overflow: visible; min-height: 0; }
 .side {}
 
 @media (max-width: 900px) {
+  /* Stack vertically on tablets/phones: board first, sidebar under */
   .layout { grid-template-columns: 1fr; }
-  .side { order: -1; }
+  .boardWrap { order: 1; }
+  .side { order: 2; }
 }
 
 @media (max-width: 600px) {
@@ -15,7 +17,7 @@
   .controls { width: 100%; flex-wrap: wrap; }
   .controls label { display: flex; align-items: center; width: 100%; }
   .controls input { width: 100%; margin-left: 0; margin-top: 4px; }
-  .layout { gap: 12px; }
+  .layout { gap: 12px; min-height: 0; }
 }
 
 @media (max-width: 480px) {

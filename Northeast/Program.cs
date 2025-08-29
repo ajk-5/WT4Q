@@ -139,7 +139,7 @@ builder.Services.AddAuthentication(options =>
         ? CookieSecurePolicy.None
         : CookieSecurePolicy.Always;
     options.Cookie.HttpOnly = true;
-    options.Cookie.Domain = ".wt4q.com";
+    options.Cookie.Domain = ".90stimes.com";
 
     options.Events = new CookieAuthenticationEvents
     {
@@ -219,8 +219,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(originsPolicy, policy =>
     {
         policy.WithOrigins(
-            "https://www.wt4q.com",
-            "https://wt4q.com",
+            "https://www.90stimes.com",
+            "https://90stimes.com",
             "http://localhost:3000"
         )
         .AllowAnyMethod()

@@ -18,7 +18,9 @@ export default function TetrisGame() {
       const side = small ? 0 : 320; // sidebar width + gap estimate
       const maxW = Math.max(180, Math.min(window.innerWidth - side - 24, 720));
       const maxH = Math.max(260, Math.min(window.innerHeight - 24, 1200));
-      const tileCss = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+      const baseTile = Math.min(maxW / COLS, maxH / ROWS);
+      const scale = small ? 0.9 : 0.92; // make the board a bit smaller/compact
+      const tileCss = Math.max(12, Math.floor(baseTile * scale));
       const cssW = tileCss * COLS;
       const cssH = tileCss * ROWS;
       canvas.style.width = cssW + 'px';
@@ -647,6 +649,26 @@ export default function TetrisGame() {
       if (masterGain) masterGain.gain.value = sfxVolume;
     });
 
+    function sanitizeUI() {
+      try {
+        startBtn.textContent = 'Start';
+        pauseBtn.textContent = 'Pause';
+        restartBtn.textContent = 'Restart';
+        const summary = document.querySelector('#settings > summary') as HTMLElement | null;
+        if (summary) summary.textContent = 'Settings';
+        soundBtn.textContent = 'Enable sound';
+        const info = document.getElementById('info');
+        const infoP = info?.querySelector('p');
+        if (infoP) infoP.innerHTML = 'Enter: Start/Resume • P: Pause • R: Restart<br />←/→ Move • ↑ Rotate • ↓ Soft drop • Space Hard drop';
+      } catch {}
+      const setSoundOn = () => (soundBtn.textContent = 'Sound on');
+      soundBtn.addEventListener('click', setSoundOn);
+      document.addEventListener('keydown', setSoundOn);
+      window.addEventListener('touchstart', setSoundOn, { passive: true });
+      window.addEventListener('pointerdown', setSoundOn);
+      window.addEventListener('mousedown', setSoundOn);
+    }
+
     function noiseBuffer() {
       const sr = audioCtx?.sampleRate || 44100;
       const len = (sr * 0.6) | 0;
@@ -836,17 +858,24 @@ export default function TetrisGame() {
 
     let isRunning = false;
     let isPaused = false;
+    let isGameOver = false;
 
     function updateButtons() {
       startBtn.disabled = isRunning;
       pauseBtn.disabled = !isRunning;
       pauseBtn.textContent = isPaused ? '▶️ Resume' : '⏸ Pause';
     }
+    function refreshUI() {
+      startBtn.disabled = isRunning;
+      pauseBtn.disabled = !isRunning;
+      pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+    }
 
     function startGame() {
       if (isRunning) return;
       isRunning = true;
       isPaused = false;
+      isGameOver = false;
       lockDesign();
       arena.forEach((row) => row.fill(0));
       player.score = 0;
@@ -854,22 +883,23 @@ export default function TetrisGame() {
       dropInterval = 1000;
       updateScore();
       playerReset();
-      updateButtons();
+      refreshUI();
     }
 
     function pauseGame() {
       if (!isRunning) return;
       isPaused = true;
-      updateButtons();
+      refreshUI();
     }
     function resumeGame() {
       if (!isRunning) return;
       isPaused = false;
-      updateButtons();
+      refreshUI();
     }
     function restartGame() {
       isRunning = false;
       isPaused = false;
+      isGameOver = false;
       designLocked = false;
       designSelect.disabled = false;
       designSelect.title = 'Pick a design then Start';
@@ -879,7 +909,15 @@ export default function TetrisGame() {
       dropInterval = 1000;
       updateScore();
       playerReset();
-      updateButtons();
+      refreshUI();
+    }
+
+    function gameOver() {
+      isRunning = false;
+      isPaused = false;
+      isGameOver = true;
+      updateBest();
+      refreshUI();
     }
 
     startBtn.addEventListener('click', startGame);
@@ -934,6 +972,15 @@ export default function TetrisGame() {
       }
       dropCounter = 0;
     }
+    function hardDrop() {
+      while (!collide(arena, player)) player.pos.y++;
+      player.pos.y--;
+      playDropSound();
+      merge(arena, player);
+      playerReset();
+      arenaSweep();
+      updateScore();
+    }
     function playerMove(dir: number) {
       player.pos.x += dir;
       if (collide(arena, player)) player.pos.x -= dir;
@@ -945,11 +992,7 @@ export default function TetrisGame() {
       player.pos.y = 0;
       player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
       if (collide(arena, player)) {
-        arena.forEach((row) => row.fill(0));
-        player.score = 0;
-        player.level = 1;
-        dropInterval = 1000;
-        updateScore();
+        gameOver();
       }
     }
 
@@ -1049,6 +1092,9 @@ export default function TetrisGame() {
       if (!isRunning) drawOverlay('Tap ▶️ Start or press Enter');
       else if (isPaused) drawOverlay('Paused — tap ▶️ or press Enter');
 
+      if (isGameOver) drawOverlay('Game Over — Tap Start or press Enter');
+      if (!isRunning && !isGameOver) drawOverlay('Tap Start or press Enter');
+      else if (isPaused) drawOverlay('Paused — tap Pause or press Enter');
       requestAnimationFrame(update);
     }
 
@@ -1093,13 +1139,7 @@ export default function TetrisGame() {
           playerRotate(1);
           break;
         case 'Space': {
-          while (!collide(arena, player)) player.pos.y++;
-          player.pos.y--;
-          playDropSound();
-          merge(arena, player);
-          playerReset();
-          arenaSweep();
-          updateScore();
+          hardDrop();
           break;
         }
         case 'KeyP':
@@ -1144,22 +1184,15 @@ export default function TetrisGame() {
           ady = Math.abs(dy);
         const now = Date.now();
         if (adx < 12 && ady < 12) {
-          if (now - lastTap < 250) {
-            while (!collide(arena, player)) player.pos.y++;
-            player.pos.y--;
-            playDropSound();
-            merge(arena, player);
-            playerReset();
-            arenaSweep();
-            updateScore();
-          } else {
-            playerRotate(1);
-          }
+          // Treat both single and double taps as rotate (no drop on double tap)
+          playerRotate(1);
           lastTap = now;
         } else if (adx > ady) {
           playerMove(dx > 0 ? 1 : -1);
         } else if (dy > 0) {
-          playerDrop();
+          // On mobile, make swipe-down a hard drop; otherwise soft drop
+          if (window.matchMedia('(max-width:780px)').matches) hardDrop();
+          else playerDrop();
         }
       },
       { passive: true },
@@ -1181,7 +1214,7 @@ export default function TetrisGame() {
         if (act === 'left') playerMove(-1);
         if (act === 'right') playerMove(1);
         if (act === 'rotate') playerRotate(1);
-        if (act === 'drop') playerDrop();
+        if (act === 'drop') hardDrop();
       },
       { passive: true },
     );
@@ -1189,7 +1222,8 @@ export default function TetrisGame() {
     ensureTextures();
     updateScore();
     playerReset();
-    updateButtons();
+    refreshUI();
+    sanitizeUI();
     update();
   }, []);
 
@@ -1207,13 +1241,14 @@ export default function TetrisGame() {
         className={styles.touchControls}
         aria-label="Touch controls"
       >
-        <button data-act="left">⬅️</button>
-        <button data-act="rotate">⤿</button>
-        <button data-act="right">➡️</button>
-        <button data-act="drop" className={styles.wide}>
-          ⏬ Drop
-        </button>
+        <button data-act="left" aria-label="Move left">&larr;</button>
+        <button data-act="rotate" aria-label="Rotate">&#8635;</button>
+        <button data-act="right" aria-label="Move right">&rarr;</button>
+        <button data-act="drop" className={styles.wide} aria-label="Hard drop">&darr; Hard Drop</button>
       </div>
+      <p className={styles.legend} aria-hidden>
+        &larr; Move left, &#8635; Rotate, &rarr; Move right, &darr; Drop
+      </p>
       <div id="info" className={styles.info} aria-live="polite">
         <h2>Controls</h2>
         <p>
@@ -1274,3 +1309,6 @@ export default function TetrisGame() {
     </div>
   );
 }
+
+
+

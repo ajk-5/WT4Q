@@ -89,7 +89,7 @@ export async function GET(request: Request) {
         `https://api.met.no/weatherapi/metalerts/2.0/complete?lat=${latitude}&lon=${longitude}`,
         {
           headers: {
-            'User-Agent': 'WT4Q/1.0 https://example.com',
+            'User-Agent': '90stimes/1.0 https://www.90stimes.com',
             Accept: 'application/json',
           },
         }

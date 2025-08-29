@@ -98,7 +98,7 @@ export async function generateMetadata(
   if (!article) return {};
 
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
   const url = new URL(`/articles/${title}`, siteUrl).toString();
 
   const description =
@@ -151,7 +151,7 @@ export default async function ArticlePage(
   });
   const { like: likeCount, happy: happyCount, dislike: dislikeCount, sad: sadCount } = counts;
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wt4q.com';
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
 
   return (
     <div className={styles.newspaper}>

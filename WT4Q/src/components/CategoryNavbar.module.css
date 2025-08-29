@@ -107,7 +107,13 @@
     transition: transform 0.3s ease;
     z-index: 1000;
      background-image: url('/images/paper_background.webp');
+    /* Hide scrollbar while keeping scroll functionality */
+    -ms-overflow-style: none;    /* IE and older Edge */
+    scrollbar-width: none;       /* Firefox */
   }
+
+  /* Chrome, Safari, Opera */
+  .nav::-webkit-scrollbar { display: none; }
 
   .open {
     transform: translateX(0);

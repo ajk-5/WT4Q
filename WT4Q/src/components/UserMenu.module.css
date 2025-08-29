@@ -4,7 +4,7 @@
 }
 
 .icon {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-inter), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: 700;
   background: var(--secondary);
   color: #a44646;
@@ -18,30 +18,34 @@
 
 .loginLink {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  font-weight: 600;
   text-decoration: none;
-  padding: 0.35rem 0.85rem;
-  border-radius: 10%;
-  background: var(--primary);
-  color: #ffffff;
+  color: inherit;
 }
 
-.loginIcon {
-  width: 20px;
-  height: 20px;
+.loginIconBox {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: #000;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.loginIcon { width: 20px; height: 20px; }
+
+.loginText {
+  font-size: 0.8rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
-  .loginLink {
-    flex-direction: column;
-    padding: 0.25rem;
-  }
-  .loginText {
-    font-size: 0.75rem;
-    line-height: 1;
-  }
+  .loginIconBox { width: 32px; height: 32px; }
+  .loginText { font-size: 0.75rem; }
 }
 
 .dropdown {
