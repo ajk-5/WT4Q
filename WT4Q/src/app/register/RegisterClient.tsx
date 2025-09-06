@@ -10,10 +10,8 @@ import { API_ROUTES, apiFetch } from '@/lib/api';
 interface RegisterRequest {
   username: string;
   email: string;
-  phoneNumber?: string;
   password: string;
   confirmPassword: string;
-  dob: string;
 }
 
 const EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -22,10 +20,8 @@ const Register: FC = () => {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [dob, setDob] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,10 +53,8 @@ const Register: FC = () => {
           body: JSON.stringify({
             username,
             email,
-            phoneNumber: phone || undefined,
             password,
             confirmPassword,
-            dob,
           } as RegisterRequest),
         });
         const data: { message?: string; Error?: string } = await response.json();
@@ -138,38 +132,6 @@ const Register: FC = () => {
                 {emailError}
               </p>
             )}
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="phone" className={styles.visuallyHidden}>Phone Number</label>
-            <div className={styles.inputWrapper}>
-              <span className={styles.inputIcon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6.6 10.8c1.7 3 3.6 4.9 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1 .4 2.1.6 3.2.6.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.6 22.2 1.8 13.4 1.8 2.4 1.8 1.7 2.3 1.2 3 1.2h3.2c.7 0 1.2.5 1.2 1.2 0 1.1.2 2.2.6 3.2.1.4 0 .9-.3 1.2l-2.1 2.2z" fill="currentColor"/></svg>
-              </span>
-              <input
-                id="phone"
-                type="tel"
-                placeholder="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="dob" className={styles.visuallyHidden}>Date of Birth</label>
-            <div className={styles.inputWrapper}>
-              <span className={styles.inputIcon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm12 6H5v12h14V8z" fill="currentColor"/></svg>
-              </span>
-              <input
-                id="dob"
-                type="date"
-                required
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                className={styles.input}
-              />
-            </div>
           </div>
           <div className={styles.field}>
             <label htmlFor="password" className={styles.visuallyHidden}>

@@ -19,28 +19,24 @@ namespace Northeast.Services
             _context = context;
       
         }
-        public async Task<User> Register(string Username, string email, string phoneNumber, string password, string confirmPassword, DateOnly dob) {
-
-
-
+        public async Task<User> Register(string Username, string email, string password, string confirmPassword)
+        {
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
-                var user = new User
-                {
-                    UserName = Username,
-                    Password = passwordHash,
-                    Email = email,
-                    DOB = dob,
-                    Phone = phoneNumber,
-                    isVerified= false,
-                    Role = Role.User,
+            var user = new User
+            {
+                UserName = Username,
+                Password = passwordHash,
+                Email = email,
+                isVerified = false,
+                Role = Role.User,
 
             };
 
             await _context.Add(user);
 
             return user;
-        
+
         }
 
         public async Task<User> RegisterOrGetUserAsync(string Username, string email)

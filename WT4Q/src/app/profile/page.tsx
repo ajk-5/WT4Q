@@ -39,6 +39,8 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
 
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const router = useRouter();
@@ -75,16 +77,27 @@ export default function Profile() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    await apiFetch(API_ROUTES.USERS.UPDATE, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userName: user.userName,
-        phoneNumber: user.phone,
-        dob: user.dob,
-      }),
-    });
-    router.refresh();
+    setProfileError(null);
+    setProfileMessage(null);
+    try {
+      const res = await apiFetch(API_ROUTES.USERS.UPDATE, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: user.userName,
+          phoneNumber: user.phone ? user.phone : null,
+          dob: user.dob ? user.dob : null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Failed to update profile');
+      }
+      setProfileMessage('Profile updated');
+      router.refresh();
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : 'Failed to update profile');
+    }
   };
 
   const handleDelete = async () => {
@@ -165,6 +178,8 @@ export default function Profile() {
     )}
     <form onSubmit={handleSubmit} className={styles.form}>
       <h1 className={styles.title}>Profile</h1>
+      {profileError && <p className={styles.error}>{profileError}</p>}
+      {profileMessage && <p className={styles.success}>{profileMessage}</p>}
       <label className={styles.label}>
         Name
         <input
@@ -175,20 +190,42 @@ export default function Profile() {
       </label>
       <label className={styles.label}>
         Phone
-        <input
-          className={styles.input}
-          value={user.phone || ''}
-          onChange={(e) => setUser({ ...user, phone: e.target.value })}
-        />
+        <div className={styles.inputRow}>
+          <input
+            className={styles.input}
+            value={user.phone || ''}
+            onChange={(e) => setUser({ ...user, phone: e.target.value })}
+          />
+          {user.phone && (
+            <button
+              type="button"
+              onClick={() => setUser({ ...user, phone: undefined })}
+              className={styles.clearButton}
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </label>
       <label className={styles.label}>
         Date of birth
-        <input
-          type="date"
-          className={styles.input}
-          value={user.dob || ''}
-          onChange={(e) => setUser({ ...user, dob: e.target.value })}
-        />
+        <div className={styles.inputRow}>
+          <input
+            type="date"
+            className={styles.input}
+            value={user.dob || ''}
+            onChange={(e) => setUser({ ...user, dob: e.target.value })}
+          />
+          {user.dob && (
+            <button
+              type="button"
+              onClick={() => setUser({ ...user, dob: undefined })}
+              className={styles.clearButton}
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </label>
       <button type="submit" className={styles.button}>Save</button>
     </form>
