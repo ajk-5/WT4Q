@@ -29,6 +29,21 @@
   border: 1px solid var(--text-light);
 }
 
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.clearButton {
+  background: var(--error-red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
 .button {
   padding: 0.75rem;
   background: var(--primary);

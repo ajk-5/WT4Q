@@ -38,9 +38,7 @@ namespace Northeast.Controllers
                     userRegisterDTO.Username,
                     userRegisterDTO.Email,
                     userRegisterDTO.Password,
-                    userRegisterDTO.ConfirmPassword,
-                    userRegisterDTO.PhoneNumber,
-                    userRegisterDTO.DOB
+                    userRegisterDTO.ConfirmPassword
                 );
                 var otp = await _oTPservices.GetOTP(userRegisterDTO.Email);
                 if (otp == null)

@@ -80,8 +80,8 @@ namespace Northeast.Controllers
             }
 
             if (dto.UserName != null) user.UserName = dto.UserName;
-            if (dto.PhoneNumber != null) user.Phone = dto.PhoneNumber;
-            if (dto.DOB != null) user.DOB = dto.DOB;
+            user.Phone = dto.PhoneNumber;
+            user.DOB = dto.DOB;
 
             await _appDbContext.SaveChangesAsync();
             return Ok(new { message = "Profile updated" });
