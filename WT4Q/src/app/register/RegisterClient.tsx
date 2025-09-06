@@ -183,6 +183,7 @@ const Register: FC = () => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
+                placeholder="Password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -210,6 +211,7 @@ const Register: FC = () => {
                 id="confirm-password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
+                placeholder="Confirm Password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

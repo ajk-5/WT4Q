@@ -140,6 +140,7 @@ const LoginClient: FC<Props> = ({ from }) => {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
+                placeholder="Password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
