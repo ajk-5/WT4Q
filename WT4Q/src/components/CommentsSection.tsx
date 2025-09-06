@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';

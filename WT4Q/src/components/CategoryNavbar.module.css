@@ -4,19 +4,16 @@
   gap: 0.15rem;
   overflow: visible;
   padding: 0.3rem 0.5rem;
-  
   border-radius: 0 0 var(--radius) var(--radius);
-   color: #0c0248;
-   font-family: "Georgia", "Times New Roman", serif;
-   font-size: medium;
+  color: #0c0248;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: medium;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   perspective: 500px;
   z-index: 0;
- 
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
- 
   font-variant: small-caps;
 }
 
@@ -29,16 +26,10 @@
   border-radius: inherit;
 }
 @media (min-width: 1300px) {
-  .nav {
-    justify-content: center;
-    
-  }
+  .nav { justify-content: center; }
 }
 @media (min-width: 1200px) {
-  .nav {
-    justify-content: center;
-    
-  }
+  .nav { justify-content: center; }
 }
 
 .link {
@@ -74,9 +65,7 @@
   display: block;
 }
 
-.dropdown:hover .dropdownMenu {
-  display: flex;
-}
+.dropdown:hover .dropdownMenu { display: flex; }
 
 .homeIcon {
   display: none;
@@ -92,6 +81,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* Mobile and tablet: sidebar */
 @media (max-width: 1024px) {
   .nav {
     flex-direction: column;
@@ -101,24 +91,19 @@
     width: 16rem;
     height: 100%;
     overflow-y: auto;
-    padding-top: 4rem;
+    padding-top: var(--header-height, 4rem);
     border-radius: 0;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    z-index: 1000;
-     background-image: url('/images/paper_background.webp');
+    z-index: 1200; /* above fixed header */
+    background-image: url('/images/paper_background.webp');
     /* Hide scrollbar while keeping scroll functionality */
     -ms-overflow-style: none;    /* IE and older Edge */
     scrollbar-width: none;       /* Firefox */
   }
-
   /* Chrome, Safari, Opera */
   .nav::-webkit-scrollbar { display: none; }
-
-  .open {
-    transform: translateX(0);
-  }
-
+  .open { transform: translateX(0); z-index: 1201; }
   .link {
     display: flex;
     align-items: center;
@@ -129,28 +114,68 @@
     color: inherit;
     transition: background 0.2s;
   }
-
   .link:hover {
     background: var(--primary);
     color: #fff;
   }
-
   .homeText {
     display: none;
   }
-
   .homeIcon {
     display: block;
     width: 1.25rem;
     height: 1.25rem;
   }
-
   .dropdownMenu {
     position: static;
     box-shadow: none;
     display: block;
     padding-left: 1rem;
   }
+}
+
+/* Explicit sidebar class to reuse mobile look at any size */
+.sidebar {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16rem;
+  height: 100%;
+  overflow-y: auto;
+  padding-top: var(--header-height, 4rem);
+  border-radius: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1200; /* above fixed header */
+  background-image: url('/images/paper_background.webp');
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar.open { transform: translateX(0); z-index: 1201; }
+.sidebar .dropdown { width: 100%; }
+.sidebar .link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin: 0 1rem 0.5rem;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  transition: background 0.2s;
+}
+.sidebar .link:hover { background: var(--primary); color: #fff; }
+.sidebar .homeText { display: none; }
+.sidebar .homeIcon { display: block; width: 1.25rem; height: 1.25rem; }
+.sidebar .dropdownMenu {
+  position: static;
+  box-shadow: none;
+  display: block;
+  padding-left: 1rem;
+  justify-content: flex-start;
 }
 
 /* Large screens: show dropdowns as a full-width horizontal bar below the navbar */
@@ -186,4 +211,61 @@
   }
   /* avoid vertical jump on link hover near the bar */
   .link:hover { transform: none; box-shadow: 0 2px 4px rgba(0,0,0,.15); }
+}
+
+/* Desktop: when header is scrolled, reuse the sidebar experience */
+@media (min-width: 1025px) {
+  :global(.header-scrolled) .nav {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 16rem;
+    height: 100%;
+    overflow-y: auto;
+    padding-top: var(--header-height, 4rem);
+    border-radius: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1200; /* above fixed header */
+    background-image: url('/images/paper_background.webp');
+    /* Hide scrollbar while keeping scroll functionality (match mobile) */
+    -ms-overflow-style: none;    /* IE and older Edge */
+    scrollbar-width: none;       /* Firefox */
+  }
+  /* Chrome, Safari, Opera */
+  :global(.header-scrolled) .nav::-webkit-scrollbar { display: none; }
+  :global(.header-scrolled) .open { transform: translateX(0); z-index: 1201; }
+  /* Reset desktop hover-bar spacing in sidebar mode */
+  :global(.header-scrolled) .dropdown {
+    position: relative;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  :global(.header-scrolled) .link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin: 0 1rem 0.5rem;
+    border-radius: 14px;
+    background: transparent;
+    color: inherit;
+  }
+  /* Match mobile hover styling for sidebar links */
+  :global(.header-scrolled) .link:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+  :global(.header-scrolled) .homeText { display: none; }
+  :global(.header-scrolled) .homeIcon { display: block; width: 1.25rem; height: 1.25rem; }
+  :global(.header-scrolled) .dropdownMenu {
+    position: static;
+    box-shadow: none;
+    display: block;
+    padding-left: 1rem;
+    border: 0;
+    justify-content: flex-start;
+  }
 }

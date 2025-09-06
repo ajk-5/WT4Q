@@ -1,0 +1,174 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+  color: var(--ink, #111);
+  flex-wrap: wrap; /* prevent overflow on small screens */
+}
+
+.toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.35rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  color: #111 !important; /* force dark icons/text on mobile */
+  isolation: isolate;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--thin-rule, #2c1616);
+  background: #fff;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  /* override global button styles for readability */
+  text-transform: none;
+  letter-spacing: normal;
+  box-shadow: none;
+  color: #111 !important;
+  font: inherit;
+  white-space: nowrap;
+  appearance: none;
+  min-width: 36px;
+  min-height: 36px; /* comfortable tap target */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:disabled {
+  opacity: 0.7; /* keep icons readable */
+  background: #f8f8f8;
+  color: #444 !important;
+}
+
+.button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select,
+.range {
+  font-size: 0.9rem;
+}
+
+.select { max-width: min(60vw, 280px); }
+
+.label {
+  color: var(--muted, #666);
+}
+
+.small {
+  font-size: 0.8rem;
+  color: var(--muted, #666);
+}
+
+.progressWrap {
+  position: relative;
+  height: 6px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  flex: 1 1 160px;
+}
+
+.progressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  background: var(--accent, #444);
+}
+
+.chunkPreview {
+  max-width: 30ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Panel that holds progress + current text */
+.panel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--thin-rule, #2c1616);
+  background: #fff;
+  border-radius: 0.4rem;
+  width: 100%;
+}
+
+.panelRow {
+  display: contents;
+}
+
+.icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: inline-block;
+  color: inherit;
+}
+
+/* Strongly force SVGs to use the button color on mobile */
+.button svg { display: block; }
+.button svg *, .button svg { fill: currentColor !important; stroke: currentColor; }
+
+/* Ensure minimum icon size */
+.button svg { min-width: 18px; min-height: 18px; }
+
+/* Auto-scroll effect for reading text */
+@keyframes ttsMarquee {
+  from { transform: translateX(0%); }
+  to   { transform: translateX(-100%); }
+}
+
+.marqueeBox {
+  position: relative;
+  overflow: hidden;
+  flex: 0 1 300px;
+}
+
+.marqueeText {
+  display: inline-block;
+  padding-left: 100%;
+  animation: ttsMarquee 12s linear infinite;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .toolbar { gap: 0.3rem; padding: 0.25rem 0.3rem; }
+  .button { min-width: 34px; min-height: 34px; padding: 0.25rem 0.35rem; }
+  .icon { width: 1.25rem; height: 1.25rem; }
+  .marqueeBox { flex-basis: 220px; }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.field label { white-space: nowrap; }

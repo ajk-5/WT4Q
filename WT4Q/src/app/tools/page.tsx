@@ -16,7 +16,8 @@ export default function ToolsPage() {
         <li className={styles.item}>
           <PrefetchLink
             href="/tools/world-clock"
-            title="World Clock – current times around the globe"
+            title="World Clock — current times around the globe"
+            className={styles.blockLink}
           >
             World Clock
           </PrefetchLink>
@@ -24,7 +25,8 @@ export default function ToolsPage() {
         <li className={styles.item}>
           <PrefetchLink
             href="/tools/mememaker"
-            title="MemeMaker – create custom memes"
+            title="MemeMaker — create custom memes"
+            className={styles.blockLink}
           >
             Mememaker
           </PrefetchLink>
@@ -32,7 +34,8 @@ export default function ToolsPage() {
         <li className={styles.item}>
           <PrefetchLink
             href="/tools/qr-code-generator"
-            title="QR Code Generator – free online tool, no sign up or login required"
+            title="QR Code Generator — free online tool, no sign up or login required"
+            className={styles.blockLink}
           >
             QR Code Scanner
           </PrefetchLink>
@@ -40,7 +43,8 @@ export default function ToolsPage() {
         <li className={styles.item}>
           <PrefetchLink
             href="/tools/typing-practice"
-            title="Typing Practice – test and improve your speed"
+            title="Typing Practice — test and improve your speed"
+            className={styles.blockLink}
           >
             Typing Practice
           </PrefetchLink>
@@ -49,3 +53,4 @@ export default function ToolsPage() {
     </main>
   );
 }
+

@@ -18,10 +18,13 @@ export async function fetchRecentArticles(): Promise<NewsArticle[]> {
     if (!res.ok) return [];
     const articles: NewsArticle[] = await res.json();
     const cutoff = Date.now() - MS_48_HOURS;
-    return articles.filter(a => {
+    const filtered = articles.filter(a => {
       const time = new Date(a.createdDate).getTime();
       return !Number.isNaN(time) && time >= cutoff;
     });
+    // Newest first
+    filtered.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
+    return filtered;
   } catch {
     return [];
   }

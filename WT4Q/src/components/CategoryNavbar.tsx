@@ -6,11 +6,13 @@ import styles from './CategoryNavbar.module.css';
 interface Props {
   open?: boolean;
   onNavigate?: () => void;
+  /** Force mobile-style sidebar regardless of screen size */
+  forceSidebar?: boolean;
 }
 
-export default function CategoryNavbar({ open, onNavigate }: Props = {}) {
+export default function CategoryNavbar({ open, onNavigate, forceSidebar }: Props = {}) {
   return (
-    <nav className={`${styles.nav} ${open ? styles.open : ''}`}>
+    <nav className={`${styles.nav} ${forceSidebar ? styles.sidebar : ''} ${open ? styles.open : ''}`}>
       <PrefetchLink href="/" className={styles.link} onClick={onNavigate}>
         <HomeIcon className={styles.homeIcon} />
         <span className={styles.homeText}>Home</span>

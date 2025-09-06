@@ -78,12 +78,16 @@ const LoginClient: FC<Props> = ({ from }) => {
 
   const fromPhotoshop = from === 'online-photoshop';
 
+  // Page can scroll; box will not have its own scrollbar
+
   return (
     <main className={styles.container}>
       <section className={styles.card} aria-labelledby="user-login-title">
         <h1 id="user-login-title" className={styles.title}>
           User Login
         </h1>
+        <div className={styles.ruleThick} aria-hidden="true" />
+        <div className={styles.ruleThin} aria-hidden="true" />
         {fromPhotoshop && (
           <div role="alert" className={styles.banner}>
             Login to use free online Photoshop
@@ -96,21 +100,27 @@ const LoginClient: FC<Props> = ({ from }) => {
         )}
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              autoFocus
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-              aria-invalid={!!emailError}
-              aria-describedby={emailError ? 'email-error' : undefined}
-            />
+            <label htmlFor="email" className={styles.visuallyHidden}>Email</label>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" fill="currentColor" />
+                </svg>
+              </span>
+              <input
+                id="email"
+                type="email"
+                autoComplete="username"
+                autoFocus
+                placeholder="Email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles.input}
+                aria-invalid={!!emailError}
+                aria-describedby={emailError ? 'email-error' : undefined}
+              />
+            </div>
             {emailError && (
               <p id="email-error" className={styles.fieldError} role="alert">
                 {emailError}
@@ -119,10 +129,13 @@ const LoginClient: FC<Props> = ({ from }) => {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>
-              Password
-            </label>
+            <label htmlFor="password" className={styles.visuallyHidden}>Password</label>
             <div className={styles.passwordWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M7 14a5 5 0 1 1 4.9-6H22v3h-2v2h-2v2h-3.1A5 5 0 0 1 7 14zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor" />
+                </svg>
+              </span>
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -137,8 +150,19 @@ const LoginClient: FC<Props> = ({ from }) => {
                 onClick={() => setShowPassword((prev) => !prev)}
                 className={styles.toggleButton}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? (
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" fill="none" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" fill="none" stroke="currentColor" strokeWidth="2" />
+                      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
               </button>
             </div>
             <p className={styles.forgot}>
@@ -148,7 +172,7 @@ const LoginClient: FC<Props> = ({ from }) => {
             </p>
           </div>
 
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className={styles.primaryButton}>
             {isLoading ? (
               <span className={styles.spinner} aria-hidden="true" />
             ) : (
@@ -172,6 +196,7 @@ const LoginClient: FC<Props> = ({ from }) => {
             Register
           </PrefetchLink>
         </p>
+
       </section>
     </main>
   );

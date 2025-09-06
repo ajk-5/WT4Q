@@ -8,6 +8,7 @@ import WeatherWidget from './WeatherWidget';
 import MenuIcon from './MenuIcon';
 import NotificationBell from './NotificationBell';
 import styles from './Header.module.css';
+// Revert portal usage
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -75,6 +76,8 @@ export default function Header() {
     }
   }, [scrolled]);
 
+  // No portal: rely on CSS to show/hide the sidebar when scrolled/mobile
+
   return (
     <header ref={headerRef} className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
@@ -93,14 +96,16 @@ export default function Header() {
             The Nineties Times
           </span>
         </PrefetchLink>
-        <div className={styles.dateline}>{dateline}</div>
-        <PrefetchLink
-          href="/weather"
-          aria-label="Weather details"
-          className={styles.weather}
-        >
-          <WeatherWidget />
-        </PrefetchLink>
+        <div className={styles.infoRow}>
+          <div className={styles.dateline}>{dateline}</div>
+          <PrefetchLink
+            href="/weather"
+            aria-label="Weather details"
+            className={styles.weather}
+          >
+            <WeatherWidget />
+          </PrefetchLink>
+        </div>
         <div className={styles.actions}>
           <NotificationBell />
           <div className={styles.userMenu}>
@@ -112,8 +117,8 @@ export default function Header() {
       {/* Newspaper-style rules at the bottom of the header */}
       <div className={styles.ruleThick} aria-hidden="true" />
       <div className={styles.ruleThin} aria-hidden="true" />
-      <div className={styles.categories}>
-        <CategoryNavbar open={open} onNavigate={handleNavigate} />
+      <div className={`${styles.categories} ${open ? styles.showSidebar : ''}`}>
+        <CategoryNavbar open={open} onNavigate={handleNavigate} forceSidebar={scrolled} />
       </div>
    
 

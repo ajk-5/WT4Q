@@ -83,6 +83,8 @@ const Register: FC = () => {
     window.location.href = `${API_ROUTES.GOOGLE_SIGN_IN.AUTH}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
 
+  // Page can scroll; box will not have its own scrollbar
+
   return (
     <main className={styles.container}>
       <section className={styles.card} aria-labelledby="register-title">
@@ -96,33 +98,41 @@ const Register: FC = () => {
         )}
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <div className={styles.field}>
-            <label htmlFor="username" className={styles.label}>
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className={styles.input}
-            />
+            <label htmlFor="username" className={styles.visuallyHidden}>Username</label>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" fill="currentColor"/></svg>
+              </span>
+              <input
+                id="username"
+                type="text"
+                required
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className={styles.input}
+              />
+            </div>
           </div>
           <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
-              aria-invalid={!!emailError}
-              aria-describedby={emailError ? 'email-error' : undefined}
-            />
+            <label htmlFor="email" className={styles.visuallyHidden}>Email</label>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" fill="currentColor"/></svg>
+              </span>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles.input}
+                aria-invalid={!!emailError}
+                aria-describedby={emailError ? 'email-error' : undefined}
+              />
+            </div>
             {emailError && (
               <p id="email-error" className={styles.fieldError} role="alert">
                 {emailError}
@@ -130,35 +140,45 @@ const Register: FC = () => {
             )}
           </div>
           <div className={styles.field}>
-            <label htmlFor="phone" className={styles.label}>
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={styles.input}
-            />
+            <label htmlFor="phone" className={styles.visuallyHidden}>Phone Number</label>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6.6 10.8c1.7 3 3.6 4.9 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1 .4 2.1.6 3.2.6.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.6 22.2 1.8 13.4 1.8 2.4 1.8 1.7 2.3 1.2 3 1.2h3.2c.7 0 1.2.5 1.2 1.2 0 1.1.2 2.2.6 3.2.1.4 0 .9-.3 1.2l-2.1 2.2z" fill="currentColor"/></svg>
+              </span>
+              <input
+                id="phone"
+                type="tel"
+                placeholder="Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className={styles.input}
+              />
+            </div>
           </div>
           <div className={styles.field}>
-            <label htmlFor="dob" className={styles.label}>
-              Date of Birth
-            </label>
-            <input
-              id="dob"
-              type="date"
-              required
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className={styles.input}
-            />
+            <label htmlFor="dob" className={styles.visuallyHidden}>Date of Birth</label>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm12 6H5v12h14V8z" fill="currentColor"/></svg>
+              </span>
+              <input
+                id="dob"
+                type="date"
+                required
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className={styles.input}
+              />
+            </div>
           </div>
           <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>
+            <label htmlFor="password" className={styles.visuallyHidden}>
               Password
             </label>
             <div className={styles.passwordWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 14a5 5 0 1 1 4.9-6H22v3h-2v2h-2v2h-3.1A5 5 0 0 1 7 14zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/></svg>
+              </span>
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -179,20 +199,33 @@ const Register: FC = () => {
             </div>
           </div>
           <div className={styles.field}>
-            <label htmlFor="confirm-password" className={styles.label}>
+            <label htmlFor="confirm-password" className={styles.visuallyHidden}>
               Confirm Password
             </label>
-            <input
-              id="confirm-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={styles.input}
-            />
+            <div className={styles.passwordWrapper}>
+              <span className={styles.inputIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 14a5 5 0 1 1 4.9-6H22v3h-2v2h-2v2h-3.1A5 5 0 0 1 7 14zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/></svg>
+              </span>
+              <input
+                id="confirm-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={styles.input}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className={styles.toggleButton}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className={styles.primaryButton}>
             {isLoading ? (
               <span className={styles.spinner} aria-hidden="true" />
             ) : (

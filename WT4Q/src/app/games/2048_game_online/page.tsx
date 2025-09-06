@@ -146,6 +146,8 @@ export default function Game() {
     { board: Board; score: number; merges: number; moves: number }[]
   >([]);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const lockSizeRef = useRef(false);
+  const boardRef = useRef<HTMLDivElement | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   // Load best + seed board ONLY on client (post-hydration)
@@ -252,6 +254,8 @@ export default function Game() {
 
   // Touch (swipe)
   const onTouchStart = (e: React.TouchEvent) => {
+    // Lock board sizing once player starts interacting to avoid mobile jitter
+    lockSizeRef.current = true;
     const t = e.touches[0];
     touchStart.current = { x: t.clientX, y: t.clientY };
   };
@@ -280,6 +284,121 @@ export default function Game() {
       }
     }
   }, [score, best]);
+
+  // Measure and fit the board to available viewport space between site header and footer
+  useEffect(() => {
+    const calc = () => {
+      const wrap = wrapperRef.current;
+      const boardEl = boardRef.current;
+      if (!wrap || !boardEl) return;
+
+      // Heights of fixed header and site footer
+      const siteFooter = document.querySelector('body > footer') as HTMLElement | null;
+      const footerH = siteFooter ? siteFooter.getBoundingClientRect().height : 0;
+      const rootStyle = getComputedStyle(document.documentElement);
+      const headerH = parseFloat(rootStyle.getPropertyValue('--header-height') || '0');
+
+      // Viewport height (accounts for mobile dynamic viewport when available)
+      const viewportH = window.visualViewport?.height ?? window.innerHeight;
+
+      // Wrapper computed spacing
+      const cs = getComputedStyle(wrap);
+      // wrapper margins are ignored in locked layout
+      const padX = parseFloat(cs.paddingLeft || '0') + parseFloat(cs.paddingRight || '0');
+
+      // Main element bottom margin (space above footer)
+      const mainEl = wrap.closest('main') as HTMLElement | null;
+      // main margins are ignored in locked layout
+
+      // Local overhead inside wrapper (elements above/below the board)
+      const wrapRect = wrap.getBoundingClientRect();
+      const boardRect = boardEl.getBoundingClientRect();
+      const aboveBoard = Math.max(0, boardRect.top - wrapRect.top);
+      const belowBoard = Math.max(0, wrapRect.height - aboveBoard - boardRect.height);
+      const nonBoard = aboveBoard + belowBoard;
+
+      // Height budget available for a square board, independent of scroll offset
+      const allowance = viewportH - headerH - footerH;
+      const maxByHeight = Math.max(0, Math.floor(allowance - nonBoard));
+
+      // Max by wrapper inner width (respect wrapper paddings)
+      const innerW = Math.max(0, wrap.clientWidth - padX);
+
+      const size = Math.max(0, Math.min(maxByHeight, innerW));
+
+      // Apply as CSS var that .board uses for width/height
+      const prev = wrap.style.getPropertyValue('--board-size');
+      const next = `${size}px`;
+      if (prev !== next) wrap.style.setProperty('--board-size', next);
+    };
+
+    // Run after paint to ensure accurate rects
+    const raf = () => requestAnimationFrame(calc);
+    raf();
+
+    // Recompute on resize/orientation but avoid mobile jitter during play by honoring lock
+    const onResize = () => { if (!lockSizeRef.current) raf(); };
+    const onOrientation = () => { lockSizeRef.current = false; raf(); };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onOrientation);
+    // Visual viewport changes (mobile address bar) — also respect lock
+    const vv = window.visualViewport;
+    const onVvResize = () => { if (!lockSizeRef.current) raf(); };
+    vv?.addEventListener('resize', onVvResize);
+
+    // Observe wrapper/footer size changes
+    const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(() => { if (!lockSizeRef.current) raf(); }) : null;
+    const siteFooter = document.querySelector('body > footer') as HTMLElement | null;
+    const siteHeader = document.querySelector('body > header') as HTMLElement | null;
+    const mainEl = wrapperRef.current?.closest('main') as HTMLElement | null;
+    if (ro && wrapperRef.current) ro.observe(wrapperRef.current);
+    if (ro && siteFooter) ro.observe(siteFooter);
+    if (ro && siteHeader) ro.observe(siteHeader);
+    if (ro && mainEl) ro.observe(mainEl);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onOrientation);
+      vv?.removeEventListener('resize', onVvResize);
+      ro?.disconnect();
+    };
+  }, []);
+
+  // Lock the game view between header and footer and disable page scroll
+  useEffect(() => {
+    const updateLockHeight = () => {
+      const wrap = wrapperRef.current;
+      if (!wrap) return;
+      const footer = document.querySelector('body > footer') as HTMLElement | null;
+      const footerH = footer ? footer.getBoundingClientRect().height : 0;
+      const viewportH = window.visualViewport?.height ?? window.innerHeight;
+      const rootStyle = getComputedStyle(document.documentElement);
+      const headerH = parseFloat(rootStyle.getPropertyValue('--header-height') || '0');
+      const h = Math.max(0, Math.floor(viewportH - headerH - footerH));
+      wrap.style.setProperty('--lock-height', `${h}px`);
+    };
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    updateLockHeight();
+
+    const onResize = () => updateLockHeight();
+    window.addEventListener('resize', onResize);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', onResize);
+    const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(updateLockHeight) : null;
+    const footer = document.querySelector('body > footer') as HTMLElement | null;
+    const header = document.querySelector('body > header') as HTMLElement | null;
+    if (ro && footer) ro.observe(footer);
+    if (ro && header) ro.observe(header);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('resize', onResize);
+      vv?.removeEventListener('resize', onResize);
+      ro?.disconnect();
+    };
+  }, []);
 
   // End conditions
   useEffect(() => {
@@ -314,15 +433,15 @@ export default function Game() {
 
   return (
     <div
-      className={styles.wrapper}
+      className={`${styles.wrapper} ${styles.locked}`}
       tabIndex={0}
       ref={wrapperRef}
       role="application"
       aria-label="2048 merge game board"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
       onMouseMove={handlePointerMove}
       onMouseLeave={handlePointerLeave}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <header className={styles.header}>
         <div className={styles.brand}>
@@ -353,9 +472,7 @@ export default function Game() {
         <button className={styles.btn} onClick={undo} aria-label="Undo last move">
           Undo
         </button>
-        <div className={styles.tip} aria-hidden="true">
-          Use ⬅️⬆️➡️⬇️ or swipe
-        </div>
+ 
       </div>
 
       <div className={styles.progress} aria-label="Merge progress">
@@ -365,7 +482,7 @@ export default function Game() {
         />
       </div>
 
-      <div className={styles.board} aria-describedby="board-help">
+      <div className={styles.board} aria-describedby="board-help" ref={boardRef}>
         {board.map((row, r) => (
           <div key={r} className={styles.row}>
             {row.map((val, c) => (
@@ -402,11 +519,6 @@ export default function Game() {
         </div>
       )}
 
-      <footer className={styles.footer}>
-        <small>
-          Built with Next.js • Keyboard + touch • Undo • Best score saved locally
-        </small>
-      </footer>
     </div>
   );
 }

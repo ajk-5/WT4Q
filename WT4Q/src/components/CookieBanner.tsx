@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import styles from './CookieBanner.module.css';
 
 type CookiePrefs = {
@@ -7,6 +8,7 @@ type CookiePrefs = {
 };
 
 export default function CookieBanner() {
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [manage, setManage] = useState(false);
   const [prefs, setPrefs] = useState<CookiePrefs>({ analytics: true });
@@ -36,6 +38,8 @@ export default function CookieBanner() {
   const accept = () => savePrefs({ analytics: true });
   const refuse = () => savePrefs({ analytics: false });
 
+  // Hide banner entirely on login/register pages to prevent viewport overlap/scroll
+  if (pathname?.startsWith('/login') || pathname?.startsWith('/register')) return null;
   if (!show) return null;
 
   return (

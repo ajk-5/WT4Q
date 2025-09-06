@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState, useLayoutEffect, useEffect } from "react";
+import { useRef, useState, useLayoutEffect, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import PrefetchLink from "@/components/PrefetchLink";
 import styles from "./ArticleCard.module.css";
 import { useRouter } from "next/navigation";
 import type { ArticleImage } from "@/lib/models";
+import type { Comment } from "@/components/CommentsSection";
+import { ReactionIcon } from "@/components/ReactionIcon";
 
 /** Replace with your own helper if you already have one */
 function truncateWords(html: string, words: number) {
@@ -23,6 +25,14 @@ export interface Article {
   views?: number;
   content: string;
   images?: ArticleImage[];
+  // Optional extras if available from list APIs
+  countryName?: string;
+  comments?: Comment[];
+  commentsCount?: number;
+  like?: { id: number; type: number | string }[];
+  likesCount?: number;
+  likeCount?: number;
+  reactionsCount?: number;
 }
 
 type FinalPos = {
@@ -63,6 +73,26 @@ export default function ArticleCard({ article }: { article: Article }) {
 
   const router = useRouter();
   const snippet = truncateWords(article.content || article.summary || "", 50);
+  
+  // Derive counts safely from whatever fields are available
+  const reactionsCount = (() => {
+    if (Array.isArray(article.like)) return article.like.length;
+    if (typeof article.reactionsCount === 'number') return article.reactionsCount;
+    if (typeof article.likesCount === 'number') return article.likesCount;
+    if (typeof article.likeCount === 'number') return article.likeCount;
+    return undefined;
+  })();
+
+  const commentsCount = (() => {
+    if (Array.isArray(article.comments)) return article.comments.length;
+    if (typeof article.commentsCount === 'number') return article.commentsCount;
+    // Some APIs may use different casings/names; last‑resort casts
+    const anyArticle = article as unknown as Record<string, unknown>;
+    const alt = anyArticle['commentCount'] as number | undefined;
+    return typeof alt === 'number' ? alt : undefined;
+  })();
+
+  const country = article.countryName;
 
   const HOVER_DELAY_MS = 400;
   const LONG_PRESS_MS = 600;
@@ -411,9 +441,90 @@ export default function ArticleCard({ article }: { article: Article }) {
               >
                 Read more
               </PrefetchLink>
-      {typeof article.views === "number" && (
-        <p className={styles.views}>{article.views.toLocaleString()} views</p>
-      )}
+      {(() => {
+        const items: React.ReactNode[] = [];
+
+        function EyeIcon({ className }: { className?: string }) {
+          return (
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-8a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 9Z"
+              />
+            </svg>
+          );
+        }
+
+        function CommentIcon({ className }: { className?: string }) {
+          return (
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8.83L5 20.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 5a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Zm0 4a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H6Z"
+              />
+            </svg>
+          );
+        }
+
+        function CountryIcon({ className }: { className?: string }) {
+          // simple flag on pole
+          return (
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+              <path fill="currentColor" d="M4 3h2v18H4V3Zm3 1h9l-1.5 2L16 8H7V4Z" />
+            </svg>
+          );
+        }
+
+        if (typeof article.views === 'number') {
+          items.push(
+            <span key="views" className={styles.metaItem}>
+              <EyeIcon className={styles.metaIcon} />
+              {article.views.toLocaleString()}
+            </span>
+          );
+        }
+        if (typeof reactionsCount === 'number') {
+          items.push(
+            <span key="react" className={styles.metaItem}>
+              <ReactionIcon name="like" className={styles.metaIcon} />
+              {reactionsCount.toLocaleString()}
+            </span>
+          );
+        }
+        if (typeof commentsCount === 'number') {
+          items.push(
+            <span key="comments" className={styles.metaItem}>
+              <CommentIcon className={styles.metaIcon} />
+              {commentsCount.toLocaleString()}
+            </span>
+          );
+        }
+        if (country) {
+          items.push(
+            <span key="country" className={styles.metaItem}>
+              <CountryIcon className={styles.metaIcon} />
+              {country}
+            </span>
+          );
+        }
+
+        if (items.length === 0) return null;
+
+        return (
+          <p className={styles.meta}>
+            {items.map((node, i) => (
+              <Fragment key={`meta-${i}`}>
+                {i > 0 ? (
+                  <span className={styles.sep} aria-hidden>
+                    |
+                  </span>
+                ) : null}
+                {node}
+              </Fragment>
+            ))}
+          </p>
+        );
+      })()}
 
       {previewNode}
     </div>

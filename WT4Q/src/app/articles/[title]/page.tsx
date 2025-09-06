@@ -8,8 +8,10 @@ import type { Metadata } from 'next';
 import styles from '../article.module.css';
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
+import ArticleTTS from '@/components/ArticleTTS';
 import LocalArticleSection from '@/components/LocalArticleSection';
 import { reactionNameFromType } from '@/components/ReactionIcon';
+import { stripHtml } from '@/lib/text';
 
 /* ---------------------- types ---------------------- */
 
@@ -174,6 +176,13 @@ export default async function ArticlePage(
             ? ` | ${article.views.toLocaleString()} views`
             : ''}
         </p>
+        {/* Text-to-Speech controls */}
+        <ArticleTTS
+          text={stripHtml(article.content || article.summary || '')}
+          title={article.title}
+          storageKey={article.id || article.slug}
+        />
+
         {article.images && article.images.length > 0 && (
           <div className={article.images.length > 1 ? styles.gallery : undefined}>
             {article.images.map((img, idx) => {

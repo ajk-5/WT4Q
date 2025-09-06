@@ -8,7 +8,13 @@ async function fetchArticlePaths(): Promise<string[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { cache: 'no-store' });
     if (!res.ok) return [];
-    const articles: { slug: string }[] = await res.json();
+    const articles: { slug: string; createdDate?: string }[] = await res.json();
+    // Newest first by createdDate; unknown dates go last
+    articles.sort((a, b) => {
+      const ta = new Date(a.createdDate ?? 0).getTime();
+      const tb = new Date(b.createdDate ?? 0).getTime();
+      return tb - ta;
+    });
     return articles.map(a => `/articles/${a.slug}`);
   } catch {
     return [];

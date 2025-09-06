@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './TrendingNewsSlider.module.css';
@@ -44,7 +45,7 @@ export default function TrendingNewsSlider({
   // dY`� key: stable boolean, not the array reference
   const needFetch = useMemo(
     () => !(initialArticles && initialArticles.length > 0),
-    [initialArticles?.length],
+    [initialArticles],
   );
 
   const next = () => {
@@ -65,7 +66,7 @@ export default function TrendingNewsSlider({
       setArticles(initialArticles);
       setIndex(0);
     }
-  }, [initialArticles?.length]);
+  }, [initialArticles]);
 
   // Fetch when we weren't given any articles
   useEffect(() => {

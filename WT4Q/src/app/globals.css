@@ -200,22 +200,6 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 3px 3px 6px var(--metal-shadow),
-    inset -3px -3px 6px var(--metal-reflect),
-    var(--shadow-elev-lg);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow:
-    inset 2px 2px 4px var(--metal-shadow),
-    inset -2px -2px 4px var(--metal-reflect),
-    0 4px 8px rgba(0,0,0,0.3);
-}
-
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* =========

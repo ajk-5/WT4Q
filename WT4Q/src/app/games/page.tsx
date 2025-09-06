@@ -17,58 +17,60 @@ export default function GamesPage() {
           <PrefetchLink
             href="/games/2048_game_online"
             title="Play the classic 2048 puzzle game"
+            className={styles.blockLink}
           >
-            2048
+            <span>2048</span>
+            <div className={styles.preview}>
+              <Image
+                src="/images/2048.png"
+                alt="2048 game preview"
+                width={602}
+                height={470}
+                quality={100}
+                sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+                className={styles.logoImage}
+                priority
+              />
+            </div>
           </PrefetchLink>
-          <div className={styles.preview}>
-          <Image
-            src="/images/2048.png"
-            alt="2048 game preview"
-            width={602}
-            height={470}
-            quality={100}
-            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
-            className={styles.logoImage}
-            priority
-          />
-          </div>
         </li>
         <li className={styles.item}>
-          <PrefetchLink href="/games/tetris" title="Play Tetris">
-            Tetris
+          <PrefetchLink href="/games/tetris" title="Play Tetris" className={styles.blockLink}>
+            <span>Tetris</span>
+            <div className={styles.preview}>
+              <Image
+                src="/images/tetris.png"
+                alt="tetris game preview"
+                width={602}
+                height={470}
+                quality={100}
+                sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+                className={styles.logoImage}
+                priority
+              />
+            </div>
           </PrefetchLink>
-          <div className={styles.preview}>
-          <Image
-            src="/images/tetris.png"
-            alt="tetris game preview"
-            width={602}
-            height={470}
-            quality={100}
-            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
-            className={styles.logoImage}
-            priority
-          />
-          </div>
         </li>
         <li className={styles.item}>
           <PrefetchLink
             href="/games/metrotrade"
             title="Play Metropolotan Trader"
+            className={styles.blockLink}
           >
-            Metropolotan Trader
+            <span>Metropolotan Trader</span>
+            <div className={styles.preview}>
+              <Image
+                src="/images/metrotrade.png"
+                alt="Metrotrade preview"
+                width={602}
+                height={470}
+                quality={100}
+                sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
+                className={styles.logoImage}
+                priority
+              />
+            </div>
           </PrefetchLink>
-          <div className={styles.preview}>
-          <Image
-            src="/images/metrotrade.png"
-            alt="Metrotrade preview"
-            width={602}
-            height={470}
-            quality={100}
-            sizes="(max-width: 768px) 4rem, (max-width: 1200px) 5rem, 6rem"
-            className={styles.logoImage}
-            priority
-          />
-          </div>
         </li>
       </ul>
     </main>

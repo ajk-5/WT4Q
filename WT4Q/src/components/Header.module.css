@@ -38,6 +38,15 @@
   z-index: 1101; /* ensure masthead sits above nav */
 }
 
+/* New row holding date (left) and weather (right) */
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  order: 1;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -69,15 +78,13 @@
   align-items: center;
   order: 1;
   z-index: 0;
+  color: #000; /* ensure weather text/icons are black */
 }
 
 /* Dateline under the masthead */
 .dateline {
-  width: 100%;
-  text-align: center;
   font-size: 0.9rem;
-  color: var(--text-light);
-  order: 1;
+  color: #000; /* make date text black */
 }
 
 .actions {
@@ -111,6 +118,8 @@
   position: relative;
   z-index: 50; /* ensure dropdown bar sits over actions */
 }
+/* When the sidebar menu is open, ensure container stays mounted even while scrolled */
+.showSidebar { display: block !important; }
 
 /* Newspaper-like rules (thick + thin) at header bottom */
 .ruleThick {
@@ -178,6 +187,8 @@
 .scrolled .dateline {
   display: none;
 }
+/* Collapse the info row when scrolled */
+.scrolled .infoRow { display: none; }
 /* When scrolled: keep only user menu inside actions */
 .scrolled .actions > :not(.userMenu) {
   display: none;

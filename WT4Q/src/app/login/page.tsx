@@ -13,5 +13,5 @@ export default async function LoginPage({
   searchParams?: Promise<LoginSearchParams>;
 }) {
   const params = await searchParams;
-  return <LoginClient from={params?.from} />;
+  return <LoginClient from={params?.from}/>;
 }
