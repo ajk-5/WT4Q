@@ -32,9 +32,6 @@ namespace Northeast.Data
         public DbSet<PageVisit> PageVisits { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<CommentReport> CommentReports { get; set; }
-        public DbSet<AstrologyHoroscope> AstrologyHoroscopes { get; set; }
-        public DbSet<AstrologySignForecast> AstrologySignForecasts { get; set; }
-        public DbSet<AstrologySubscription> AstrologySubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -77,28 +74,6 @@ namespace Northeast.Data
             modelBuilder.Entity<LikeEntity>()
                 .HasIndex(l => new { l.UserId, l.ArticleId })
                 .IsUnique();
-
-            modelBuilder.Entity<AstrologyHoroscope>(b =>
-            {
-                b.HasMany(h => h.Signs)
-                    .WithOne(s => s.Horoscope)
-                    .HasForeignKey(s => s.HoroscopeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                b.Navigation(h => h.Signs).AutoInclude();
-            });
-
-            modelBuilder.Entity<AstrologySignForecast>(b =>
-            {
-                b.Property(s => s.LuckyNumbers)
-                    .HasColumnType("integer[]");
-            });
-
-            modelBuilder.Entity<AstrologySubscription>(b =>
-            {
-                b.Property(s => s.SendHour).HasDefaultValue(5);
-                b.Property(s => s.Active).HasDefaultValue(true);
-            });
         }
     }
 }

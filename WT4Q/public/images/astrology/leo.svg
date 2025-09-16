@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
-  <title>Leo glyph</title>
-  <g fill="none" stroke="#c06a32" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M56 52c0-20 14-36 32-36 12 0 22 10 22 22 0 16-14 24-30 24"/>
-    <circle cx="40" cy="80" r="24"/>
-    <path d="M64 104c8 12 20 18 36 18"/>
-  </g>
-</svg>
