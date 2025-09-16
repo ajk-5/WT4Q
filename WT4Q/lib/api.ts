@@ -90,6 +90,11 @@ export const API_ROUTES = {
   CONTACT: {
     POST: `${API_BASE_URL}/api/Contact`,
   },
+  ASTROLOGY: {
+    TODAY: `${API_BASE_URL}/api/Astrology/today`,
+    SUBSCRIPTION: `${API_BASE_URL}/api/Astrology/subscription`,
+    DISPATCH: `${API_BASE_URL}/api/Astrology/dispatch`,
+  },
 };
 // Wrapper around fetch that always includes credentials and retries once on 401
 export async function apiFetch(

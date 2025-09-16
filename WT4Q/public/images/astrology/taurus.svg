@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>Taurus glyph</title>
+  <g fill="none" stroke="#6f7f3d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="64" cy="74" r="28"/>
+    <path d="M32 36c8-18 24-28 32-28s24 10 32 28"/>
+    <path d="M40 28c6 8 14 12 24 12s18-4 24-12"/>
+  </g>
+</svg>
