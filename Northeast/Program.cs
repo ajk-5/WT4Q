@@ -14,7 +14,6 @@ using Northeast.Options;
 using Northeast.Repository;
 using Northeast.Services;
 using Northeast.Services.Similarity;
-using Northeast.Services.Astrology;
 using Northeast.Utilities;
 using Polly.Timeout;                        // ✅ Polly timeout
 
@@ -78,28 +77,6 @@ builder.Services.AddScoped<CommentReportRepository>();
 builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
-builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddOptions<AstrologyOptions>()
-    .Bind(builder.Configuration.GetSection("Astrology"))
-    .PostConfigure(options =>
-    {
-        if (string.IsNullOrWhiteSpace(options.ApiKey))
-        {
-            options.ApiKey = builder.Configuration["Astrology:ApiKey"]
-                ?? Environment.GetEnvironmentVariable("Astrology__ApiKey")
-                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
-                ?? string.Empty;
-        }
-
-        if (string.IsNullOrWhiteSpace(options.Model))
-        {
-            options.Model = "gemini-1.5-flash";
-        }
-    });
-builder.Services.AddHttpClient<GeminiAstrologyClient>();
-builder.Services.AddScoped<AstrologyService>();
-builder.Services.AddScoped<AstrologyDispatcher>();
-builder.Services.AddHostedService<AstrologyEmailBackgroundService>();
 
 // --- HTTP clients with resilience (named "default") ---
 builder.Services.AddHttpClient("default")
