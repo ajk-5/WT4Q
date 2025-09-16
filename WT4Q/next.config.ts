@@ -35,14 +35,26 @@ const nextConfig: NextConfig = {
         source: "/_next/image",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, must-revalidate" }],
       },
+      // Public images (e.g., /images/paper_background.webp): long-lived cache
+      {
+        // Match common image extensions served from /public
+        source: "/:path*\.(png|jpg|jpeg|gif|svg|webp|avif|ico)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
       // API responses: never cached by browser
       {
         source: "/api/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
-      // HTML & everything else: allow CDN cache, vary by encoding
+      // HTML pages: edge cache while revalidating; scope via Accept header
       {
         source: "/:path*",
+        // Only when the client accepts HTML to avoid overriding image headers
+        has: [
+          { type: "header", key: "accept", value: ".*text/html.*" },
+        ],
         headers: [
           { key: "Cache-Control", value: "public, max-age=0, s-maxage=60, stale-while-revalidate=300" },
           { key: "Vary", value: "Accept-Encoding" },
@@ -53,4 +65,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

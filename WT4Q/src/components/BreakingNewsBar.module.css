@@ -19,6 +19,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  /* Pin the toggle button to the far right; search expands to the left */
+  justify-content: flex-end;
+  flex-direction: row-reverse;
 }
 
 .searchToggle {
@@ -38,11 +41,18 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Search expands left from the right edge when opened */
 .search {
-  min-width: clamp(180px, 30vw, 360px);
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: width 200ms ease, opacity 200ms ease;
+  will-change: width;
 }
 
-/* Keep layout width reserved; just hide content when closed */
-.search[aria-hidden="true"] {
-  visibility: hidden;
+.search[aria-hidden="false"] {
+  width: clamp(180px, 30vw, 360px);
+  opacity: 1;
+  pointer-events: auto;
 }

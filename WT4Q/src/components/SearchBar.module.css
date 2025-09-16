@@ -1,5 +1,7 @@
 .form {
   display: flex;
+  /* Reverse visual order: button on left, input on right */
+  flex-direction: row-reverse;
   border-radius: 999px;
   height: 2rem;
   overflow: hidden;
@@ -14,6 +16,14 @@
   border: none;
   outline: none;
   background: transparent;
+  color: #000; /* input text color */
+  /* Keep LTR typing but align content to the right */
+  text-align: right;
+}
+
+.input::placeholder {
+  color: #000; /* placeholder color */
+  opacity: 0.6; /* keep slight differentiation */
 }
 
 .button {

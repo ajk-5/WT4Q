@@ -357,6 +357,28 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
               </ul>
             )}
           </div>
+          {forecast.length > 0 && (
+            <div className={styles.forecast}>
+              <h2 className={styles.subheading}>Next 24 Hours</h2>
+              {forecast.map((f) => (
+                <div key={f.time} className={styles.forecastItem}>
+                  <span className={styles.time}>
+                    {new Date(f.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {iconFromSymbol(f.symbol, styles.icon)}
+                  <span>
+                    {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}A�{unit}
+                  </span>
+                  {f.windspeed != null && (
+                    <span className={styles.wind}>
+                      <WindIcon className={styles.windIcon} />
+                      {Math.round(f.windspeed)} km/h
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           <div className={styles.mapContainer}>
             <iframe
               className={styles.map}
@@ -368,7 +390,7 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
           </div>
         </>
       )}
-      {forecast.length > 0 && (
+      {/* moved above */ false && forecast.length > 0 && (
         <div className={styles.forecast}>
           <h2 className={styles.subheading}>Next 24 Hours</h2>
           {forecast.map((f) => (

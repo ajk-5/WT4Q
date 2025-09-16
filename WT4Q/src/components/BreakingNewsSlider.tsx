@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
@@ -179,12 +179,16 @@ export default function BreakingNewsSlider({
         <div className={styles.detail}>
           {imageSrc && (
             <figure className={styles.detailFigure}>
-              <img
+              <Image
                 src={imageSrc}
                 alt={first?.altText || current.title}
-                className={styles.detailImage}
-                loading="lazy"
-                decoding="async"
+                fill
+                priority={index === 0}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
+                style={{ objectFit: 'cover' }}
+                placeholder={base64 ? 'blur' : undefined}
+                blurDataURL={base64}
+                unoptimized={!!base64}
               />
               {first?.caption && (
                 <figcaption className={styles.detailCaption}>{first.caption}</figcaption>

@@ -208,12 +208,6 @@ export default async function ArticlePage(
             ? ` | ${article.views.toLocaleString()} views`
             : ''}
         </p>
-        {/* Text-to-Speech controls */}
-        <ArticleTTS
-          text={stripHtml(article.content || article.summary || '')}
-          title={article.title}
-          storageKey={article.id || article.slug}
-        />
 
         {article.images && article.images.length > 0 && (
           <div className={article.images.length > 1 ? styles.gallery : undefined}>
@@ -253,6 +247,12 @@ export default async function ArticlePage(
         <div
           className={styles.content}
           dangerouslySetInnerHTML={{ __html: article.content }}
+        />
+        {/* Move Text-to-Speech controls below the main content */}
+        <ArticleTTS
+          text={stripHtml(article.content || article.summary || '')}
+          title={article.title}
+          storageKey={article.id || article.slug}
         />
         <ReactionButtons
           articleId={article.id}

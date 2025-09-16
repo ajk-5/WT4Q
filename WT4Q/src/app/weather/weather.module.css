@@ -57,7 +57,7 @@
 .map {
   border: 0;
   width: 100%;
-  height: 300px;
+  height: 220px; /* more compact */
 }
 
 .windIcon {
@@ -73,24 +73,74 @@
 }
 
 .subheading {
-  font-size: 1.25rem;
+  font-size: 1.1rem;     /* slightly smaller */
   font-weight: bold;
-  margin-top: 1rem;
+  margin-top: 0.5rem;    /* tighter spacing */
 }
 
 .forecast {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;          /* horizontal flow */
+  gap: 0.5rem;                  /* space between hour boxes */
+  overflow-x: auto;             /* horizontal scroll on small screens */
+  padding-bottom: 0.25rem;      /* breathing room for scrollbar */
+  scroll-snap-type: x proximity;/* smooth snap if users scroll */
+  scrollbar-width: thin;        /* Firefox */
+  scrollbar-color: rgba(0,0,0,0.35) rgba(0,0,0,0.08);
 }
 
 .forecastItem {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;       /* stack time, icon, temp */
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;                 /* tighter */
+  padding: 0.4rem 0.5rem;       /* compact padding */
+  border: 1px solid #ddd;       /* box border */
+  border-radius: 8px;
+  background: #fff;             /* box background */
+  min-width: 76px;              /* slimmer card width */
+  scroll-snap-align: start;     /* snap by card */
 }
 
 .time {
-  width: 100px;
+  width: auto;                  /* no forced width in cards */
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* When the wind row appears, keep it compact inside cards */
+.forecastItem .wind {
+  font-size: 0.8rem;
+}
+
+/* Smaller icons within the hourly forecast cards */
+.forecastItem .icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* WebKit scrollbar styling for the horizontal forecast */
+.forecast::-webkit-scrollbar {
+  height: 8px;
+}
+.forecast::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+}
+.forecast::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.25));
+  border-radius: 8px;
+}
+.forecast::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
+}
+
+@media (max-width: 640px) {
+  .map { height: 180px; }
+  .forecastItem { min-width: 70px; }
+  .forecastItem .icon { width: 22px; height: 22px; }
+  .time { font-size: 0.8rem; }
 }
 
 .saved {

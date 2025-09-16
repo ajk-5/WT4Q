@@ -1,6 +1,6 @@
 .slider {
   background:#c6bbbb00;
-  color: #0000006d;
+  color: #111111; /* darker text for better readability */
   padding: 0.5rem 0.7rem;
   margin: 0.2rem 0;
   border-radius: 4px;
@@ -56,6 +56,8 @@
 .detailFigure {
   margin: 0 0 0.5rem 0;
   aspect-ratio: 16 / 9; /* reserve space to avoid layout shift */
+  position: relative;   /* required for next/image fill */
+  overflow: hidden;     /* clip overflow for cover fit */
 }
 
 .detailCaption {

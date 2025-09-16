@@ -119,9 +119,11 @@ export default async function Home() {
   ]);
 
   // Take the first 4 categories for the rails around the centerpiece
-  const leftRail = categoriesWithArticles.slice(0, 1);
-  const rightRail = categoriesWithArticles.slice(1, 2);
-  const remaining = categoriesWithArticles.slice(2, 9);
+  // Show two categories on the left rail and two on the right rail
+  const leftRail = categoriesWithArticles.slice(0, 2);
+  const rightRail = categoriesWithArticles.slice(2, 4);
+  // Render the rest (including the last category) in rows below
+  const remaining = categoriesWithArticles.slice(4);
   const remainingRows = chunk(remaining, 7);
 
   return (
