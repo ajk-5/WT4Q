@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
-  <title>Gemini glyph</title>
-  <g fill="none" stroke="#4d6c8c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M36 28c12 6 28 8 44 8s32-2 44-8"/>
-    <path d="M36 100c12-6 28-8 44-8s32 2 44 8"/>
-    <path d="M48 32v64"/>
-    <path d="M80 32v64"/>
-  </g>
-</svg>

@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
-  <title>Libra glyph</title>
-  <g fill="none" stroke="#5c6d90" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 94h88"/>
-    <path d="M20 78h88"/>
-    <path d="M32 78c6-18 18-30 32-30s26 12 32 30"/>
-    <path d="M48 48c0-14 8-26 16-26s16 12 16 26"/>
-  </g>
-</svg>

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
-  <title>Capricorn glyph</title>
-  <g fill="none" stroke="#4a4f5c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M36 26v64c0 14 10 24 24 24s24-10 24-24"/>
-    <path d="M36 58c6-12 16-20 28-20 18 0 30 14 30 32s-10 32-26 32"/>
-    <path d="M96 102c8 0 14 6 14 14s-6 14-14 14c-10 0-16-8-16-18"/>
-  </g>
-</svg>
