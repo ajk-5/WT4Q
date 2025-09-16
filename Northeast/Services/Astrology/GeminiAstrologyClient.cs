@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Northeast.Services.Astrology
 {
-    internal class GeminiAstrologyClient
+    public class GeminiAstrologyClient
     {
         private readonly HttpClient _httpClient;
         private readonly AstrologyOptions _options;
@@ -23,7 +23,7 @@ namespace Northeast.Services.Astrology
 
         private record GeminiPart(string Text);
 
-        internal class GeminiHoroscopePayload
+        public class GeminiHoroscopePayload
         {
             public string GeneratedFor { get; set; } = string.Empty;
             public string Summary { get; set; } = string.Empty;
@@ -33,7 +33,7 @@ namespace Northeast.Services.Astrology
             public List<GeminiSignPayload> Signs { get; set; } = new();
         }
 
-        internal class GeminiSignPayload
+        public class GeminiSignPayload
         {
             public string Id { get; set; } = string.Empty;
             public string Headline { get; set; } = string.Empty;

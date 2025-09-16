@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Northeast.Services.Astrology
 {
-    internal class HoroscopeOutlookModel
+    public class HoroscopeOutlookModel
     {
         public string General { get; set; } = string.Empty;
         public string Love { get; set; } = string.Empty;
@@ -10,7 +10,7 @@ namespace Northeast.Services.Astrology
         public string Wellness { get; set; } = string.Empty;
     }
 
-    internal class HoroscopeRelationsModel
+    public class HoroscopeRelationsModel
     {
         public string People { get; set; } = string.Empty;
         public string Pets { get; set; } = string.Empty;
@@ -19,14 +19,14 @@ namespace Northeast.Services.Astrology
         public string Stones { get; set; } = string.Empty;
     }
 
-    internal class HoroscopeGuidanceModel
+    public class HoroscopeGuidanceModel
     {
         public string Ritual { get; set; } = string.Empty;
         public string Reflection { get; set; } = string.Empty;
         public string Adventure { get; set; } = string.Empty;
     }
 
-    internal class SignHoroscopeModel
+    public class SignHoroscopeModel
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -47,7 +47,7 @@ namespace Northeast.Services.Astrology
         public List<int> LuckyNumbers { get; set; } = new();
     }
 
-    internal class DailyHoroscopeModel
+    public class DailyHoroscopeModel
     {
         public DateOnly ForDate { get; set; }
         public DateTime GeneratedAtUtc { get; set; }
