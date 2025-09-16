@@ -108,6 +108,9 @@ export default function CategoryNavbar({ open, onNavigate, forceSidebar }: Props
       <PrefetchLink href="/weather" className={styles.link} onClick={onNavigate}>
         Weather
       </PrefetchLink>
+      <PrefetchLink href="/astrology" className={styles.link} onClick={onNavigate}>
+        Astrology
+      </PrefetchLink>
       <PrefetchLink href="/bar" className={styles.link} onClick={onNavigate}>
         Bar
       </PrefetchLink>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>Scorpio glyph</title>
+  <g fill="none" stroke="#6a2f3c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 100V36c0-10 8-18 18-18s18 8 18 18v44"/>
+    <path d="M66 80c4-12 12-20 22-20 14 0 22 10 22 24s-8 26-24 38"/>
+    <path d="M106 122l10-10-10-10"/>
+  </g>
+</svg>
