@@ -28,15 +28,34 @@ export async function getDailyHoroscope(): Promise<DailyHoroscope> {
       next: { revalidate: 0 },
     });
     if (!response.ok) {
-      throw new Error(`Failed to load horoscope: ${response.status}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[Astrology] Remote horoscope ${response.status}; using fallback`);
+      }
+      return buildFallbackHoroscope(fallbackDate);
     }
-    const payload = (await response.json()) as unknown;
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[Astrology] Remote horoscope parse error; using fallback');
+      }
+      return buildFallbackHoroscope(fallbackDate);
+    }
+
     if (!isValidHoroscope(payload)) {
-      throw new Error('Horoscope payload malformed');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[Astrology] Horoscope payload malformed; using fallback');
+      }
+      return buildFallbackHoroscope(fallbackDate);
     }
     return payload;
   } catch (error) {
-    console.error('[Astrology] Using local fallback horoscope', error);
+    // Network or unexpected error: degrade gracefully without noisy stack traces
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[Astrology] Remote horoscope unavailable; using fallback');
+    }
     return buildFallbackHoroscope(fallbackDate);
   }
 }

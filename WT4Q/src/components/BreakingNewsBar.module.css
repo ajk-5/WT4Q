@@ -4,6 +4,8 @@
   gap: 0.5rem;
   justify-content: space-between;
   width: 100%;
+  /* Allow children to shrink without overflow */
+  min-width: 0;
 }
 
 .grow {
@@ -22,6 +24,7 @@
   /* Pin the toggle button to the far right; search expands to the left */
   justify-content: flex-end;
   flex-direction: row-reverse;
+  min-width: 0;
 }
 
 .searchToggle {
@@ -52,7 +55,25 @@
 }
 
 .search[aria-hidden="false"] {
-  width: clamp(180px, 30vw, 360px);
+  /* Give a bit more room by default */
+  width: clamp(200px, 40vw, 420px);
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Mobile tweaks: prevent overflow and make search usable */
+@media (max-width: 768px) {
+  .container {
+    flex-wrap: wrap;
+  }
+
+  .controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .search[aria-hidden="false"] {
+    /* Expand to a comfortable width on small screens */
+    width: min(85vw, 100%);
+  }
 }

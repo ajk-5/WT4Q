@@ -118,65 +118,118 @@ export default async function Home() {
     trendingPromise,
   ]);
 
+  // Avoid rendering empty category sections which create big gaps
+  const nonEmptyCategories = categoriesWithArticles.filter((c) => c.articles && c.articles.length > 0);
+
   // Take the first 4 categories for the rails around the centerpiece
   // Show two categories on the left rail and two on the right rail
-  const leftRail = categoriesWithArticles.slice(0, 2);
-  const rightRail = categoriesWithArticles.slice(2, 4);
+  const leftRail = nonEmptyCategories.slice(0, 2);
+  const rightRail = nonEmptyCategories.slice(2, 4);
   // Render the rest (including the last category) in rows below
-  const remaining = categoriesWithArticles.slice(4);
-  const remainingRows = chunk(remaining, 7);
+  const remaining = nonEmptyCategories.slice(4);
+  // Use chunks of 3 to match the 3-column row grid exactly (avoids large gaps)
+  const remainingRows = chunk(remaining, 3);
 
   return (
     <div className={styles.newspaper}>
-      {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
+      {/* Front page grid, two rows to avoid center blank:
+          Row 1: Left[0] | Breaking | Right[0]
+          Row 2: Left[1] | Trending | Right[1]
+      */}
       <div className={styles.frontPageGrid}>
-        <div className={`${styles.rail} ${styles.leftRail}`}>
-          {leftRail.map(({ category, articles }) => (
-            <section key={category} className={styles.section}>
-              <h2 className={styles.heading}>
-                <PrefetchLink
-                  href={`/category/${encodeURIComponent(category)}`}
-                  className={styles.kicker}
-                >
-                  {category}
-                </PrefetchLink>
-              </h2>
-              <div className={styles.columnGrid}>
-                {articles.slice(0, 3).map((a) => (
-                  <ArticleCard key={a.id} article={a} />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        {/* Row 1 - Left[0] */}
+        {leftRail[0] ? (
+          <section key={`left-0-${leftRail[0].category}`} className={styles.section}>
+            <h2 className={styles.heading}>
+              <PrefetchLink
+                href={`/category/${encodeURIComponent(leftRail[0].category)}`}
+                className={styles.kicker}
+              >
+                {leftRail[0].category}
+              </PrefetchLink>
+            </h2>
+            <div className={styles.columnGrid}>
+              {leftRail[0].articles.slice(0, 3).map((a) => (
+                <ArticleCard key={a.id} article={a} />
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div />
+        )}
 
+        {/* Row 1 - Center: Breaking */}
         <div className={styles.centerColumn}>
           <BreakingCenterpiece articles={breaking} />
         </div>
 
-        <div className={`${styles.rail} ${styles.rightRail}`}>
-          {rightRail.map(({ category, articles }) => (
-            <section key={category} className={styles.section}>
-              <h2 className={styles.heading}>
-                <PrefetchLink
-                  href={`/category/${encodeURIComponent(category)}`}
-                  className={styles.kicker}
-                >
-                  {category}
-                </PrefetchLink>
-              </h2>
-              <div className={styles.columnGrid}>
-                {articles.slice(0, 3).map((a) => (
-                  <ArticleCard key={a.id} article={a} />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      </div>
+        {/* Row 1 - Right[0] */}
+        {rightRail[0] ? (
+          <section key={`right-0-${rightRail[0].category}`} className={styles.section}>
+            <h2 className={styles.heading}>
+              <PrefetchLink
+                href={`/category/${encodeURIComponent(rightRail[0].category)}`}
+                className={styles.kicker}
+              >
+                {rightRail[0].category}
+              </PrefetchLink>
+            </h2>
+            <div className={styles.columnGrid}>
+              {rightRail[0].articles.slice(0, 3).map((a) => (
+                <ArticleCard key={a.id} article={a} />
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div />
+        )}
 
-      <div className={styles.centerColumn}>
-        <TrendingCenterpiece articles={trendingArticles} />
+        {/* Row 2 - Left[1] */}
+        {leftRail[1] ? (
+          <section key={`left-1-${leftRail[1].category}`} className={styles.section}>
+            <h2 className={styles.heading}>
+              <PrefetchLink
+                href={`/category/${encodeURIComponent(leftRail[1].category)}`}
+                className={styles.kicker}
+              >
+                {leftRail[1].category}
+              </PrefetchLink>
+            </h2>
+            <div className={styles.columnGrid}>
+              {leftRail[1].articles.slice(0, 3).map((a) => (
+                <ArticleCard key={a.id} article={a} />
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div />
+        )}
+
+        {/* Row 2 - Center: Trending */}
+        <div className={styles.centerColumn}>
+          <TrendingCenterpiece articles={trendingArticles} />
+        </div>
+
+        {/* Row 2 - Right[1] */}
+        {rightRail[1] ? (
+          <section key={`right-1-${rightRail[1].category}`} className={styles.section}>
+            <h2 className={styles.heading}>
+              <PrefetchLink
+                href={`/category/${encodeURIComponent(rightRail[1].category)}`}
+                className={styles.kicker}
+              >
+                {rightRail[1].category}
+              </PrefetchLink>
+            </h2>
+            <div className={styles.columnGrid}>
+              {rightRail[1].articles.slice(0, 3).map((a) => (
+                <ArticleCard key={a.id} article={a} />
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div />
+        )}
       </div>
 
       {/* The rest of the sections in rows (keeps vertical barres) */}

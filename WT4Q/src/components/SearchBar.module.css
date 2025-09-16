@@ -17,8 +17,9 @@
   outline: none;
   background: transparent;
   color: #000; /* input text color */
-  /* Keep LTR typing but align content to the right */
-  text-align: right;
+  /* Ensure normal LTR typing and left alignment */
+  direction: ltr;
+  text-align: left;
 }
 
 .input::placeholder {
