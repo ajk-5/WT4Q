@@ -17,38 +17,21 @@ export const revalidate = 180; // ISR: cache homepage for 3 minutes
 
 export const metadata: Metadata = {
   title: 'The Nineties Times: Independent, Reliable News (90sTimes)',
-  description:
-    'Independent, trustworthy coverage from The Nineties Times (90sTimes). We report with accuracy and respect-without favoritism toward any party or group.',
-  keywords: [
-    'The Nineties Times',
-    '90sTimes',
-    '90stimes',
-    '90s Times',
-    'The Nineties',
-    'independent media',
-    'reliable news',
-  ],
+  description: 'Independent, trustworthy coverage from The Nineties Times (90sTimes). We report with accuracy and respect—without favoritism toward any party or group.',
+  keywords: ['The Nineties Times','90sTimes','90stimes','90s Times','The Nineties','independent media','reliable news'],
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'The Nineties Times - independent, reliable news (90sTimes)',
-    description:
-      'Impartial coverage across politics, culture, lifestyle and more. No favoritism toward any party or community.',
+    title: 'The Nineties Times — independent, reliable news (90sTimes)',
+    description: 'Impartial coverage across politics, culture, lifestyle and more. No favoritism toward any party or community.',
     url: '/',
-    type: 'website',
+    type: 'website'
   },
 };
 
 async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   try {
-    // Only fetch what we render: top 12 is enough to show 3 immediately and have some buffer
-    const url = `${API_ROUTES.ARTICLE.SEARCH_ADVANCED}?category=${encodeURIComponent(cat)}&limit=12`;
-    // Avoid Next.js 2MB data-cache limit for very large categories like "Info"
-    const res = await fetch(
-      url,
-      cat.toLowerCase() === 'info'
-        ? { cache: 'no-store' }
-        : { next: { revalidate: 180 } }
-    );
+    const res = await fetch\(API_ROUTES\.ARTICLE\.BREAKING, \{ next: \{ revalidate: 120 \} \} \);
+    const res = await fetch(url, { next: { revalidate: 180 } });
     if (!res.ok) return [];
     const data: Article[] = await res.json();
     return data.sort(
@@ -63,7 +46,8 @@ async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
 
 async function fetchBreakingNews(): Promise<BreakingArticle[]> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { next: { revalidate: 120 } });
+    const res = await fetch\(API_ROUTES\.ARTICLE\.BREAKING, \{ next: \{ revalidate: 120 \} \} \);
+    const res = await fetch(url, { next: { revalidate: 180 } });
     if (!res.ok) return [];
     const data = (await res.json()) as BreakingArticle[];
     return (data || [])
@@ -86,7 +70,8 @@ async function fetchBreakingNews(): Promise<BreakingArticle[]> {
 
 async function fetchTrendingNews(limit = 5): Promise<TrendingArticle[]> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(limit), { next: { revalidate: 120 } });
+    const res = await fetch\(API_ROUTES\.ARTICLE\.BREAKING, \{ next: \{ revalidate: 120 \} \} \);
+    const res = await fetch(url, { next: { revalidate: 180 } });
     if (!res.ok) return [];
     const data = (await res.json()) as Article[];
     return data.map((a) => ({
@@ -102,32 +87,41 @@ async function fetchTrendingNews(limit = 5): Promise<TrendingArticle[]> {
 }
 
 export default async function Home() {
-  // Fetch everything in parallel to reduce overall TTFB
-  const categoriesPromise = Promise.all(
+  const categoriesWithArticles = await Promise.all(
     CATEGORIES.map(async (c) => ({
       category: c,
       articles: await fetchArticlesByCategory(c),
-    })),
+    }))
   );
-  const breakingPromise = fetchBreakingNews();
-  const trendingPromise = fetchTrendingNews();
-
-  const [categoriesWithArticles, breaking, trendingArticles] = await Promise.all([
-    categoriesPromise,
-    breakingPromise,
-    trendingPromise,
-  ]);
+  const breaking = await fetchBreakingNews();
+  const trendingArticles = await fetchTrendingNews();
 
   // Take the first 4 categories for the rails around the centerpiece
   const leftRail = categoriesWithArticles.slice(0, 1);
-  const rightRail = categoriesWithArticles.slice(1, 2);
-  const remaining = categoriesWithArticles.slice(2, 9);
+  const rightRail = categoriesWithArticles.slice(1,2);
+  const remaining = categoriesWithArticles.slice(2,9);
   const remainingRows = chunk(remaining, 7);
+
+  // dateline was unused; removed to satisfy lint
 
   return (
     <div className={styles.newspaper}>
+      {/* Masthead */}
+      {/*<header className={styles.masthead} aria-label="Site masthead">
+        <div className={styles.mastheadInner}>
+          <div className={styles.brandBlock}>
+            <h1 className={styles.brand}>The Nineties Times</h1>
+            <p className={styles.tagline}>All the News That Matters</p>
+          </div>
+
+        </div>
+      </header>*/}
+      {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
+
+
       {/* Front page grid: Left sections | BIG BREAKING BOX | Right sections */}
       <div className={styles.frontPageGrid}>
+               
         <div className={`${styles.rail} ${styles.leftRail}`}>
           {leftRail.map(({ category, articles }) => (
             <section key={category} className={styles.section}>
@@ -148,7 +142,7 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className={styles.centerColumn}>
+ <div className={styles.centerColumn}>
           <BreakingCenterpiece articles={breaking} />
         </div>
 
@@ -163,6 +157,7 @@ export default async function Home() {
                   {category}
                 </PrefetchLink>
               </h2>
+
               <div className={styles.columnGrid}>
                 {articles.slice(0, 3).map((a) => (
                   <ArticleCard key={a.id} article={a} />
@@ -172,11 +167,9 @@ export default async function Home() {
           ))}
         </div>
       </div>
-
-      <div className={styles.centerColumn}>
-        <TrendingCenterpiece articles={trendingArticles} />
-      </div>
-
+        <div className={styles.centerColumn}>
+          <TrendingCenterpiece articles={trendingArticles} />
+        </div>
       {/* The rest of the sections in rows (keeps vertical barres) */}
       {remainingRows.map((row, i) => (
         <div key={`row-${i}`} className={styles.row}>
@@ -201,6 +194,13 @@ export default async function Home() {
       ))}
 
       <LocalArticleSection />
+
+      {/* Footer section temporarily removed */}
     </div>
   );
 }
+
+
+
+
+

@@ -22,7 +22,8 @@ export default function PrefetchLink({
   const didPrefetch = useRef(false);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!didPrefetch.current) {
+    const isHeavy = href.startsWith('/category') || href.startsWith('/search');
+    if (!didPrefetch.current && !isHeavy) {
       router.prefetch(href);
       didPrefetch.current = true; // one-shot per mount
     }
@@ -35,3 +36,4 @@ export default function PrefetchLink({
     </Link>
   );
 }
+

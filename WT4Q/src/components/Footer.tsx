@@ -1,5 +1,4 @@
 import PrefetchLink from '@/components/PrefetchLink';
-import UserMenu from '@/components/UserMenu';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -23,8 +22,8 @@ export default function Footer() {
           <span aria-hidden="true">|</span>{' '}
           <PrefetchLink href="/contact">Contact Us</PrefetchLink>
         </div>
-        <div className={styles.userMenu}>
-          <UserMenu />
+        <div className={styles.links}>
+          Independent, trustworthy coverage — impartial to parties or groups.
         </div>
       </div>
     </footer>

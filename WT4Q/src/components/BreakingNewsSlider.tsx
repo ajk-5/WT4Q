@@ -194,7 +194,7 @@ export default function BreakingNewsSlider({
           <h3 className={styles.detailTitle}>{current.title}</h3>
           {snippet && <p className={styles.snippet}>{snippet}</p>}
           <PrefetchLink href={`/articles/${current.slug}`} className={styles.readMore}>
-            Read more
+            Read more: {current.title}
           </PrefetchLink>
         </div>
       ) : (

@@ -9,6 +9,9 @@ export default function TermsPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Terms of Service &amp; Cookie Policy</h1>
       <p>
+        Editorial independence: Our reporting is produced free of outside influence. We strive for accuracy, balance, and respect, without favor toward any political party, race, or group.
+      </p>
+      <p>
         Welcome to the summary of The Nineties Times&apos; Terms of Service and Cookie Policy.
         Visiting or using the site means you agree to the rules described here.
         This page highlights key points in plain language, but it is not a legal

@@ -136,6 +136,93 @@
   gap: 0.125rem;
 }
 
+/* AQI styles */
+.aqiRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aqiBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aqiInfo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.aqiText {
+  line-height: 1;
+}
+
+.aqiGood {
+  background: #00a651; /* green */
+}
+
+.aqiModerate {
+  background: #ffd400; /* yellow */
+}
+
+.aqiUnhealthy {
+  background: #d0021b; /* red */
+}
+
+.aqiUnknown {
+  background: #ccc;
+}
+
+/* UV styles */
+.uvRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.uvText {
+  line-height: 1;
+}
+
+.uvLow {
+  background: #00a651; /* green */
+}
+
+.uvModerate {
+  background: #ffd400; /* yellow */
+}
+
+.uvHigh {
+  background: #f7941e; /* orange */
+}
+
+.uvVeryHigh {
+  background: #d0021b; /* red */
+}
+
+.uvExtreme {
+  background: #7f00ff; /* purple */
+}
+
+.uvUnknown {
+  background: #ccc;
+}
+
 .alerts {
   margin: 0.25rem 0 0 1rem;
 }

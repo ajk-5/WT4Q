@@ -307,7 +307,6 @@ export default function Game() {
       const padX = parseFloat(cs.paddingLeft || '0') + parseFloat(cs.paddingRight || '0');
 
       // Main element bottom margin (space above footer)
-      const mainEl = wrap.closest('main') as HTMLElement | null;
       // main margins are ignored in locked layout
 
       // Local overhead inside wrapper (elements above/below the board)

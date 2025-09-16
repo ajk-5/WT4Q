@@ -1,5 +1,6 @@
 'use client';
 import { ReactElement, useState, useEffect } from 'react';
+import Link from 'next/link';
 import WeatherIcon from '@/components/WeatherIcon';
 import WindIcon from '@/components/WindIcon';
 import styles from './weather.module.css';
@@ -150,11 +151,57 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
     }
   };
 
+  const loadByCoords = async (lat: number, lon: number) => {
+    try {
+      setError('');
+      const res = await fetch(`/api/weather/by-coordinates?lat=${lat}&lon=${lon}`);
+      if (res.ok) {
+        const data: Weather = await res.json();
+        setWeather({ ...data, alerts: Array.isArray(data.alerts) ? data.alerts : [] });
+        setCity(data.city || '');
+        const fRes = await fetch(
+          `/api/weather/forecast-by-coordinates?lat=${lat}&lon=${lon}`
+        );
+        if (fRes.ok) {
+          const fData = await fRes.json();
+          setForecast(Array.isArray(fData.forecast) ? fData.forecast : []);
+        } else {
+          setForecast([]);
+        }
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.message || 'Unable to fetch weather');
+        setWeather(null);
+        setForecast([]);
+      }
+    } catch {
+      setError('Unable to fetch weather');
+      setWeather(null);
+      setForecast([]);
+    }
+  };
+
   useEffect(() => {
     if (initialCity) {
       setCity(initialCity);
       void loadCity(initialCity);
     }
+  }, [initialCity]);
+
+  // Auto-detect user location for weather/forecast if no initial city
+  useEffect(() => {
+    if (initialCity) return;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        void loadByCoords(latitude, longitude);
+      },
+      () => {
+        // user denied or unavailable; user can still search manually
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   }, [initialCity]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -206,8 +253,102 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
             </button>
           </div>
           <div className={styles.extra}>
-            <span>AQI: {weather.airQuality ?? 'N/A'}</span>
-            <span>UV Index: {weather.uvIndex ?? 'N/A'}</span>
+            {(() => {
+              const aqi = weather.airQuality;
+              const category =
+                aqi == null
+                  ? 'unknown'
+                  : aqi <= 50
+                  ? 'good'
+                  : aqi <= 100
+                  ? 'moderate'
+                  : 'unhealthy';
+              const badgeClass =
+                category === 'good'
+                  ? styles.aqiGood
+                  : category === 'moderate'
+                  ? styles.aqiModerate
+                  : category === 'unhealthy'
+                  ? styles.aqiUnhealthy
+                  : styles.aqiUnknown;
+              const label =
+                category === 'good'
+                  ? 'Good'
+                  : category === 'moderate'
+                  ? 'Moderate'
+                  : category === 'unhealthy'
+                  ? 'Unhealthy'
+                  : 'N/A';
+              return (
+                <div className={styles.aqiRow}>
+                  <div className={`${styles.aqiBadge} ${badgeClass}`} aria-label={`AQI ${label}`}>
+                    <Link
+                      className={styles.aqiInfo}
+                      href="/weather/air-quality"
+                      aria-label="World Air Quality (internal)"
+                      title="World Air Quality (internal)"
+                    >
+                      i
+                    </Link>
+                  </div>
+                  <span className={styles.aqiText}>AQI: {aqi ?? 'N/A'} {aqi != null && `(${label})`}</span>
+                </div>
+              );
+            })()}
+            {(() => {
+              const uv = weather.uvIndex;
+              const category =
+                uv == null
+                  ? 'unknown'
+                  : uv <= 2
+                  ? 'low'
+                  : uv <= 5
+                  ? 'moderate'
+                  : uv <= 7
+                  ? 'high'
+                  : uv <= 10
+                  ? 'veryhigh'
+                  : 'extreme';
+              const badgeClass =
+                category === 'low'
+                  ? styles.uvLow
+                  : category === 'moderate'
+                  ? styles.uvModerate
+                  : category === 'high'
+                  ? styles.uvHigh
+                  : category === 'veryhigh'
+                  ? styles.uvVeryHigh
+                  : category === 'extreme'
+                  ? styles.uvExtreme
+                  : styles.uvUnknown;
+              const label =
+                category === 'low'
+                  ? 'Low'
+                  : category === 'moderate'
+                  ? 'Moderate'
+                  : category === 'high'
+                  ? 'High'
+                  : category === 'veryhigh'
+                  ? 'Very High'
+                  : category === 'extreme'
+                  ? 'Extreme'
+                  : 'N/A';
+              return (
+                <div className={styles.uvRow}>
+                  <div className={`${styles.aqiBadge} ${badgeClass}`} aria-label={`UV ${label}`}>
+                    <Link
+                      className={styles.aqiInfo}
+                      href="/weather/uv-index"
+                      aria-label="World UV Index (internal)"
+                      title="World UV Index (internal)"
+                    >
+                      i
+                    </Link>
+                  </div>
+                  <span className={styles.uvText}>UV Index: {uv ?? 'N/A'} {uv != null && `(${label})`}</span>
+                </div>
+              );
+            })()}
             {weather.alerts.length > 0 && (
               <ul className={styles.alerts}>
                 {weather.alerts.map((a) => (
@@ -279,8 +420,102 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
                 </button>
               </div>
               <div className={styles.extra}>
-                <span>AQI: {w.airQuality ?? 'N/A'}</span>
-                <span>UV Index: {w.uvIndex ?? 'N/A'}</span>
+                {(() => {
+                  const aqi = w.airQuality;
+                  const category =
+                    aqi == null
+                      ? 'unknown'
+                      : aqi <= 50
+                      ? 'good'
+                      : aqi <= 100
+                      ? 'moderate'
+                      : 'unhealthy';
+                  const badgeClass =
+                    category === 'good'
+                      ? styles.aqiGood
+                      : category === 'moderate'
+                      ? styles.aqiModerate
+                      : category === 'unhealthy'
+                      ? styles.aqiUnhealthy
+                      : styles.aqiUnknown;
+                  const label =
+                    category === 'good'
+                      ? 'Good'
+                      : category === 'moderate'
+                      ? 'Moderate'
+                      : category === 'unhealthy'
+                      ? 'Unhealthy'
+                      : 'N/A';
+                  return (
+                    <div className={styles.aqiRow}>
+                      <div className={`${styles.aqiBadge} ${badgeClass}`} aria-label={`AQI ${label}`}>
+                        <Link
+                          className={styles.aqiInfo}
+                          href="/weather/air-quality"
+                          aria-label="World Air Quality (internal)"
+                          title="World Air Quality (internal)"
+                        >
+                          i
+                        </Link>
+                      </div>
+                      <span className={styles.aqiText}>AQI: {aqi ?? 'N/A'} {aqi != null && `(${label})`}</span>
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const uv = w.uvIndex;
+                  const category =
+                    uv == null
+                      ? 'unknown'
+                      : uv <= 2
+                      ? 'low'
+                      : uv <= 5
+                      ? 'moderate'
+                      : uv <= 7
+                      ? 'high'
+                      : uv <= 10
+                      ? 'veryhigh'
+                      : 'extreme';
+                  const badgeClass =
+                    category === 'low'
+                      ? styles.uvLow
+                      : category === 'moderate'
+                      ? styles.uvModerate
+                      : category === 'high'
+                      ? styles.uvHigh
+                      : category === 'veryhigh'
+                      ? styles.uvVeryHigh
+                      : category === 'extreme'
+                      ? styles.uvExtreme
+                      : styles.uvUnknown;
+                  const label =
+                    category === 'low'
+                      ? 'Low'
+                      : category === 'moderate'
+                      ? 'Moderate'
+                      : category === 'high'
+                      ? 'High'
+                      : category === 'veryhigh'
+                      ? 'Very High'
+                      : category === 'extreme'
+                      ? 'Extreme'
+                      : 'N/A';
+                  return (
+                    <div className={styles.uvRow}>
+                      <div className={`${styles.aqiBadge} ${badgeClass}`} aria-label={`UV ${label}`}>
+                        <Link
+                          className={styles.aqiInfo}
+                          href="/weather/uv-index"
+                          aria-label="World UV Index (internal)"
+                          title="World UV Index (internal)"
+                        >
+                          i
+                        </Link>
+                      </div>
+                      <span className={styles.uvText}>UV Index: {uv ?? 'N/A'} {uv != null && `(${label})`}</span>
+                    </div>
+                  );
+                })()}
                 {w.alerts.length > 0 && (
                   <ul className={styles.alerts}>
                     {w.alerts.map((a) => (

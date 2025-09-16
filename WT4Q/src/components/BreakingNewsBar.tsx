@@ -66,11 +66,9 @@ export default function BreakingNewsBar() {
             </svg>
           )}
         </button>
-        {open && (
-          <div className={styles.search}>
-            <SearchBar />
-          </div>
-        )}
+        <div className={styles.search} aria-hidden={!open}>
+          <SearchBar />
+        </div>
       </div>
     </div>
   );

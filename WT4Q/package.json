@@ -10,11 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "fabric": "^6.0.0-beta15",
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
     "immer": "^10.1.1",
-    "lint": "^0.8.19",
     "lucide-react": "^0.469.0",
     "next": "^15.4.2",
     "qrcode": "^1.5.4",
@@ -31,7 +29,7 @@
     "@testing-library/react": "^16.0.1",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^19",
+    "@types/react": "^19.1.12",
     "@types/react-dom": "^19",
     "cross-env": "^7.0.3",
     "eslint": "^9",

@@ -9,6 +9,9 @@ export default function AboutPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>About The Nineties Times</h1>
       <p>
+        We are an independent, trustworthy newsroom focused on accuracy and balance. Our reporting stands apart from political affiliation and shows respect for all communities.
+      </p>
+      <p>
 The Nineties Times is an interactive website created to keep you informed, entertained, and engaged all in one place. It provides the latest news, articles, and information on a wide variety of topics including politics, crime, entertainment, business, health, lifestyle, sports, and weather. But The Nineties Times is more than just a news site—it also offers fun games, useful tools, and interactive features to make the experience enjoyable for every type of user.
 </p>
 

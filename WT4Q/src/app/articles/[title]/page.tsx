@@ -1,15 +1,28 @@
-// app/articles/[title]/page.tsx
+﻿// app/articles/[title]/page.tsx
 
 import Image from 'next/image';
-import CommentsSection, { Comment } from '@/components/CommentsSection';
-import ReactionButtons from '@/components/ReactionButtons';
+import Script from 'next/script';
+import { Inter } from 'next/font/google';
+import dynamic from 'next/dynamic';
+import type { Comment } from '@/components/CommentsSection';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
+export const revalidate = 300; // ISR article page revalidation
+
+// Preload Inter font only on article pages to scope font preloading
+const articleInter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+});
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
 import ArticleTTS from '@/components/ArticleTTS';
-import LocalArticleSection from '@/components/LocalArticleSection';
+const ReactionButtons = dynamic(() => import('@/components/ReactionButtons'));
+const CommentsSection = dynamic(() => import('@/components/CommentsSection'));
+const LocalArticleSection = dynamic(() => import('@/components/LocalArticleSection'));
 import { reactionNameFromType } from '@/components/ReactionIcon';
 import { stripHtml } from '@/lib/text';
 
@@ -41,19 +54,13 @@ interface RelatedArticle {
 
 /* ---------------------- image utils ---------------------- */
 
-const ALLOWED_IMAGE_HOSTS = new Set<string>([
-  'encrypted-tbn0.gstatic.com',
-  // keep in sync with next.config.js -> images.domains
-]);
-
 function isValidImageForNextImage(src?: string): boolean {
   if (!src) return false;
   if (src.startsWith('data:image/')) return true; // allowed if we pass unoptimized
   if (src.startsWith('/')) return true;           // site-relative
   try {
     const u = new URL(src);
-    return (u.protocol === 'http:' || u.protocol === 'https:') &&
-           ALLOWED_IMAGE_HOSTS.has(u.hostname);
+    return (u.protocol === 'http:' || u.protocol === 'https:');
   } catch {
     return false;
   }
@@ -71,7 +78,7 @@ function toAbsoluteIfRelative(src: string, siteUrl: string): string {
 
 async function fetchArticle(slug: string): Promise<ArticleDetails | null> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.GET_BY_SLUG(slug), { cache: 'no-store' });
+    const res = await fetch(API_ROUTES.ARTICLE.GET_BY_SLUG(slug), { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const raw = await res.json();
     return raw as ArticleDetails;
@@ -82,7 +89,7 @@ async function fetchArticle(slug: string): Promise<ArticleDetails | null> {
 
 async function fetchRelated(slug: string): Promise<RelatedArticle[]> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(slug), { cache: 'no-store' });
+    const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(slug), { next: { revalidate: 600 } });
     if (!res.ok) return [];
     return (await res.json()) as RelatedArticle[];
   } catch {
@@ -156,7 +163,32 @@ export default async function ArticlePage(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
 
   return (
-    <div className={styles.newspaper}>
+    <div className={`${articleInter.variable} ${styles.newspaper}`}>
+      <Script id="ld-news-article" type="application/ld+json" strategy="afterInteractive">
+        {JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'NewsArticle',
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': new URL(`/articles/${article.slug}`, siteUrl).toString(),
+          },
+          headline: article.title,
+          datePublished: article.createdDate,
+          dateModified: article.createdDate,
+          author: { '@type': 'Organization', name: 'The Nineties Times' },
+          publisher: {
+            '@type': 'Organization',
+            name: 'The Nineties Times',
+            logo: { '@type': 'ImageObject', url: new URL('/favicon.ico', siteUrl).toString() },
+          },
+          image: (article.images || [])
+            .map(img => img.photoLink)
+            .filter(Boolean)
+            .map(src => new URL(src as string, siteUrl).toString())
+            .slice(0, 3),
+          description: article.summary || stripHtml(article.content || '').slice(0, 160),
+        })}
+      </Script>
       <article className={styles.main}>
         {isBreakingActive && (
           <div className={styles.breaking}>Breaking News</div>
@@ -190,27 +222,20 @@ export default async function ArticlePage(
               const link = img.photoLink ? toAbsoluteIfRelative(img.photoLink, siteUrl) : undefined;
               const src = link ?? base64;
               if (!src) return null;
-              const useNext = isValidImageForNextImage(src);
               return (
                 <figure key={idx} className={styles.figure}>
-                  {useNext ? (
-                    <Image
-                      src={src}
-                      alt={img.altText || article.title}
-                      className={styles.image}
-                      width={700}
-                      height={400}
-                      unoptimized={src.startsWith('data:')}
-                    />
-                  ) : (
-                    <img
-                      src={src}
-                      alt={img.altText || article.title}
-                      className={styles.image}
-                      width={700}
-                      height={400}
-                    />
-                  )}
+                  <Image
+                    src={src}
+                    alt={img.altText || article.title}
+                    className={styles.image}
+                    width={700}
+                    height={400}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 700px"
+                    priority={idx === 0}
+                    placeholder={base64 ? 'blur' : undefined}
+                    blurDataURL={base64}
+                    unoptimized={!!base64 || !!(link && !isValidImageForNextImage(link))}
+                  />
                   {img.caption && (
                     <figcaption className={styles.caption}>{img.caption}</figcaption>
                   )}
@@ -258,3 +283,7 @@ export default async function ArticlePage(
     </div>
   );
 }
+
+
+
+

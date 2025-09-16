@@ -70,8 +70,7 @@
   .container{
     grid-template-columns:1fr;
     align-items:start;
-    /* leave space so sticky controls never cover content */
-    padding-bottom:calc(env(safe-area-inset-bottom) + 92px);
+    /* no extra bottom padding since mobile controls are removed */
   }
 
   /* Keep DOM order: canvas -> controls -> legend -> info */
@@ -79,24 +78,8 @@
   .canvas{width:100%;height:auto}
   .btnrow{grid-template-columns:1fr 1fr}
 
-  /* Make controls stick under the board and easier to tap */
-  .touchControls{
-    display:grid;
-    position:sticky;
-    bottom:0;
-    z-index:5;
-    background:rgba(10,10,10,0.12);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
-    padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-    border-radius:16px;
-    width:100%;
-    margin:12px auto 0;
-    grid-template-columns:repeat(4,auto);
-    gap:8px;
-    justify-content:center;
-    justify-items:center;
-  }
+  /* Hide on-screen touch controls entirely on small screens */
+  .touchControls{display:none !important}
 
   /* Ensure controls appear directly under the canvas */
   .canvas{order:1}

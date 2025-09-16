@@ -73,6 +73,15 @@ export default function ArticleCard({ article }: { article: Article }) {
 
   const router = useRouter();
   const snippet = truncateWords(article.content || article.summary || "", 50);
+  const shortSnippet = (() => {
+    const text = (article.content || article.summary || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const words = text.split(" ");
+    const slice = words.slice(0, 10).join(" ");
+    return words.length > 10 ? slice + "…" : slice;
+  })();
   
   // Derive counts safely from whatever fields are available
   const reactionsCount = (() => {
@@ -405,7 +414,7 @@ export default function ArticleCard({ article }: { article: Article }) {
                 href={`/articles/${article.slug}`}
                 className={styles.readMore}
               >
-                Read more
+                {shortSnippet} Read more...
               </PrefetchLink>
             </div>
           </div>,
@@ -439,7 +448,7 @@ export default function ArticleCard({ article }: { article: Article }) {
                 href={`/articles/${article.slug}`}
                 className={styles.readMore}
               >
-                Read more
+                {shortSnippet} Read more...
               </PrefetchLink>
       {(() => {
         const items: React.ReactNode[] = [];
