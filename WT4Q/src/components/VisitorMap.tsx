@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { isLoggedIn } from '@/lib/auth';
 import styles from './VisitorMap.module.css';
 
 interface VisitorInfo {
@@ -14,10 +15,21 @@ export default function VisitorMap() {
   const [info, setInfo] = useState<VisitorInfo | null>(null);
 
   useEffect(() => {
+    if (!isLoggedIn()) return;
+
+    let active = true;
+
     apiFetch(API_ROUTES.USER_LOCATION.GET)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setInfo(data))
+      .then((data) => {
+        if (!active) return;
+        setInfo(data);
+      })
       .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (!info) return null;

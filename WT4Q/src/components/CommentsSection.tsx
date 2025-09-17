@@ -4,6 +4,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
+import { isLoggedIn, setLoggedIn } from '@/lib/auth';
 import styles from './CommentsSection.module.css';
 
 export interface Comment {
@@ -36,17 +37,34 @@ export default function CommentsSection({
   const [editingText, setEditingText] = useState('');
 
   useEffect(() => {
-    apiFetch(API_ROUTES.USERS.ME, { method: 'GET' })
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((user: { userName?: string }) => {
-        setLoggedInState(true);
-        setCurrentUser(user.userName || null);
-      })
-      .catch(() => setLoggedInState(false));
+    let active = true;
+
+    if (isLoggedIn()) {
+      apiFetch(API_ROUTES.USERS.ME, { method: 'GET' })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((user: { userName?: string }) => {
+          if (!active) return;
+          setLoggedInState(true);
+          setCurrentUser(user.userName || null);
+        })
+        .catch(() => {
+          if (!active) return;
+          setLoggedInState(false);
+          setCurrentUser(null);
+          setLoggedIn(false);
+        });
+    } else {
+      setLoggedInState(false);
+      setCurrentUser(null);
+    }
 
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
     );
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
