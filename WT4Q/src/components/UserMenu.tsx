@@ -5,7 +5,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
-import { setLoggedIn } from '@/lib/auth';
+import { isLoggedIn, setLoggedIn } from '@/lib/auth';
 
 interface User {
   id: string;
@@ -21,9 +21,22 @@ export default function UserMenu() {
   useEffect(() => {
     let mounted = true;
 
-    apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
-      .then((res) => res.json())
-      .then((sess: { authenticated: boolean; user?: User }) => {
+    if (!isLoggedIn()) {
+      setUser(null);
+      setLoggedIn(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const loadSession = async () => {
+      try {
+        const res = await apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' });
+        if (!mounted) return;
+        if (!res.ok) {
+          throw new Error('Unauthenticated');
+        }
+        const sess: { authenticated: boolean; user?: User } = await res.json();
         if (!mounted) return;
         if (sess.authenticated && sess.user) {
           setUser(sess.user);
@@ -32,12 +45,14 @@ export default function UserMenu() {
           setUser(null);
           setLoggedIn(false);
         }
-      })
-      .catch(() => {
+      } catch {
         if (!mounted) return;
         setUser(null);
         setLoggedIn(false);
-      });
+      }
+    };
+
+    loadSession();
 
     return () => {
       mounted = false;
