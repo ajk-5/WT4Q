@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Northeast.Models;
 using Northeast.Repository;
 using Northeast.Utilities;
+using System;
 using System.Net;
 using System.Text.Json;
 
@@ -56,11 +57,6 @@ namespace Northeast.Services
                 }
             }
 
-            if (locationData == null)
-            {
-                return null;
-            }
-
             Visitors? visitors = null;
 
             var userId = _getConnectedUser.GetUserid();
@@ -88,53 +84,70 @@ namespace Northeast.Services
                 visitors.IsGuest = true;
             }
             var now = DateTime.UtcNow;
-            bool duplicate = visitors.Id != 0 && visitors.VisitTime.HasValue &&
-                Math.Abs((now - visitors.VisitTime.Value).TotalMinutes) < 1 &&
-                visitors.IpAddress == locationData.Ip &&
-                visitors.Location == locationData.Loc &&
-                visitors.City == locationData.City &&
-                visitors.Country == locationData.Country &&
-                visitors.Region == locationData.Region &&
-                visitors.Org == locationData.Org &&
-                visitors.PostalCode == locationData.Postal &&
-                visitors.Timezone == locationData.Timezone;
+            var ipForComparison = !string.IsNullOrWhiteSpace(locationData?.Ip)
+                ? locationData!.Ip
+                : ipAddress;
+
+            bool recentlySeen = visitors.Id != 0 && visitors.VisitTime.HasValue &&
+                Math.Abs((now - visitors.VisitTime.Value).TotalMinutes) < 1;
+
+            bool sameIp = visitors.Id != 0 &&
+                !string.IsNullOrEmpty(visitors.IpAddress) &&
+                !string.IsNullOrEmpty(ipForComparison) &&
+                string.Equals(visitors.IpAddress, ipForComparison, StringComparison.OrdinalIgnoreCase);
+
+            bool sameLocation = locationData == null || (
+                string.Equals(visitors.Location ?? string.Empty, locationData.Loc ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.City ?? string.Empty, locationData.City ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.Country ?? string.Empty, locationData.Country ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.Region ?? string.Empty, locationData.Region ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.Org ?? string.Empty, locationData.Org ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.PostalCode ?? string.Empty, locationData.Postal ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(visitors.Timezone ?? string.Empty, locationData.Timezone ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            );
+
+            bool duplicate = recentlySeen && sameIp && sameLocation;
 
             if (duplicate)
             {
                 return visitors;
             }
 
-            if (locationData.Ip != null)
+            if (!string.IsNullOrEmpty(ipForComparison))
             {
-                visitors.IpAddress = locationData.Ip;
+                visitors.IpAddress = ipForComparison;
             }
-            if (locationData.Org != null)
+
+            if (locationData != null)
             {
-                visitors.Org = locationData.Org;
-            }
-            if (locationData.Loc != null)
-            {
-                visitors.Location = locationData.Loc;
-            }
-            if (locationData.City != null)
-            {
-                visitors.City = locationData.City;
-            }
-            if (locationData.Country != null)
-            {
-                visitors.Country = locationData.Country;
-            }
-            if (locationData.Postal != null)
-            {
-                visitors.PostalCode = locationData.Postal;
-            }
-            if (locationData.Timezone != null)
-            {
-                visitors.Timezone = locationData.Timezone;
-            }
-            if (locationData.Region != null)
-            {
-                visitors.Region = locationData.Region;
+                if (locationData.Org != null)
+                {
+                    visitors.Org = locationData.Org;
+                }
+                if (locationData.Loc != null)
+                {
+                    visitors.Location = locationData.Loc;
+                }
+                if (locationData.City != null)
+                {
+                    visitors.City = locationData.City;
+                }
+                if (locationData.Country != null)
+                {
+                    visitors.Country = locationData.Country;
+                }
+                if (locationData.Postal != null)
+                {
+                    visitors.PostalCode = locationData.Postal;
+                }
+                if (locationData.Timezone != null)
+                {
+                    visitors.Timezone = locationData.Timezone;
+                }
+                if (locationData.Region != null)
+                {
+                    visitors.Region = locationData.Region;
+                }
             }
             visitors.VisitTime = now;
 
