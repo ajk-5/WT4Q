@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ArticleCard.module.css';
 import type { ArticleImage } from '@/lib/models';
@@ -15,11 +15,7 @@ function truncateWords(text: string, words: number) {
   if (!text) return '';
   const parts = text.split(' ');
   if (parts.length <= words) return text;
-  return `${parts.slice(0, words).join(' ')}…`;
-}
-
-function trimEllipsis(text: string) {
-  return text.endsWith('…') ? text.slice(0, -1) : text;
+  return parts.slice(0, words).join(' ') + '...';
 }
 
 export interface Article {
@@ -47,7 +43,6 @@ function formatCount(value?: number) {
 export default function ArticleCard({ article }: { article: Article }) {
   const baseText = toPlainText(article.summary || article.content || '');
   const snippet = truncateWords(baseText, 50);
-  const readMoreLead = trimEllipsis(truncateWords(baseText, 12));
   const articleHref = `/articles/${article.slug}`;
 
   const reactionsCount = (() => {
@@ -66,87 +61,82 @@ export default function ArticleCard({ article }: { article: Article }) {
     return typeof alt === 'number' ? alt : undefined;
   })();
 
-  const metaItems = [
-    article.views !== undefined
-      ? {
-          key: 'views',
-          icon: (
-            <svg
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              className={styles.metaIcon}
-              aria-hidden="true"
-            >
-              <path
-                fill="currentColor"
-                d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-8a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 9Z"
-              />
-            </svg>
-          ),
-          value: formatCount(article.views),
-        }
-      : null,
-    reactionsCount !== undefined
-      ? {
-          key: 'reactions',
-          icon: <ReactionIcon name="like" className={styles.metaIcon} />,
-          value: formatCount(reactionsCount),
-        }
-      : null,
-    commentsCount !== undefined
-      ? {
-          key: 'comments',
-          icon: (
-            <svg
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              className={styles.metaIcon}
-              aria-hidden="true"
-            >
-              <path
-                fill="currentColor"
-                d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8.83L5 20.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 5a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Zm0 4a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H6Z"
-              />
-            </svg>
-          ),
-          value: formatCount(commentsCount),
-        }
-      : null,
-    article.countryName
-      ? {
-          key: 'country',
-          icon: (
-            <svg
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              className={styles.metaIcon}
-              aria-hidden="true"
-            >
-              <path fill="currentColor" d="M4 3h2v18H4V3Zm3 1h9l-1.5 2L16 8H7V4Z" />
-            </svg>
-          ),
-          value: article.countryName,
-        }
-      : null,
-  ].filter((item): item is { key: string; icon: ReactNode; value?: string } => Boolean(item && item.value));
+  type MetaItem = { key: string; icon: ReactElement; value: string };
+  const metaItems: MetaItem[] = [];
+  if (article.views !== undefined) {
+    metaItems.push({
+      key: 'views',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          className={styles.metaIcon}
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-8a3 3 0 1 0 .001 6.001A3 3 0 0 0 12 9Z"
+          />
+        </svg>
+      ),
+      value: formatCount(article.views) as string,
+    });
+  }
+  if (reactionsCount !== undefined) {
+    metaItems.push({
+      key: 'reactions',
+      icon: <ReactionIcon name="like" className={styles.metaIcon} />,
+      value: formatCount(reactionsCount) as string,
+    });
+  }
+  if (commentsCount !== undefined) {
+    metaItems.push({
+      key: 'comments',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          className={styles.metaIcon}
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8.83L5 20.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 5a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Zm0 4a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H6Z"
+          />
+        </svg>
+      ),
+      value: formatCount(commentsCount) as string,
+    });
+  }
+  if (article.countryName) {
+    metaItems.push({
+      key: 'country',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          className={styles.metaIcon}
+          aria-hidden="true"
+        >
+          <path fill="currentColor" d="M4 3h2v18H4V3Zm3 1h9l-1.5 2L16 8H7V4Z" />
+        </svg>
+      ),
+      value: article.countryName,
+    });
+  }
 
   return (
     <article className={styles.card}>
       <h2 className={styles.title}>
-        <PrefetchLink href={articleHref} className={styles.titleLink}>
-          {article.title}
-        </PrefetchLink>
+        <span className={styles.titleLink}>{article.title}</span>
       </h2>
 
-      {snippet && <p className={styles.summary}>{snippet}</p>}
-
-      <PrefetchLink
-        href={articleHref}
-        className={styles.readMore}
-        aria-label={`Read more: ${article.title}`}
-      >
-        {readMoreLead ? `${readMoreLead} Read more…` : 'Read more…'}
-      </PrefetchLink>
+      {snippet && (
+        <p className={styles.summary}>
+          {snippet}
+          <span className={styles.readMoreInline}> READ MORE...</span>
+        </p>
+      )}
 
       {metaItems.length > 0 && (
         <p className={styles.meta}>
@@ -163,6 +153,9 @@ export default function ArticleCard({ article }: { article: Article }) {
           ))}
         </p>
       )}
+
+      {/* Full-card overlay link for click-anywhere */}
+      <PrefetchLink href={articleHref} className={styles.cardOverlay} aria-label={`Open: ${article.title}`} />
     </article>
   );
 }

@@ -141,7 +141,7 @@ export default function BreakingNewsSlider({
   const first = current.images?.[0];
   const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
   const imageSrc = first?.photoLink || base64;
-  const snippet = current.content ? truncateWords(stripHtml(current.content)) : undefined;
+  const snippet = current.content ? truncateWords(stripHtml(current.content), 100) : undefined;
 
   return (
     <div
@@ -176,31 +176,35 @@ export default function BreakingNewsSlider({
       </button>
 
       {showDetails ? (
-        <div className={styles.detail}>
-          {imageSrc && (
-            <figure className={styles.detailFigure}>
-              <Image
-                src={imageSrc}
-                alt={first?.altText || current.title}
-                fill
-                priority={index === 0}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
-                style={{ objectFit: 'cover' }}
-                placeholder={base64 ? 'blur' : undefined}
-                blurDataURL={base64}
-                unoptimized={!!base64}
-              />
-              {first?.caption && (
-                <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-              )}
-            </figure>
-          )}
-          <h3 className={styles.detailTitle}>{current.title}</h3>
-          {snippet && <p className={styles.snippet}>{snippet}</p>}
-          <PrefetchLink href={`/articles/${current.slug}`} className={styles.readMore}>
-            Read more: {current.title}
-          </PrefetchLink>
-        </div>
+        <PrefetchLink href={`/articles/${current.slug}`} className={styles.detailLink}>
+          <div className={styles.detail}>
+            {imageSrc && (
+              <figure className={styles.detailFigure}>
+                <Image
+                  src={imageSrc}
+                  alt={first?.altText || current.title}
+                  fill
+                  priority={index === 0}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
+                  style={{ objectFit: 'cover' }}
+                  placeholder={base64 ? 'blur' : undefined}
+                  blurDataURL={base64}
+                  unoptimized={!!base64}
+                />
+                {first?.caption && (
+                  <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                )}
+              </figure>
+            )}
+            <h3 className={styles.detailTitle}>{current.title}</h3>
+            {snippet && (
+              <p className={styles.snippet}>
+                {snippet}
+                <span className={styles.readMore}> READ MORE...</span>
+              </p>
+            )}
+          </div>
+        </PrefetchLink>
       ) : (
         <div
           className={`${styles.itemWrapper} ${

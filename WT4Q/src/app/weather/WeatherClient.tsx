@@ -367,7 +367,7 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
                   </span>
                   {iconFromSymbol(f.symbol, styles.icon)}
                   <span>
-                    {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}A�{unit}
+                    {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}&deg;{unit}
                   </span>
                   {f.windspeed != null && (
                     <span className={styles.wind}>
@@ -398,7 +398,7 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
               <span className={styles.time}>{new Date(f.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               {iconFromSymbol(f.symbol, styles.icon)}
               <span>
-                {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}°{unit}
+                {Math.round(unit === 'C' ? f.temperature : f.temperature * 1.8 + 32)}&deg;{unit}
               </span>
               {f.windspeed != null && (
                 <span className={styles.wind}>
@@ -559,7 +559,7 @@ export default function WeatherPage({ initialCity }: { initialCity?: string }) {
                         className={styles.smallIcon}
                       />
                       <span>
-                        {Math.round(unit === 'C' ? d.max : d.max * 1.8 + 32)}°{unit}
+                        {Math.round(unit === 'C' ? d.max : d.max * 1.8 + 32)}&deg;{unit}
                       </span>
                     </div>
                   ))}

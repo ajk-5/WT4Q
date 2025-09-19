@@ -143,6 +143,11 @@
   color: var(--ink);
 }
 
+.sidebarItem a:hover,
+.sidebarItem a:focus-visible {
+  text-decoration: underline;
+}
+
 .latestCard {
   background: #fffef9;
   border: 1px solid #ddd;

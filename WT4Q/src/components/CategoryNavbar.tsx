@@ -54,13 +54,7 @@ export default function CategoryNavbar({ open, onNavigate, forceSidebar }: Props
           >
             World Clock
           </PrefetchLink>
-          <PrefetchLink
-            href="/tools/mememaker"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            Mememaker
-          </PrefetchLink>
+          {/** Mememaker removed */}
           <PrefetchLink
             href="/tools/qr-code-generator"
             className={styles.link}

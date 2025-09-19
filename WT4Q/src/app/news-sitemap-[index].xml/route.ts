@@ -1,8 +1,10 @@
 import { chunkArticles, buildNewsXml, fetchRecentArticles, MAX_NEWS_ARTICLES } from '@/lib/news-sitemap';
+import type { NextRequest } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ index: string }> },
+  _req: NextRequest,
+  { params }: { params: Promise<any> },
 ): Promise<Response> {
   const { index } = await params;
   const idx = Number(index);

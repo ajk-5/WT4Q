@@ -13,9 +13,10 @@ export default function CategoryArticleCard({ article }: { article: Article }) {
   return (
     <PrefetchLink href={`/articles/${article.slug}`} className={styles.card}>
       <h3 className={styles.title}>{article.title}</h3>
-      <p className={styles.snippet}>{snippet}</p>
-      <span className={styles.readMore}>Read more</span>
+      <p className={styles.snippet}>
+        {snippet}
+        <span className={styles.readMore}> READ MORE...</span>
+      </p>
     </PrefetchLink>
   );
 }
-
