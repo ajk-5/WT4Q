@@ -8,10 +8,13 @@ import styles from './LocalArticleSection.module.css';
 
 const ROTATE_MS = 5000;
 
+type LoadState = 'loading' | 'ready' | 'empty';
+
 export default function LocalArticleSection() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [status, setStatus] = useState<LoadState>('loading');
 
   const next = useCallback(() => {
     if (articles.length < 2) return;
@@ -24,12 +27,32 @@ export default function LocalArticleSection() {
   }, [articles.length]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const finish = (list: Article[]) => {
+      if (cancelled) return;
+      setIndex(0);
+      if (list.length > 0) {
+        setArticles(list);
+        setStatus('ready');
+      } else {
+        setArticles([]);
+        setStatus('empty');
+      }
+    };
+
     const fetchLocal = async () => {
       try {
         const locRes = await fetch(API_ROUTES.USER_LOCATION.GET);
-        if (!locRes.ok) return;
+        if (!locRes.ok) {
+          finish([]);
+          return;
+        }
         const loc = await locRes.json();
-        if (!loc?.country) return;
+        if (!loc?.country) {
+          finish([]);
+          return;
+        }
 
         const country = (countries as { name: string; code: string }[]).find(
           (c) =>
@@ -60,12 +83,17 @@ export default function LocalArticleSection() {
           arts = await fetchBy('countryName', country.name);
         }
 
-        if (arts.length > 0) setArticles(arts);
+        finish(arts);
       } catch {
-        // swallow errors
+        finish([]);
       }
     };
+
     fetchLocal();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -74,47 +102,89 @@ export default function LocalArticleSection() {
     return () => clearInterval(t);
   }, [articles.length, isHovered, next]);
 
-  if (articles.length === 0) return null;
+  const hasArticles = status === 'ready' && articles.length > 0;
 
-  const current = articles[index];
+  const current = hasArticles ? articles[index] : undefined;
 
   return (
-    <section className={styles.container} aria-label="Local news">
+    <section
+      className={styles.container}
+      aria-label="Local news"
+      aria-live="polite"
+      aria-busy={status === 'loading'}
+    >
       <h2 className={styles.heading}>Local News based on your location</h2>
       <div
-        className={styles.slider}
+        className={styles.viewport}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {articles.length > 1 && (
-          <>
-            <button
-              className={`${styles.arrow} ${styles.left}`}
-              onClick={prev}
-              aria-label="Previous article"
-              type="button"
-            >
-              <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="#000000">
-                <g fill="#000000">
-                  <path d="M281,1106 L270.414,1106 L274.536,1110.12 C274.926,1110.51 274.926,1111.15 274.536,1111.54 C274.145,1111.93 273.512,1111.93 273.121,1111.54 L267.464,1105.88 C267.225,1105.64 267.15,1105.31 267.205,1105 C267.15,1104.69 267.225,1104.36 267.464,1104.12 L273.121,1098.46 C273.512,1098.07 274.145,1098.07 274.536,1098.46 C274.926,1098.86 274.926,1099.49 274.536,1099.88 L270.414,1104 L281,1104 C281.552,1104 282,1104.45 282,1105 C282,1105.55 281.552,1106 281,1106 L281,1106 Z M274,1089 C265.164,1089 258,1096.16 258,1105 C258,1113.84 265.164,1121 274,1121 C282.836,1121 290,1113.84 290,1105 C290,1096.16 282.836,1089 274,1089 L274,1089 Z" transform="translate(-258 -1089)" />
-                </g>
-              </svg>
-            </button>
-            <button
-              className={`${styles.arrow} ${styles.right}`}
-              onClick={next}
-              aria-label="Next article"
-              type="button"
-            >
-              <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="#000000">
-                <g fill="#000000">
-                  <path d="M332.535,1105.88 L326.879,1111.54 C326.488,1111.93 325.855,1111.93 325.465,1111.54 C325.074,1111.15 325.074,1110.51 325.465,1110.12 L329.586,1106 L319,1106 C318.447,1106 318,1105.55 318,1105 C318,1104.45 318.447,1104 319,1104 L329.586,1104 L325.465,1099.88 C325.074,1099.49 325.074,1098.86 325.465,1098.46 C325.855,1098.07 326.488,1098.07 326.879,1098.46 L332.535,1104.12 C332.775,1104.36 332.85,1104.69 332.795,1105 C332.85,1105.31 332.775,1105.64 332.535,1105.88 L332.535,1105.88 Z M326,1089 C317.163,1089 310,1096.16 310,1105 C310,1113.84 317.163,1121 326,1121 C334.837,1121 342,1113.84 342,1105 C342,1096.16 334.837,1089 326,1089 L326,1089 Z" transform="translate(-310 -1089)" />
-                </g>
-              </svg>
-            </button>
-          </>
+        {hasArticles && current ? (
+          <div className={styles.slider}>
+            {articles.length > 1 && (
+              <>
+                <button
+                  className={`${styles.arrow} ${styles.left}`}
+                  onClick={prev}
+                  aria-label="Previous article"
+                  type="button"
+                >
+                  <svg
+                    viewBox="0 0 32 32"
+                    width="32"
+                    height="32"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    focusable="false"
+                    fill="#000000"
+                  >
+                    <g fill="#000000">
+                      <path
+                        d="M281,1106 L270.414,1106 L274.536,1110.12 C274.926,1110.51 274.926,1111.15 274.536,1111.54 C274.145,1111.93 273.512,1111.93 273.121,1111.54 L267.464,1105.88 C267.225,1105.64 267.15,1105.31 267.205,1105 C267.15,1104.69 267.225,1104.36 267.464,1104.12 L273.121,1098.46 C273.512,1098.07 274.145,1098.07 274.536,1098.46 C274.926,1098.86 274.926,1099.49 274.536,1099.88 L270.414,1104 L281,1104 C281.552,1104 282,1104.45 282,1105 C282,1105.55 281.552,1106 281,1106 L281,1106 Z M274,1089 C265.164,1089 258,1096.16 258,1105 C258,1113.84 265.164,1121 274,1121 C282.836,1121 290,1113.84 290,1105 C290,1096.16 282.836,1089 274,1089 L274,1089 Z"
+                        transform="translate(-258 -1089)"
+                      />
+                    </g>
+                  </svg>
+                </button>
+                <button
+                  className={`${styles.arrow} ${styles.right}`}
+                  onClick={next}
+                  aria-label="Next article"
+                  type="button"
+                >
+                  <svg
+                    viewBox="0 0 32 32"
+                    width="32"
+                    height="32"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    focusable="false"
+                    fill="#000000"
+                  >
+                    <g fill="#000000">
+                      <path
+                        d="M332.535,1105.88 L326.879,1111.54 C326.488,1111.93 325.855,1111.93 325.465,1111.54 C325.074,1111.15 325.074,1110.51 325.465,1110.12 L329.586,1106 L319,1106 C318.447,1106 318,1105.55 318,1105 C318,1104.45 318.447,1104 319,1104 L329.586,1104 L325.465,1099.88 C325.074,1099.49 325.074,1098.86 325.465,1098.46 C325.855,1098.07 326.488,1098.07 326.879,1098.46 L332.535,1104.12 C332.775,1104.36 332.85,1104.69 332.795,1105 C332.85,1105.31 332.775,1105.64 332.535,1105.88 L332.535,1105.88 Z M326,1089 C317.163,1089 310,1096.16 310,1105 C310,1113.84 317.163,1121 326,1121 C334.837,1121 342,1113.84 342,1105 C342,1096.16 334.837,1089 326,1089 L326,1089 Z"
+                        transform="translate(-310 -1089)"
+                      />
+                    </g>
+                  </svg>
+                </button>
+              </>
+            )}
+            <ArticleCard key={current.id} article={current} />
+          </div>
+        ) : status === 'loading' ? (
+          <div className={styles.skeleton} aria-hidden="true">
+            <span className={styles.skeletonTitle} />
+            <span className={styles.skeletonLine} />
+            <span className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+            <span className={styles.skeletonMeta} />
+          </div>
+        ) : (
+          <div className={styles.emptyState} role="status">
+            Local headlines will appear here once we detect your region.
+          </div>
         )}
-        <ArticleCard key={current.id} article={current} />
       </div>
     </section>
   );
