@@ -40,12 +40,19 @@ export default function CommentsSection({
     let active = true;
 
     if (isLoggedIn()) {
-      apiFetch(API_ROUTES.USERS.ME, { method: 'GET' })
+      apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((user: { userName?: string }) => {
+        .then((session: { authenticated?: boolean; user?: { userName?: string } }) => {
           if (!active) return;
-          setLoggedInState(true);
-          setCurrentUser(user.userName || null);
+          if (session.authenticated && session.user) {
+            setLoggedInState(true);
+            setCurrentUser(session.user.userName || null);
+            setLoggedIn(true);
+          } else {
+            setLoggedInState(false);
+            setCurrentUser(null);
+            setLoggedIn(false);
+          }
         })
         .catch(() => {
           if (!active) return;
