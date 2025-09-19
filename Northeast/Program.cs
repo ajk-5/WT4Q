@@ -119,8 +119,8 @@ builder.Services.AddAiNews(o =>
     if (string.IsNullOrWhiteSpace(o.ApiKey))
         throw new InvalidOperationException("AiNews:ApiKey is missing. Set it in configuration or as an environment variable.");
 
-    o.MinWordCount = 150;            // still decent length
-    o.PreInsertMinWordCount = 80;    // forgiving first gate
+    o.MinWordCount = 180;            // still decent length
+    o.PreInsertMinWordCount = 90;    // forgiving first gate
     o.FillMissingHtml = true;
     o.UseExternalImages = false;     // keep things simple/stable
 });
