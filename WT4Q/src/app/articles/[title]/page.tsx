@@ -25,7 +25,7 @@ const ReactionButtons = dynamic(() => import('@/components/ReactionButtons'));
 const CommentsSection = dynamic(() => import('@/components/CommentsSection'));
 const LocalArticleSection = dynamic(() => import('@/components/LocalArticleSection'));
 import { reactionNameFromType } from '@/components/ReactionIcon';
-import { stripHtml } from '@/lib/text';
+import { stripHtml, truncateWords } from '@/lib/text';
 
 /* ---------------------- types ---------------------- */
 
@@ -51,6 +51,14 @@ interface ArticleDetails {
 interface RelatedArticle {
   slug: string;
   title: string;
+}
+
+interface SimpleArticle {
+  id: string;
+  slug: string;
+  title: string;
+  content?: string;
+  createdDate?: string;
 }
 
 /* ---------------------- image utils ---------------------- */
@@ -95,6 +103,39 @@ async function fetchRelated(slug: string): Promise<RelatedArticle[]> {
     return (await res.json()) as RelatedArticle[];
   } catch {
     return [];
+  }
+}
+
+async function fetchTrending(limit = 5): Promise<SimpleArticle[]> {
+  try {
+    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(limit), { next: { revalidate: 180 } });
+    if (!res.ok) return [];
+    const data = (await res.json()) as SimpleArticle[];
+    return (data || [])
+      .sort(
+        (a, b) =>
+          new Date(b.createdDate ?? 0).getTime() -
+          new Date(a.createdDate ?? 0).getTime(),
+      )
+      .slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchLatest(): Promise<SimpleArticle | null> {
+  try {
+    // Heuristic: use TRENDING(1) as a light-weight latest fallback
+    // If API adds a dedicated latest endpoint, switch here.
+    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(1), { next: { revalidate: 180 } });
+    if (!res.ok) return null;
+    const list = (await res.json()) as SimpleArticle[];
+    const sorted = (list || []).sort(
+      (a, b) => new Date(b.createdDate ?? 0).getTime() - new Date(a.createdDate ?? 0).getTime(),
+    );
+    return sorted[0] || null;
+  } catch {
+    return null;
   }
 }
 
@@ -154,6 +195,18 @@ export default async function ArticlePage(
     new Date(article.createdDate) >= new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
   const related = await fetchRelated(title);
+  const trendingTop5 = await fetchTrending(5);
+  const latest = await fetchLatest();
+
+  // For inline related section (with 80-word snippets), hydrate details
+  const relatedDetails = (
+    await Promise.all(
+      related.slice(0, 3).map(async (r) => {
+        const d = await fetchArticle(r.slug);
+        return d ? { slug: d.slug, title: d.title, content: d.content } : null;
+      }),
+    )
+  ).filter(Boolean) as { slug: string; title: string; content?: string }[];
 
   const counts = { like: 0, happy: 0, dislike: 0, sad: 0 };
   (article.like ?? []).forEach((l) => {
@@ -264,20 +317,87 @@ export default async function ArticlePage(
           articleId={article.id}
           initialComments={article.comments ?? []}
         />
+        {/* Inline related news after comments/likes */}
+        {relatedDetails.length > 0 && (
+          <section className={styles.relatedInline}>
+            <h2 className={styles.relatedInlineHeading}>Related News</h2>
+            <div className={styles.relatedInlineGrid}>
+              {relatedDetails.map((r) => (
+                <div key={r.slug} className={styles.relatedItem}>
+                  <h3 className={styles.relatedItemTitle}>{r.title}</h3>
+                  {r.content && (
+                    <p className={styles.relatedItemSnippet}>
+                      {truncateWords(stripHtml(r.content), 80)}
+                    </p>
+                  )}
+                  <PrefetchLink href={`/articles/${r.slug}`} className={styles.readMoreInline}>
+                    Read more
+                  </PrefetchLink>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
-      {related.length > 0 && (
-        <aside className={styles.sidebar}>
-          <h2 className={styles.relatedHeading}>Related Articles</h2>
-          <div className={styles.relatedBar}>
-            {related.map((a) => (
-              <PrefetchLink key={a.slug} href={`/articles/${a.slug}`}>
-                {a.title}
+
+      <aside className={styles.sidebar}>
+        {related.length > 0 && (
+          <>
+            <h2 className={styles.relatedHeading}>Related Articles</h2>
+            <div className={styles.relatedBar}>
+              {related.map((a) => (
+                <PrefetchLink key={a.slug} href={`/articles/${a.slug}`}>
+                  {a.title}
+                </PrefetchLink>
+              ))}
+            </div>
+          </>
+        )}
+
+        {latest && (
+          <section className={styles.sidebarSection}>
+            <h3 className={styles.sidebarHeading}>Latest Article</h3>
+            <div className={styles.latestCard}>
+              <PrefetchLink href={`/articles/${latest.slug}`} className={styles.latestTitle}>
+                {latest.title}
               </PrefetchLink>
-            ))}
-          </div>
-          <LocalArticleSection />
-        </aside>
-      )}
+              {latest.content && (
+                <p className={styles.latestSnippet}>
+                  {truncateWords(stripHtml(latest.content), 24)}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {trendingTop5 && trendingTop5.length > 0 && (
+          <section className={styles.sidebarSection}>
+            <h3 className={styles.sidebarHeading}>Top 5 News Today</h3>
+            <ol className={styles.sidebarList}>
+              {trendingTop5.map((t, i) => (
+                <li key={t.id ?? `${t.slug}-${i}`} className={styles.sidebarItem}>
+                  <PrefetchLink href={`/articles/${t.slug}`}>{t.title}</PrefetchLink>
+                </li>
+              ))}
+            </ol>
+            <Script id="ld-top5-itemlist" type="application/ld+json" strategy="afterInteractive">
+              {JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'ItemList',
+                itemListOrder: 'https://schema.org/ItemListOrderDescending',
+                itemListElement: trendingTop5.map((t, idx) => ({
+                  '@type': 'ListItem',
+                  position: idx + 1,
+                  url: new URL(`/articles/${t.slug}`, siteUrl).toString(),
+                  name: t.title,
+                })),
+              })}
+            </Script>
+          </section>
+        )}
+
+        <LocalArticleSection />
+      </aside>
       
     </div>
   );
