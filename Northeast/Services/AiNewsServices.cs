@@ -42,7 +42,7 @@ public sealed class AiNewsOptions
 
     // Output & behavior
     public double Creativity { get; set; } = 0.9;
-    public int MinWordCount { get; set; } = 150;
+    public int MinWordCount { get; set; } = 180;
     public int PreInsertMinWordCount { get; set; } = 80;      // low bar before mapping/padding
     public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
     public int BreakingWindowHours { get; set; } = 24;         // what counts as breaking
@@ -434,8 +434,11 @@ You are a senior news editor. Paraphrase and expand using simple, neutral langua
 
 Hard rules:
 - Output STRICT JSON only (UTF-8). No prose outside JSON.
-- Each item: ≥ {o.MinWordCount} words. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs. END with sub heading 'What happens next'.
-- No fabricated quotes or numbers. Use only the feed info provided plus widely-known, non-controversial background.
+- Each item: ≥ {o.MinWordCount} words but maximum words is upto your limit possible. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs describing properrly the context for wide range of users. END with sub heading 'What happens next' or similar conclusions based on news.
+- No fabricated quotes or numbers. But add statistics and important information you have access. Use only the feed info provided plus widely-known, non-controversial background.
+- add proper depth to the news so that it does not look plagiarized or AI written.
+- If needed add tables and comparisions (in necessary case)
+- try to make every article bit different.
 
 Country selection (very important):
 - Decide country **from the article’s subject/event location** (look at named places, demonyms, officials, cities).
