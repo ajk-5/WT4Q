@@ -156,6 +156,84 @@
   gap: 1rem;
 }
 
+/* Skeleton fallbacks to hold layout while streaming */
+.sectionSkeleton {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 0.75rem 1rem;
+  min-height: 18rem;
+  border: 1px solid var(--thin-rule, #b6b6b6);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+
+.skeletonHeading,
+.skeletonTitle,
+.skeletonTitleShort,
+.skeletonLine,
+.skeletonLineShort,
+.skeletonMeta {
+  display: block;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.12));
+  background-size: 200% 100%;
+  animation: frontPageSkeletonPulse 1.6s ease-in-out infinite;
+}
+
+.skeletonHeading {
+  height: 1.2rem;
+  width: 70%;
+}
+
+.skeletonCard {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 255, 255, 0.55);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.skeletonTitle {
+  width: 90%;
+}
+
+.skeletonTitleShort {
+  width: 65%;
+  height: 1rem;
+}
+
+.skeletonLine {
+  width: 100%;
+}
+
+.skeletonLineShort {
+  width: 55%;
+}
+
+.skeletonMeta {
+  width: 45%;
+  height: 0.6rem;
+}
+
+.sectionPlaceholder {
+  min-height: 4rem;
+}
+
+@keyframes frontPageSkeletonPulse {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /* --- Ads --- */
 .ad {
   display: grid;
