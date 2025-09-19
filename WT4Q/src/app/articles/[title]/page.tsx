@@ -20,6 +20,7 @@ const articleInter = Inter({
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
 import ArticleTTS from '@/components/ArticleTTS';
+import ArticleViewCounter from '@/components/ArticleViewCounter';
 const ReactionButtons = dynamic(() => import('@/components/ReactionButtons'));
 const CommentsSection = dynamic(() => import('@/components/CommentsSection'));
 const LocalArticleSection = dynamic(() => import('@/components/LocalArticleSection'));
@@ -197,16 +198,14 @@ export default async function ArticlePage(
         {article.summary && (
           <p className={styles.summary}>{article.summary}</p>
         )}
-          <p className={styles.meta}>
+        <p className={styles.meta}>
           {new Date(article.createdDate).toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
           })}
           {article.countryName ? ` | ${article.countryName}` : ''}
-          {typeof article.views === 'number'
-            ? ` | ${article.views.toLocaleString()} views`
-            : ''}
+          <ArticleViewCounter articleId={article.id} initialViews={article.views} />
         </p>
 
         {article.images && article.images.length > 0 && (
