@@ -6,6 +6,7 @@ import styles from './ArticleCard.module.css';
 import type { ArticleImage } from '@/lib/models';
 import type { Comment } from '@/components/CommentsSection';
 import { ReactionIcon } from '@/components/ReactionIcon';
+import useArticleViews from '@/hooks/useArticleViews';
 
 function toPlainText(html: string) {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -36,14 +37,27 @@ export interface Article {
   reactionsCount?: number;
 }
 
-function formatCount(value?: number) {
-  return typeof value === 'number' ? value.toLocaleString() : undefined;
+function formatCount(value?: number | null) {
+  return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString() : undefined;
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
   const baseText = toPlainText(article.summary || article.content || '');
   const snippet = truncateWords(baseText, 50);
   const articleHref = `/articles/${article.slug}`;
+
+  const liveViews = useArticleViews(article.id, {
+    initial: typeof article.views === 'number' ? article.views : null,
+    initialDelayMs: 800,
+    forceInitialFetch: true,
+    refreshIntervalMs: 120000,
+  });
+  const viewCount =
+    typeof liveViews === 'number'
+      ? liveViews
+      : typeof article.views === 'number'
+        ? article.views
+        : undefined;
 
   const reactionsCount = (() => {
     if (Array.isArray(article.like)) return article.like.length;
@@ -63,7 +77,7 @@ export default function ArticleCard({ article }: { article: Article }) {
 
   type MetaItem = { key: string; icon: ReactElement; value: string };
   const metaItems: MetaItem[] = [];
-  if (article.views !== undefined) {
+  if (viewCount !== undefined) {
     metaItems.push({
       key: 'views',
       icon: (
@@ -79,7 +93,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           />
         </svg>
       ),
-      value: formatCount(article.views) as string,
+      value: formatCount(viewCount) as string,
     });
   }
   if (reactionsCount !== undefined) {

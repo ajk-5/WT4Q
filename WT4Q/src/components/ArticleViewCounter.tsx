@@ -1,20 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { API_ROUTES } from '@/lib/api';
-
-function extractViews(data: unknown): number | null {
-  if (!data || typeof data !== 'object') return null;
-  const record = data as Record<string, unknown>;
-  const candidates = ['views', 'viewCount', 'viewsCount'];
-  for (const key of candidates) {
-    const value = record[key];
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value;
-    }
-  }
-  return null;
-}
+import useArticleViews from '@/hooks/useArticleViews';
 
 interface ArticleViewCounterProps {
   articleId: string;
@@ -27,42 +13,12 @@ export default function ArticleViewCounter({
   initialViews,
   pollIntervalMs = 30000,
 }: ArticleViewCounterProps) {
-  const [views, setViews] = useState<number | null>(
-    typeof initialViews === 'number' && Number.isFinite(initialViews)
-      ? initialViews
-      : null,
-  );
-
-  useEffect(() => {
-    if (!articleId) return undefined;
-
-    let cancelled = false;
-
-    const update = async () => {
-      try {
-        const res = await fetch(API_ROUTES.ARTICLE.GET_BY_ID(articleId), {
-          cache: 'no-store',
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const next = extractViews(data);
-        if (!cancelled && typeof next === 'number') {
-          setViews(next);
-        }
-      } catch {
-        // Ignore network errors; they likely mean the API is temporarily unavailable.
-      }
-    };
-
-    const initialTimeout = setTimeout(update, 1200);
-    const interval = setInterval(update, pollIntervalMs);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(initialTimeout);
-      clearInterval(interval);
-    };
-  }, [articleId, pollIntervalMs]);
+  const views = useArticleViews(articleId, {
+    initial: typeof initialViews === 'number' ? initialViews : null,
+    initialDelayMs: 1200,
+    refreshIntervalMs: pollIntervalMs,
+    forceInitialFetch: true,
+  });
 
   if (views === null) {
     return null;

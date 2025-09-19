@@ -20,6 +20,10 @@ namespace Northeast.Services
         private readonly IMemoryCache _cache;
         private readonly ILogger<SiteVisitorServices> _logger;
 
+        private static readonly TimeSpan PageVisitCacheDuration = TimeSpan.FromHours(24);
+        private static readonly TimeSpan PageVisitDuplicateWindow = TimeSpan.FromHours(24);
+        private static readonly TimeSpan PageVisitFallbackWindow = TimeSpan.FromMinutes(1);
+
         public SiteVisitorServices(HttpClient httpClient,
             UserRepository userRepository,
             GetConnectedUser getConnectedUser,
@@ -205,24 +209,55 @@ namespace Northeast.Services
 
         public async Task LogPageVisit(string pageUrl)
         {
+            if (string.IsNullOrWhiteSpace(pageUrl))
+            {
+                return;
+            }
+
+            var normalizedPageUrl = pageUrl.Trim();
+            if (string.IsNullOrEmpty(normalizedPageUrl))
+            {
+                return;
+            }
+
             var visitor = await VisitorLog();
             if (visitor == null)
             {
                 return;
             }
 
-            var recent = await _pageVisitRepository.GetRecentVisit(visitor.Id, pageUrl, 1);
+            var ipAddress = visitor.IpAddress;
+            if (string.IsNullOrWhiteSpace(ipAddress))
+            {
+                ipAddress = _getConnectedUser.GetUserIP();
+            }
+
+            var dedupeIdentity = !string.IsNullOrWhiteSpace(ipAddress)
+                ? $"ip:{ipAddress}"
+                : $"visitor:{visitor.Id}";
+
+            var cacheKey = $"pagevisit:{dedupeIdentity}:{normalizedPageUrl}";
+            if (_cache.TryGetValue(cacheKey, out _))
+            {
+                return;
+            }
+
+            var dedupeWindowMinutes = Math.Max(1, (int)PageVisitDuplicateWindow.TotalMinutes);
+            var recent = await _pageVisitRepository.GetRecentVisit(visitor.Id, normalizedPageUrl, dedupeWindowMinutes);
             if (recent != null)
             {
+                _cache.Set(cacheKey, true, PageVisitFallbackWindow);
                 return;
             }
 
             await _pageVisitRepository.Add(new PageVisit
             {
                 VisitorId = visitor.Id,
-                PageUrl = pageUrl,
+                PageUrl = normalizedPageUrl,
                 VisitTime = DateTime.UtcNow
             });
+
+            _cache.Set(cacheKey, true, PageVisitCacheDuration);
         }
     }
 }
