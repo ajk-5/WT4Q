@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import styles from './ArticleCard.module.css';
 import type { ArticleImage } from '@/lib/models';
@@ -42,20 +42,59 @@ function formatCount(value?: number | null) {
 }
 
 export default function ArticleCard({ article }: { article: Article }) {
+  const cardRef = useRef<HTMLElement | null>(null);
+  const [shouldTrackViews, setShouldTrackViews] = useState(false);
+
+  useEffect(() => {
+    if (shouldTrackViews) return;
+
+    if (typeof window === 'undefined') {
+      setShouldTrackViews(true);
+      return;
+    }
+
+    const target = cardRef.current;
+    if (!target) return;
+
+    if (!('IntersectionObserver' in window)) {
+      setShouldTrackViews(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setShouldTrackViews(true);
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.2 },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [shouldTrackViews]);
+
   const baseText = toPlainText(article.summary || article.content || '');
   const snippet = truncateWords(baseText, 50);
   const articleHref = `/articles/${article.slug}`;
 
-  const liveViews = useArticleViews(article.id, {
-    initial: typeof article.views === 'number' ? article.views : null,
-    initialDelayMs: 800,
-    forceInitialFetch: true,
-    refreshIntervalMs: 120000,
+  const hasInitialViews = typeof article.views === 'number' && Number.isFinite(article.views);
+  const liveViews = useArticleViews(shouldTrackViews ? article.id : undefined, {
+    initial: hasInitialViews ? article.views : null,
+    initialDelayMs: shouldTrackViews ? 800 : 0,
+    forceInitialFetch: shouldTrackViews && !hasInitialViews,
+    refreshIntervalMs: shouldTrackViews ? 120000 : 0,
   });
+
   const viewCount =
     typeof liveViews === 'number'
       ? liveViews
-      : typeof article.views === 'number'
+      : hasInitialViews
         ? article.views
         : undefined;
 
@@ -140,7 +179,7 @@ export default function ArticleCard({ article }: { article: Article }) {
   }
 
   return (
-    <article className={styles.card}>
+    <article ref={cardRef} className={styles.card}>
       <h2 className={styles.title}>
         <span className={styles.titleLink}>{article.title}</span>
       </h2>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import countries from '../../public/datas/Countries.json';
@@ -15,6 +15,44 @@ export default function LocalArticleSection() {
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [status, setStatus] = useState<LoadState>('loading');
+  const [activated, setActivated] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (activated) return;
+
+    if (typeof window === 'undefined') {
+      setActivated(true);
+      return;
+    }
+
+    const node = sectionRef.current;
+    if (!node) return;
+
+    if (!('IntersectionObserver' in window)) {
+      setActivated(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActivated(true);
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.15 },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [activated]);
 
   const next = useCallback(() => {
     if (articles.length < 2) return;
@@ -27,6 +65,8 @@ export default function LocalArticleSection() {
   }, [articles.length]);
 
   useEffect(() => {
+    if (!activated) return undefined;
+
     let cancelled = false;
     const controller = new AbortController();
 
@@ -102,13 +142,13 @@ export default function LocalArticleSection() {
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [activated]);
 
   useEffect(() => {
-    if (articles.length < 2 || isHovered) return;
+    if (!activated || articles.length < 2 || isHovered) return;
     const t = setInterval(next, ROTATE_MS);
     return () => clearInterval(t);
-  }, [articles.length, isHovered, next]);
+  }, [activated, articles.length, isHovered, next]);
 
   const hasArticles = status === 'ready' && articles.length > 0;
 
@@ -116,10 +156,11 @@ export default function LocalArticleSection() {
 
   return (
     <section
+      ref={sectionRef}
       className={styles.container}
       aria-label="Local news"
       aria-live="polite"
-      aria-busy={status === 'loading'}
+      aria-busy={activated && status === 'loading'}
     >
       <h2 className={styles.heading}>Local News based on your location</h2>
       <div
