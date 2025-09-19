@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { API_ROUTES } from '@/lib/api';
 
 export interface NewsArticle {
@@ -12,22 +13,33 @@ const LANGUAGE = 'en';
 export const MAX_NEWS_ARTICLES = 1000;
 const MS_48_HOURS = 48 * 60 * 60 * 1000;
 
+const loadRecentArticles = unstable_cache(
+  async () => {
+    try {
+      const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, {
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) return [] as NewsArticle[];
+      const articles: NewsArticle[] = await res.json();
+      const cutoff = Date.now() - MS_48_HOURS;
+      const filtered = articles.filter((a) => {
+        const time = new Date(a.createdDate).getTime();
+        return !Number.isNaN(time) && time >= cutoff;
+      });
+      filtered.sort(
+        (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
+      );
+      return filtered;
+    } catch {
+      return [] as NewsArticle[];
+    }
+  },
+  ['news-recent-articles'],
+  { revalidate: 300 },
+);
+
 export async function fetchRecentArticles(): Promise<NewsArticle[]> {
-  try {
-    const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const articles: NewsArticle[] = await res.json();
-    const cutoff = Date.now() - MS_48_HOURS;
-    const filtered = articles.filter(a => {
-      const time = new Date(a.createdDate).getTime();
-      return !Number.isNaN(time) && time >= cutoff;
-    });
-    // Newest first
-    filtered.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
-    return filtered;
-  } catch {
-    return [];
-  }
+  return loadRecentArticles();
 }
 
 export function chunkArticles<T>(items: T[], size: number): T[][] {
