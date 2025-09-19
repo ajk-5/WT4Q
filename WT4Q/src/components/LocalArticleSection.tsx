@@ -28,6 +28,7 @@ export default function LocalArticleSection() {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     const finish = (list: Article[]) => {
       if (cancelled) return;
@@ -43,7 +44,9 @@ export default function LocalArticleSection() {
 
     const fetchLocal = async () => {
       try {
-        const locRes = await fetch(API_ROUTES.USER_LOCATION.GET);
+        const locRes = await fetch(API_ROUTES.USER_LOCATION.GET, {
+          signal: controller.signal,
+        });
         if (!locRes.ok) {
           finish([]);
           return;
@@ -62,7 +65,8 @@ export default function LocalArticleSection() {
 
         const fetchBy = async (param: string, value: string) => {
           const res = await fetch(
-            `${API_ROUTES.ARTICLE.FILTER}?${param}=${encodeURIComponent(value)}`
+            `${API_ROUTES.ARTICLE.FILTER}?${param}=${encodeURIComponent(value)}`,
+            { signal: controller.signal },
           );
           if (!res.ok) return [] as Article[];
           const list: Article[] = await res.json();
@@ -84,7 +88,10 @@ export default function LocalArticleSection() {
         }
 
         finish(arts);
-      } catch {
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          return;
+        }
         finish([]);
       }
     };
@@ -93,6 +100,7 @@ export default function LocalArticleSection() {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

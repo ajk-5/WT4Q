@@ -3,6 +3,13 @@
   font-size: 0.6em; /* 30% smaller */
 }
 
+.categoryDescription {
+  margin: 0.5rem 0 1.5rem;
+  max-width: 60ch;
+  color: var(--muted-text, #4a4a4a);
+  line-height: 1.6;
+}
+
 .horizontalCards {
   display: flex;
   gap: 1rem;

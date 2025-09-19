@@ -1,5 +1,7 @@
 import { chunkArticles, buildNewsXml, fetchRecentArticles, MAX_NEWS_ARTICLES } from '@/lib/news-sitemap';
 import type { NextRequest } from 'next/server';
+
+export const revalidate = 300;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function GET(

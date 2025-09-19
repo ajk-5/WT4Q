@@ -1,13 +1,27 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
+import type { Metadata } from 'next';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PrefetchLink from '@/components/PrefetchLink';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
 import styles from './search.module.css';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Search the archives | The Nineties Times',
+  description:
+    'Find articles across politics, business, sports, culture and more from The Nineties Times archive.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+  alternates: {
+    canonical: '/search',
+  },
+};
 
 function SearchContent() {
   const router = useRouter();

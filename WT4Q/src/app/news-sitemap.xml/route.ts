@@ -1,5 +1,7 @@
 import { chunkArticles, buildNewsXml, buildNewsIndex, fetchRecentArticles, MAX_NEWS_ARTICLES } from '@/lib/news-sitemap';
 
+export const revalidate = 300;
+
 export async function GET(): Promise<Response> {
   const articles = await fetchRecentArticles();
   const chunks = chunkArticles(articles, MAX_NEWS_ARTICLES);
