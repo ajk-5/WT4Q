@@ -39,6 +39,55 @@
   pointer-events: none;
 }
 
+
+.tickerEnabled {
+  overflow: visible;
+}
+
+.tickerViewport {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 0.65rem;
+  padding: 0.15rem 0;
+  margin: 0;
+  cursor: grab;
+}
+
+.tickerViewport::-webkit-scrollbar {
+  display: none;
+}
+
+.tickerTrack {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.65rem;
+  width: max-content;
+}
+
+.tickerItem {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+.tickerSeparator {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  flex: 0 0 auto;
+}
+
+.tickerViewport:active {
+  cursor: grabbing;
+}
 .itemWrapper {
   position: relative;
   display: flex;
@@ -260,6 +309,32 @@
   min-height: clamp(9rem, 24vw, 13rem);
   overflow-y: auto;
   padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.4) rgba(17, 17, 17, 0.05);
+  -webkit-overflow-scrolling: touch;
+}
+
+.snippet::-webkit-scrollbar {
+  width: 0.35rem;
+}
+
+.snippet::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(17, 17, 17, 0.04), rgba(17, 17, 17, 0.08));
+  border-radius: 999px;
+}
+
+.snippet::-webkit-scrollbar-thumb {
+  background: linear-gradient(200deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.35));
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.snippet::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(200deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.45));
+}
+
+.snippet::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(200deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5));
 }
 
 .snippetPlaceholder {
@@ -365,6 +440,40 @@
 }
 
 @media (max-width: 768px) {
+  .slider {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .compactMode {
+    padding: 0.4rem 0.65rem;
+    min-height: clamp(2.25rem, 12vw, 2.75rem);
+  }
+
+  .tickerViewport {
+    gap: 0.5rem;
+    padding: 0.1rem 0;
+  }
+
+  .tickerItem {
+    font-size: clamp(0.95rem, 3.4vw, 1.05rem);
+    padding: 0 0.35rem;
+  }
+
+  .tickerSeparator {
+    width: 0.28rem;
+    height: 0.28rem;
+  }
+
+  .arrow {
+    opacity: 0.75;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 50%;
+  }
+
+  .slider:hover .arrow {
+    opacity: 0.9;
+  }
+
   .detailMode {
     min-height: clamp(20rem, 70vw, 24rem);
     padding: clamp(0.75rem, 2vw, 1rem);
@@ -381,6 +490,6 @@
   }
 
   .item {
-    padding-inline: clamp(1.75rem, 8vw, 2.75rem);
+    padding-inline: clamp(1.5rem, 7vw, 2.25rem);
   }
 }

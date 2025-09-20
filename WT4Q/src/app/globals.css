@@ -65,7 +65,7 @@
   --shadow-elev: 0 6px 15px rgba(0,0,0,0.4);
   --shadow-elev-lg: 0 12px 25px rgba(0,0,0,0.45);
   /* Reserve space for the fixed header without JS measurements */
-  --header-height: calc(clamp(1.6rem, 6vw, 3.6rem) * 1.1 + 6.75rem);
+  --header-height: calc(clamp(1.4rem, 5vw, 2.8rem) * 1.05 + 4.5rem);
 }
 
 /* Dark scheme tweaks (kept) */
@@ -157,7 +157,8 @@ h1, h2, h3, h4, h5, h6 {
 main {
   width: min(var(--content-max), 100% - clamp(24px, 6vw, 64px));
   margin-inline: auto;
-  margin-block: clamp(var(--space-5), 4vw, var(--space-6));
+  margin-block-start: clamp(var(--space-3), 2vw, var(--space-4));
+  margin-block-end: clamp(var(--space-5), 4vw, var(--space-6));
 }
 
 .container {
@@ -206,14 +207,18 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
    RESPONSIVE
    ========= */
 @media (max-width: 1024px) {
-  main { margin-block: clamp(var(--space-4), 3vw, var(--space-5)); }
+  main {
+    margin-block-start: clamp(var(--space-3), 2.5vw, var(--space-4));
+    margin-block-end: clamp(var(--space-4), 3vw, var(--space-5));
+  }
   button { letter-spacing: 0.04em; }
 }
 
 @media (max-width: 768px) {
   main {
     width: min(var(--content-max), 100% - clamp(16px, 5vw, 40px));
-    margin-block: clamp(var(--space-3), 3vw, var(--space-5));
+    margin-block-start: clamp(var(--space-2), 2.5vw, var(--space-3));
+    margin-block-end: clamp(var(--space-4), 3vw, var(--space-5));
   }
 
   button {
