@@ -135,25 +135,37 @@ export default function BreakingNewsSlider({
     }
   }, [index, articles]);
 
-  if (articles.length === 0) return null;
+  const hasArticles = articles.length > 0;
+  const sliderClassName = `${styles.slider} ${className ?? ''} ${
+    showDetails ? styles.detailMode : styles.compactMode
+  } ${hasArticles ? '' : styles.isLoading}`
+    .trim()
+    .replace(/\s+/g, ' ');
 
-  const current = articles[index];
-  const first = current.images?.[0];
+  const current = hasArticles ? articles[index] : undefined;
+  const first = current?.images?.[0];
   const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
   const imageSrc = first?.photoLink || base64;
-  const snippet = current.content ? truncateWords(stripHtml(current.content), 100) : undefined;
+  const snippet = current?.content
+    ? truncateWords(stripHtml(current.content), 130)
+    : undefined;
+  const title = current?.title ?? '';
+  const slug = current?.slug ?? '#';
+  const disableArrows = articles.length < 2;
 
   return (
     <div
-      className={`${styles.slider} ${className ?? ''}`.trim()}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={sliderClassName}
+      onMouseEnter={hasArticles ? () => setIsHovered(true) : undefined}
+      onMouseLeave={hasArticles ? () => setIsHovered(false) : undefined}
+      aria-busy={!hasArticles}
     >
       <button
         className={`${styles.arrow} ${styles.left}`}
         onClick={prev}
         aria-label="Previous article"
         type="button"
+        disabled={disableArrows}
       >
         <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="#000000">
           <g fill="#000000">
@@ -167,6 +179,7 @@ export default function BreakingNewsSlider({
         onClick={next}
         aria-label="Next article"
         type="button"
+        disabled={disableArrows}
       >
         <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="#000000">
           <g fill="#000000">
@@ -176,44 +189,93 @@ export default function BreakingNewsSlider({
       </button>
 
       {showDetails ? (
-        <PrefetchLink href={`/articles/${current.slug}`} className={styles.detailLink}>
-          <div className={styles.detail}>
-            {imageSrc && (
-              <figure className={styles.detailFigure}>
-                <Image
-                  src={imageSrc}
-                  alt={first?.altText || current.title}
-                  fill
-                  priority={index === 0}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
-                  style={{ objectFit: 'cover' }}
-                  placeholder={base64 ? 'blur' : undefined}
-                  blurDataURL={base64}
-                  unoptimized={!!base64}
-                />
-                {first?.caption && (
+        hasArticles ? (
+          <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
+            <div className={styles.detail}>
+              <figure
+                className={`${styles.detailFigure} ${
+                  imageSrc ? '' : styles.detailFigurePlaceholder
+                }`.trim()}
+              >
+                {imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={first?.altText || title}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
+                    style={{ objectFit: 'cover' }}
+                    placeholder={base64 ? 'blur' : undefined}
+                    blurDataURL={base64}
+                    unoptimized={!!base64}
+                  />
+                ) : (
+                  <div className={styles.mediaPlaceholder} aria-hidden="true" />
+                )}
+                {first?.caption ? (
                   <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                ) : (
+                  <figcaption
+                    className={`${styles.detailCaption} ${styles.captionPlaceholder}`}
+                    aria-hidden="true"
+                  >
+                    &nbsp;
+                  </figcaption>
                 )}
               </figure>
-            )}
-            <h3 className={styles.detailTitle}>{current.title}</h3>
-            {snippet && (
-              <p className={styles.snippet}>
-                {snippet}
-                <span className={styles.readMore}> READ MORE...</span>
-              </p>
-            )}
+              <h3 className={styles.detailTitle}>{title}</h3>
+              {snippet ? (
+                <p className={styles.snippet}>
+                  {snippet}
+                  <span className={styles.readMore}> READ MORE...</span>
+                </p>
+              ) : (
+                <div className={styles.snippetPlaceholder} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
+            </div>
+          </PrefetchLink>
+        ) : (
+          <div className={styles.detail}>
+            <div className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
+              <div className={styles.mediaPlaceholder} />
+            </div>
+            <div className={styles.titlePlaceholder} aria-hidden="true" />
+            <div className={styles.snippetPlaceholder} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
-        </PrefetchLink>
+        )
       ) : (
         <div
           className={`${styles.itemWrapper} ${
-            direction === 'next' ? styles.slideLeft : styles.slideRight
-          }`}
+            hasArticles ? (direction === 'next' ? styles.slideLeft : styles.slideRight) : ''
+          }`.trim()}
         >
-          <PrefetchLink href={`/articles/${current.slug}`} className={styles.item}>
-            <span ref={textRef}>{current.title}</span>
-          </PrefetchLink>
+          {hasArticles ? (
+            <PrefetchLink href={`/articles/${slug}`} className={styles.item}>
+              <span ref={hasArticles ? textRef : null}>{title}</span>
+            </PrefetchLink>
+          ) : (
+            <div className={styles.tickerPlaceholder} aria-hidden="true">
+              <span />
+            </div>
+          )}
         </div>
       )}
 
