@@ -1,7 +1,6 @@
 import Script from 'next/script';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { API_ROUTES } from '@/lib/api';
 import type { Article } from '@/components/ArticleCard';
 import CategoryArticleCard from '@/components/CategoryArticleCard';
 import baseStyles from '../../page.module.css';
@@ -17,6 +16,7 @@ import {
   getCategoryDetails,
   normalizeCategoryName,
 } from '@/lib/categories';
+import { getArticlesByCategory } from '@/lib/server/articles';
 
 const CATEGORY_FETCH_LIMIT = 60;
 
@@ -29,17 +29,7 @@ export function generateStaticParams() {
 
 async function fetchArticles(cat: string): Promise<Article[]> {
   try {
-    const url = new URL(API_ROUTES.ARTICLE.SEARCH_ADVANCED);
-    url.searchParams.set('category', cat);
-    url.searchParams.set('limit', String(CATEGORY_FETCH_LIMIT));
-    const res = await fetch(url, { next: { revalidate: 180 } });
-    if (!res.ok) return [];
-    const data: Article[] = await res.json();
-    return data.sort(
-      (a, b) =>
-        new Date(b.createdDate ?? 0).getTime() -
-        new Date(a.createdDate ?? 0).getTime(),
-    );
+    return await getArticlesByCategory(cat, { limit: CATEGORY_FETCH_LIMIT });
   } catch {
     return [];
   }

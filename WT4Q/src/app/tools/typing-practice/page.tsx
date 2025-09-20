@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import TypingPracticeClient from './components/TypingPracticeClient';
-import { API_ROUTES } from '@/lib/api';
+import { getArticlesByCategory } from '@/lib/server/articles';
 import { stripHtml } from '@/lib/text';
 
 export const metadata: Metadata = {
@@ -17,28 +17,9 @@ export const metadata: Metadata = {
   ],
 };
 
-interface Article {
-  createdDate?: string;
-  content?: string;
-  summary?: string;
-}
-
 async function fetchLatestTechText(): Promise<string> {
   try {
-    const res = await fetch(
-      `${API_ROUTES.ARTICLE.SEARCH_ADVANCED}?category=Technology`,
-      {
-        cache: 'no-store',
-      },
-    );
-    if (!res.ok) return 'Welcome to typing practice';
-    const articles: Article[] = await res.json();
-    const latest = articles
-      .sort(
-        (a, b) =>
-          new Date(b.createdDate ?? 0).getTime() -
-          new Date(a.createdDate ?? 0).getTime(),
-      )[0];
+    const [latest] = await getArticlesByCategory('Technology', { limit: 10 });
     const text = stripHtml(latest?.content || latest?.summary || '');
     return (
       text.replace(/\s+/g, ' ').trim().slice(0, 2000) ||

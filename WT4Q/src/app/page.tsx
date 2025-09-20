@@ -10,6 +10,7 @@ import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 import { chunk } from '@/lib/chunk';
+import { getArticlesByCategory } from '@/lib/server/articles';
 import type { Metadata } from 'next';
 import styles from './page.module.css';
 import LocalArticleSection from '@/components/LocalArticleSection';
@@ -104,22 +105,7 @@ export default async function Home() {
 
 async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   try {
-    // Only fetch what we render: top 12 is enough to show 3 immediately and have some buffer
-    const url = `${API_ROUTES.ARTICLE.SEARCH_ADVANCED}?category=${encodeURIComponent(cat)}&limit=12`;
-    // Avoid Next.js 2MB data-cache limit for very large categories like "Info"
-    const res = await fetch(
-      url,
-      cat.toLowerCase() === 'info'
-        ? { cache: 'no-store' }
-        : { next: { revalidate: 180 } }
-    );
-    if (!res.ok) return [];
-    const data: Article[] = await res.json();
-    return data.sort(
-      (a, b) =>
-        new Date(b.createdDate ?? 0).getTime() -
-        new Date(a.createdDate ?? 0).getTime(),
-    );
+    return await getArticlesByCategory(cat, { limit: 12 });
   } catch {
     return [];
   }
