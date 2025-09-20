@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PrefetchLink from './PrefetchLink';
 import CategoryNavbar from './CategoryNavbar';
 import UserMenu from './UserMenu';
@@ -13,7 +13,6 @@ import styles from './Header.module.css';
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const headerRef = useRef<HTMLElement | null>(null);
   const dateline = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -44,28 +43,6 @@ export default function Header() {
     };
   }, []);
 
-  // Measure header height to offset page content below fixed header
-  useEffect(() => {
-    const updateHeight = () => {
-      const h = headerRef.current?.offsetHeight || 0;
-      if (h > 0) {
-        document.documentElement.style.setProperty('--header-height', `${h}px`);
-      }
-    };
-    updateHeight();
-    // Observe size changes for dynamic elements (e.g., categories show/hide)
-    let ro: ResizeObserver | null = null;
-    if (typeof window !== 'undefined' && 'ResizeObserver' in window && headerRef.current) {
-      ro = new ResizeObserver(() => updateHeight());
-      ro.observe(headerRef.current);
-    }
-    window.addEventListener('resize', updateHeight);
-    return () => {
-      ro?.disconnect();
-      window.removeEventListener('resize', updateHeight);
-    };
-  }, [scrolled]);
-
   // Reflect scrolled state as a root class for cross-component styling
   useEffect(() => {
     const root = document.documentElement;
@@ -79,7 +56,7 @@ export default function Header() {
   // No portal: rely on CSS to show/hide the sidebar when scrolled/mobile
 
   return (
-    <header ref={headerRef} className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
+    <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
         {/* Mobile menu button at top-left */}
