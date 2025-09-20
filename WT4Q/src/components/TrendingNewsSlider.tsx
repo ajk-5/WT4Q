@@ -159,7 +159,8 @@ export default function TrendingNewsSlider({
   const title = current?.title ?? '';
   const slug = current?.slug ?? '#';
   const disableArrows = articles.length < 2;
-  const rankLabel = current?.rank ? `#${current.rank}` : undefined;
+  const hasImage = Boolean(imageSrc);
+  const detailClassName = `${styles.detail} ${!hasImage ? styles.detailNoImage : ''}`.trim();
 
   return (
     <div
@@ -198,68 +199,51 @@ export default function TrendingNewsSlider({
 
       {showDetails ? (
         hasArticles ? (
-          <div className={styles.detail}>
-            <figure
-              className={`${styles.detailFigure} ${
-                imageSrc ? '' : styles.detailFigurePlaceholder
-              }`.trim()}
-            >
+          <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
+            <div className={detailClassName}>
               {imageSrc ? (
-                <Image
-                  src={imageSrc}
-                  alt={first?.altText || title}
-                  fill
-                  priority={index === 0}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
-                  style={{ objectFit: 'cover' }}
-                  placeholder={base64 ? 'blur' : undefined}
-                  blurDataURL={base64}
-                  unoptimized={!!base64}
-                />
+                <figure className={styles.detailFigure}>
+                  <Image
+                    src={imageSrc}
+                    alt={first?.altText || title}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
+                    style={{ objectFit: 'cover' }}
+                    placeholder={base64 ? 'blur' : undefined}
+                    blurDataURL={base64}
+                    unoptimized={!!base64}
+                  />
+                  {first?.caption ? (
+                    <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                  ) : null}
+                </figure>
+              ) : null}
+              <h3 className={styles.detailTitle}>{title}</h3>
+              {snippet ? (
+                <p className={styles.snippet}>
+                  {snippet}
+                  <span className={styles.readMore}> READ MORE...</span>
+                </p>
               ) : (
-                <div className={styles.mediaPlaceholder} aria-hidden="true" />
+                <div className={styles.snippetPlaceholder} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
               )}
-              {first?.caption ? (
-                <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-              ) : (
-                <figcaption
-                  className={`${styles.detailCaption} ${styles.captionPlaceholder}`}
-                  aria-hidden="true"
-                >
-                  &nbsp;
-                </figcaption>
-              )}
-            </figure>
-            {rankLabel ? (
-              <span className={styles.rank}>{rankLabel}</span>
-            ) : (
-              <span className={`${styles.rank} ${styles.rankPlaceholder}`} aria-hidden="true" />
-            )}
-            <h3 className={styles.detailTitle}>{title}</h3>
-            {snippet ? (
-              <p className={styles.snippet}>{snippet}</p>
-            ) : (
-              <div className={styles.snippetPlaceholder} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-              </div>
-            )}
-            <PrefetchLink href={`/articles/${slug}`} className={styles.readMore}>
-              Read more
-            </PrefetchLink>
-          </div>
+            </div>
+          </PrefetchLink>
         ) : (
           <div className={styles.detail}>
             <div className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
               <div className={styles.mediaPlaceholder} />
             </div>
-            <span className={`${styles.rank} ${styles.rankPlaceholder}`} aria-hidden="true" />
             <div className={styles.titlePlaceholder} aria-hidden="true" />
             <div className={styles.snippetPlaceholder} aria-hidden="true">
               <span />
@@ -271,7 +255,6 @@ export default function TrendingNewsSlider({
               <span />
               <span />
             </div>
-            <span className={`${styles.readMore} ${styles.readMorePlaceholder}`} aria-hidden="true" />
           </div>
         )
       ) : (
@@ -282,7 +265,7 @@ export default function TrendingNewsSlider({
         >
           {hasArticles ? (
             <PrefetchLink href={`/articles/${slug}`} className={styles.item}>
-              <span ref={hasArticles ? textRef : null}>{`${rankLabel ?? ''} ${title}`.trim()}</span>
+              <span ref={hasArticles ? textRef : null}>{title}</span>
             </PrefetchLink>
           ) : (
             <div className={styles.tickerPlaceholder} aria-hidden="true">

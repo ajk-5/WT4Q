@@ -152,6 +152,8 @@ export default function BreakingNewsSlider({
   const title = current?.title ?? '';
   const slug = current?.slug ?? '#';
   const disableArrows = articles.length < 2;
+  const hasImage = Boolean(imageSrc);
+  const detailClassName = `${styles.detail} ${!hasImage ? styles.detailNoImage : ''}`.trim();
 
   return (
     <div
@@ -191,13 +193,9 @@ export default function BreakingNewsSlider({
       {showDetails ? (
         hasArticles ? (
           <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
-            <div className={styles.detail}>
-              <figure
-                className={`${styles.detailFigure} ${
-                  imageSrc ? '' : styles.detailFigurePlaceholder
-                }`.trim()}
-              >
-                {imageSrc ? (
+            <div className={detailClassName}>
+              {imageSrc ? (
+                <figure className={styles.detailFigure}>
                   <Image
                     src={imageSrc}
                     alt={first?.altText || title}
@@ -209,20 +207,11 @@ export default function BreakingNewsSlider({
                     blurDataURL={base64}
                     unoptimized={!!base64}
                   />
-                ) : (
-                  <div className={styles.mediaPlaceholder} aria-hidden="true" />
-                )}
-                {first?.caption ? (
-                  <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-                ) : (
-                  <figcaption
-                    className={`${styles.detailCaption} ${styles.captionPlaceholder}`}
-                    aria-hidden="true"
-                  >
-                    &nbsp;
-                  </figcaption>
-                )}
-              </figure>
+                  {first?.caption ? (
+                    <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                  ) : null}
+                </figure>
+              ) : null}
               <h3 className={styles.detailTitle}>{title}</h3>
               {snippet ? (
                 <p className={styles.snippet}>
