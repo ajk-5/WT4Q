@@ -64,8 +64,8 @@
   --transition-fast: 120ms;
   --shadow-elev: 0 6px 15px rgba(0,0,0,0.4);
   --shadow-elev-lg: 0 12px 25px rgba(0,0,0,0.45);
-  /* Fixed header height placeholder, updated at runtime */
-  --header-height: 120px;
+  /* Reserve space for the fixed header without JS measurements */
+  --header-height: calc(clamp(1.6rem, 6vw, 3.6rem) * 1.1 + 6.75rem);
 }
 
 /* Dark scheme tweaks (kept) */
