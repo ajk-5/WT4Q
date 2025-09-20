@@ -163,7 +163,7 @@ export default async function CategoryPage({
     url: new URL(`/articles/${article.slug}`, siteUrl).toString(),
     name: article.title,
   }));
-  const jsonLd = [
+  const jsonLd: Array<Record<string, unknown>> = [
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',

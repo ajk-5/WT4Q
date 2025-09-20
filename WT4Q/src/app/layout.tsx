@@ -27,12 +27,12 @@ export const metadata: Metadata = {
     template: "%s | The Nineties Times",
   },
   description:
-    "The Nineties Times (90sTimes) — independent, reliable coverage across news, politics, business, tech, culture, sports, and more.",
+    "The Nineties Times (90sTimes) delivers real-time breaking news, in-depth analysis, and trusted reporting across politics, business, tech, culture, sports, and more.",
   metadataBase: new URL(siteUrl),
   openGraph: {
     title: "The Nineties Times",
     description:
-      "The Nineties Times (90sTimes) — independent, reliable news, trends, and stories.",
+      "Real-time breaking news, trends, and stories from The Nineties Times (90sTimes).",
     url: siteUrl,
     siteName: "The Nineties Times",
     type: "website",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Nineties Times",
     description:
-      "Independent, reliable coverage — The Nineties Times (90sTimes).",
+      "Real-time breaking news and trusted reporting - The Nineties Times (90sTimes).",
   },
   alternates: {
     canonical: "/",
@@ -76,6 +76,7 @@ export default function RootLayout({
             "@type": "NewsMediaOrganization",
             name: "The Nineties Times",
             alternateName: ["90sTimes", "90stimes", "90s Times", "Nineties Times"],
+            description: "Real-time global news coverage, analysis, and reporting from The Nineties Times.",
             url: siteUrl,
             logo: `${siteUrl}/favicon.ico`,
           })}
@@ -86,6 +87,7 @@ export default function RootLayout({
             "@type": "WebSite",
             name: "The Nineties Times",
             alternateName: ["90sTimes", "90stimes", "90s Times", "Nineties Times"],
+            description: "Real-time news destination for breaking updates, context, and archive search.",
             url: siteUrl,
             potentialAction: {
               "@type": "SearchAction",

@@ -1,12 +1,8 @@
 .card {
-<<<<<<< HEAD
   position: relative; /* for overlay link */
-  display: block;
-=======
   display: grid;
   grid-template-rows: auto minmax(5.6em, auto) auto auto;
   gap: 0.5rem;
->>>>>>> cd3ce80e5177b7054bbba074dae719927755f67d
   padding: 0.75rem;
   margin: 0.25rem 0;
   background: #ffffff00;
@@ -14,12 +10,9 @@
   border: 1px solid var(--thin-rule, #2c1616);
   box-shadow: inset 0 0 0 1px var(--thin-rule, #2c1616);
   border-radius: 0.5rem;
-<<<<<<< HEAD
-  cursor: pointer;
-=======
   height: 100%;
   box-sizing: border-box;
->>>>>>> cd3ce80e5177b7054bbba074dae719927755f67d
+  cursor: pointer;
 }
 
 .title {
@@ -51,21 +44,24 @@
   max-height: 5.6em;
 }
 
-<<<<<<< HEAD
-/* Inline READ MORE, same color as before (accent) */
-.readMoreInline {
-  color: var(--accent, #6a0000);
-=======
+/* Discrete Read more link (if used) */
 .readMore {
   display: inline-block;
   font-size: 0.75rem;
-  color: var(--accent, #6a0000);
+  color: #7b1e22; /* Bordeaux red */
   text-decoration: none;
   align-self: start;
->>>>>>> cd3ce80e5177b7054bbba074dae719927755f67d
 }
 
-/* old .readMore removed in favor of inline snippet trail */
+.readMore:hover,
+.readMore:focus-visible {
+  text-decoration: underline;
+}
+
+/* Inline READ MORE for snippet trail */
+.readMoreInline {
+  color: #7b1e22; /* Bordeaux red */
+}
 
 .meta {
   margin: 0;
@@ -108,3 +104,4 @@
     padding: 0.5rem;
   }
 }
+
