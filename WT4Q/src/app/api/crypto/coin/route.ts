@@ -7,7 +7,36 @@ type SearchResult = {
   coins: { id: string; name: string; symbol: string }[];
 };
 
-let cache: Record<string, { at: number; data: any }> = {};
+type CoinResponse = {
+  id: string;
+  name: string;
+  symbol?: string;
+  image: string | null;
+  homepage: string | null;
+  description: string | null;
+  rank: number | null;
+  categories: string[];
+  links: { website: string | null; twitter: string | null; reddit: string | null; github: string[]; explorers: string[] };
+  marketCap: number | null;
+  fdv: number | null;
+  currentPrice: number | null;
+  totalVolume: number | null;
+  high24h: number | null;
+  low24h: number | null;
+  ath: number | null;
+  athDate: string | null;
+  atl: number | null;
+  atlDate: string | null;
+  supply: { circulating: number | null; total: number | null; max: number | null };
+  priceChange1h: number | null;
+  priceChange24h: number | null;
+  priceChange7d: number | null;
+  priceChange30d: number | null;
+  priceChange1y: number | null;
+  lastUpdated: string | null;
+};
+
+const cache: Record<string, { at: number; data: CoinResponse }> = {};
 const TTL_MS = 120_000;
 
 export async function GET(req: Request) {
@@ -33,7 +62,7 @@ export async function GET(req: Request) {
 
     const md = cjson.market_data || {};
     const links = cjson.links || {};
-    const out = {
+    const out: CoinResponse = {
       id: cjson.id,
       name: cjson.name,
       symbol: cjson.symbol?.toUpperCase(),
@@ -74,7 +103,7 @@ export async function GET(req: Request) {
 
     cache[key] = { at: now, data: out };
     return NextResponse.json(out, { headers: cacheHeaders(TTL_MS) });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'failed' }, { status: 500 });
   }
 }

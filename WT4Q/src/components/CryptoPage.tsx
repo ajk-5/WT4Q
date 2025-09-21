@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import CryptoTicker, { TickerItem } from './CryptoTicker';
 import CryptoChart, { Candle } from './CryptoChart';
 import styles from './CryptoPage.module.css';
@@ -18,7 +19,6 @@ export default function CryptoPage() {
   const [tf, setTf] = useState<Timeframe>('1h');
   const [candles, setCandles] = useState<Candle[]>([]);
   const [q, setQ] = useState('');
-  const [loading, setLoading] = useState(false);
 
   // Pull top 10 tickers for table by default
   useEffect(() => {
@@ -71,7 +71,6 @@ export default function CryptoPage() {
   useEffect(() => {
     if (!symbol) return;
     let active = true;
-    setLoading(true);
     const load = async () => {
       try {
         const limit = tf === '1m' ? 1200 : tf === '5m' ? 1200 : tf === '1h' ? 1000 : tf === '1d' ? 700 : tf === '1w' ? 800 : tf === '1M' ? 600 : 365;
@@ -80,9 +79,6 @@ export default function CryptoPage() {
         const data = (await res.json()) as Candle[];
         if (active) setCandles(data);
       } catch {}
-      finally {
-        if (active) setLoading(false);
-      }
     };
     load();
     return () => { active = false; };
@@ -153,13 +149,13 @@ export default function CryptoPage() {
             >
               Top 10
             </button>
-            <a
+            <Link
               className={`${styles.btn} ${!showTopOnly ? styles.btnActive : ''}`}
               href="/crypto/all"
               title="Open the full list"
             >
               Show all
-            </a>
+            </Link>
             <span className={styles.muted}>{showTopOnly ? 'Showing top 10 by volume' : `Showing ${tickers.length} coins`}</span>
           </div>
           <div className={styles.searchRow}>
@@ -234,12 +230,6 @@ function renderMiniRange(t: TickerItem) {
       <span className={styles.miniMarker} style={{ left: `${pos * 100}%` }} />
     </div>
   );
-}
-
-function renderName(t: TickerItem, map: Record<string, string>) {
-  const base = t.symbol.replace(/USDT$/, '').toUpperCase();
-  const n = t.name || map[base];
-  return n ? ` (${n})` : '';
 }
 
 function renderDisplayName(t: TickerItem, map: Record<string, string>) {

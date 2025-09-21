@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { createChart, ColorType, UTCTimestamp, Time } from 'lightweight-charts';
+import { createChart, ColorType, UTCTimestamp } from 'lightweight-charts';
 
 export type Candle = {
   time: number; // seconds since epoch
@@ -60,7 +60,7 @@ export default function CryptoChart({ data, symbol, interval, className }: Props
       color: 'rgba(0,0,0,0.2)',
     });
     try {
-      chart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } as any });
+      chart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
     } catch {}
 
     chartRef.current = chart;
@@ -94,7 +94,7 @@ export default function CryptoChart({ data, symbol, interval, className }: Props
     v.setData(data.map((c) => ({
       time: c.time as UTCTimestamp,
       value: c.volume ?? 0,
-      color: (c.close >= c.open ? 'rgba(38,166,154,0.4)' : 'rgba(239,83,80,0.4)') as any,
+      color: c.close >= c.open ? 'rgba(38,166,154,0.4)' : 'rgba(239,83,80,0.4)',
     })));
     chartRef.current?.timeScale().fitContent();
   }, [data]);

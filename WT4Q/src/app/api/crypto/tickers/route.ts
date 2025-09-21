@@ -82,7 +82,7 @@ export async function GET(req: Request) {
         'Vercel-CDN-Cache-Control': `public, s-maxage=${TTL_MS / 1000}, stale-while-revalidate=30`,
       },
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load tickers' }, { status: 500 });
   }
 }
