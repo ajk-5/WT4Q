@@ -3,8 +3,27 @@ import CryptoDetailShell from '@/components/CryptoDetailShell';
 
 export const dynamic = 'force-dynamic';
 
-export function generateMetadata({ params }: { params: { symbol: string } }): Metadata {
-  const sym = (params.symbol || '').toUpperCase();
+type RouteParams = {
+  symbol?: string | string[];
+};
+
+type RouteProps = {
+  params?: Promise<RouteParams>;
+};
+
+function normalizeSymbol(symbol?: string | string[]) {
+  const value = Array.isArray(symbol) ? symbol[0] : symbol;
+  return (value ?? '').toUpperCase();
+}
+
+async function resolveParams(params: RouteProps['params']) {
+  return params ? await params : undefined;
+}
+
+export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
+  const resolved = await resolveParams(params);
+  const sym = normalizeSymbol(resolved?.symbol);
+
   return {
     title: `${sym} price, chart & news`,
     description: `Live ${sym} price chart and latest news.`,
@@ -12,8 +31,9 @@ export function generateMetadata({ params }: { params: { symbol: string } }): Me
   };
 }
 
-export default function Page({ params }: { params: { symbol: string } }) {
-  const sym = (params.symbol || '').toUpperCase();
+export default async function Page({ params }: RouteProps) {
+  const resolved = await resolveParams(params);
+  const sym = normalizeSymbol(resolved?.symbol);
+
   return <CryptoDetailShell symbol={sym} />;
 }
-
