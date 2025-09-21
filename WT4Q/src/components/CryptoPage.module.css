@@ -1,0 +1,169 @@
+/* Layout for the crypto page to match the site's newspaper theme */
+.container {
+  display: grid;
+  gap: 1rem;
+  background: transparent;
+  color: var(--ink, #111);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0.25rem 0;
+  color: var(--ink, #111);
+}
+
+.subtle {
+  color: rgba(0,0,0,0.6);
+  font-size: 0.92rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.75rem;
+  color: var(--ink, #111);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.5);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink, #111);
+}
+
+.btnActive {
+  background: transparent;
+  color: var(--ink, #111);
+  border-color: var(--ink, #111);
+  border-width: 2px;
+}
+
+.chart {
+  height: 520px;
+}
+
+.tableWrap { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.thead th {
+  text-align: left;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 2px solid rgba(0,0,0,0.12);
+}
+
+.row {
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.rowBtn {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem 0.4rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink, #111) !important;
+}
+
+.rowBtn span { color: inherit; }
+
+.rowBtn:hover {
+  background: rgba(0,0,0,0.035);
+}
+
+.sym { font-weight: 800; }
+.pos { color: #0a7a26; }
+.neg { color: #b00020; }
+
+.miniRange {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.08);
+}
+.miniFill { position: absolute; top:0; bottom:0; left:0; border-radius: 999px; }
+.miniFillUp { background: linear-gradient(90deg, #b8e5c7, #4caf50); }
+.miniFillDown { background: linear-gradient(90deg, #f8c8cc, #e53935); }
+.miniMarker { position:absolute; top:-3px; width:2px; height:12px; background: rgba(0,0,0,0.8); }
+
+.searchRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.searchInput {
+  flex: 1 1 auto;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(0,0,0,0.18);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.muted { color: rgba(0,0,0,0.6); font-size: 0.9rem; }
+
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: 1fr; }
+  .chart { height: 420px; }
+}
+
+@media (max-width: 768px) {
+  .thead { display: none; }
+  .rowBtn {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 0.25rem;
+  }
+  /* Hide range and volume on small screens */
+  .rowBtn span:nth-child(4),
+  .rowBtn span:nth-child(5) { display: none; }
+  .btn { padding: 0.3rem 0.55rem; font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+  .chart { height: 340px; }
+}

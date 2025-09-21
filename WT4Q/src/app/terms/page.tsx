@@ -1,7 +1,30 @@
+import type { Metadata } from 'next';
 import styles from './page.module.css';
 
-export const metadata = {
-  title: 'Terms of Service & Cookie Policy',
+export const metadata: Metadata = {
+  title: 'Terms of Service & Cookie Policy | The Nineties Times',
+  description: "Review the latest Terms of Service, community guidelines, and cookie policy for The Nineties Times (90sTimes), your hub for breaking news and analysis.",
+  keywords: [
+    'terms of service 2025',
+    'cookie policy update',
+    'user guidelines news site',
+    'community standards',
+    'The Nineties Times terms',
+    '90sTimes legal',
+    'content moderation policies'
+  ],
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    title: 'The Nineties Times Terms & Cookie Policy',
+    description: "Stay up to date on user responsibilities, content rules, and cookie usage across The Nineties Times network.",
+    url: '/terms',
+    type: 'article',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'The Nineties Times Terms & Cookie Policy',
+    description: "Learn about account rules, data usage, and advertising consent for readers and contributors at 90sTimes.",
+  },
 };
 
 export default function TermsPage() {
@@ -72,6 +95,28 @@ export default function TermsPage() {
         When we do, we post the revision date prominently. Continuing to use The Nineties Times
         after revisions means you agree to the updated rules, so check back
         periodically to stay informed.
+      </p>
+      <h2 className={styles.heading}>Crypto Market Data &amp; Disclaimers</h2>
+      <p>
+        The Crypto section aggregates prices, charts and rankings from
+        third‑party providers (including Binance and CoinGecko) and headlines
+        from Google News RSS. This information is provided “as‑is” for
+        educational and informational purposes only. It is not investment
+        advice, a solicitation, or a recommendation to buy or sell any asset.
+      </p>
+      <ul>
+        <li>Data may be delayed, incomplete or incorrect. Availability is not guaranteed.</li>
+        <li>We are not responsible for market losses incurred based on information displayed here.</li>
+        <li>The site does not facilitate trading or hold customer funds.</li>
+        <li>Use of third‑party APIs is subject to those providers’ terms.</li>
+      </ul>
+      <h2 className={styles.heading}>Crypto Preferences &amp; Cookies</h2>
+      <p>
+        To improve usability, the Crypto pages may store non‑essential
+        preferences (such as a last selected symbol or timeframe) in cookies or
+        local storage. These do not track you across sites and can be cleared in
+        your browser at any time. Analytics/advertising cookies remain optional
+        and controlled through our consent banner.
       </p>
       <p>
         If you have questions about any of these terms or how we handle cookies,

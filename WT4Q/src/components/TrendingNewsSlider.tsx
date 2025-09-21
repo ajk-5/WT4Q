@@ -29,7 +29,8 @@ type Props = {
 
 const ROTATE_MS = 5000;
 const TICKER_BREAKPOINT = 768;
-const TICKER_SPEED = 0.5;
+const TICKER_PIXELS_PER_SEC = 24;
+const TICKER_SCROLL_RATIO = 0.85;
 const TICKER_PAUSE_AFTER_ARROW_MS = 4000;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 48;
 
@@ -50,6 +51,8 @@ export default function TrendingNewsSlider({
   const tickerViewportRef = useRef<HTMLDivElement>(null);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
   const tickerPauseTimeoutRef = useRef<number | null>(null);
+  const tickerFrameTimeRef = useRef<number | null>(null);
+  const tickerBaseWidthRef = useRef<number>(0);
 
   const needFetch = useMemo(
     () => !(initialArticles && initialArticles.length > 0),
@@ -103,22 +106,50 @@ export default function TrendingNewsSlider({
     const track = tickerTrackRef.current;
     if (!viewport || !track || !tickerLoop.length) return undefined;
 
-    let frame = 0;
-    const step = () => {
+    let frameId = 0;
+    tickerFrameTimeRef.current = null;
+    const measure = () => {
+      tickerBaseWidthRef.current = track.scrollWidth / 2;
+    };
+    measure();
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+
+    const step = (time: number) => {
       if (!tickerPaused) {
-        const baseWidth = track.scrollWidth / 2;
+        const baseWidth = tickerBaseWidthRef.current;
         if (baseWidth > 0) {
-          viewport.scrollLeft += TICKER_SPEED;
-          if (viewport.scrollLeft >= baseWidth) {
-            viewport.scrollLeft -= baseWidth;
+          const last = tickerFrameTimeRef.current;
+          if (last === null) {
+            tickerFrameTimeRef.current = time;
+          } else {
+            const delta = Math.min(time - last, 1000);
+            const distance = (TICKER_PIXELS_PER_SEC * delta) / 1000;
+            let next = viewport.scrollLeft + distance;
+            if (next >= baseWidth) {
+              next %= baseWidth;
+            }
+            viewport.scrollLeft = next;
+            tickerFrameTimeRef.current = time;
           }
         }
+      } else {
+        tickerFrameTimeRef.current = time;
       }
-      frame = window.requestAnimationFrame(step);
+      frameId = window.requestAnimationFrame(step);
     };
-    frame = window.requestAnimationFrame(step);
-    return () => window.cancelAnimationFrame(frame);
+
+    frameId = window.requestAnimationFrame(step);
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      tickerFrameTimeRef.current = null;
+      window.removeEventListener('resize', onResize);
+    };
   }, [isTickerMode, tickerPaused, tickerLoop.length, tickerKey]);
+
+  useEffect(() => {
+    tickerFrameTimeRef.current = null;
+  }, [tickerPaused, isTickerMode]);
 
   useEffect(() => () => {
     if (tickerPauseTimeoutRef.current) {
@@ -132,12 +163,13 @@ export default function TrendingNewsSlider({
   const pauseTickerTemporarily = (ms = TICKER_PAUSE_AFTER_ARROW_MS) => {
     if (!isTickerMode) return;
     setTickerPaused(true);
+    tickerFrameTimeRef.current = null;
     if (tickerPauseTimeoutRef.current) {
       window.clearTimeout(tickerPauseTimeoutRef.current);
     }
     tickerPauseTimeoutRef.current = window.setTimeout(() => {
       tickerPauseTimeoutRef.current = null;
-      setTickerPaused(false);
+      setTickerPaused(() => { tickerFrameTimeRef.current = null; return false; });
     }, ms);
   };
 
@@ -155,15 +187,15 @@ export default function TrendingNewsSlider({
     if (!viewport || !track) return;
     const baseWidth = track.scrollWidth / 2;
     if (baseWidth <= 0) return;
-    const delta = direction === 'next' ? viewport.clientWidth : -viewport.clientWidth;
-    let target = viewport.scrollLeft + delta;
+    const step = viewport.clientWidth * TICKER_SCROLL_RATIO;
+    let target = viewport.scrollLeft + (direction === 'next' ? step : -step);
     if (target < 0) {
-      target = baseWidth + target;
-    }
-    if (target >= baseWidth) {
-      target -= baseWidth;
+      target = (target % baseWidth + baseWidth) % baseWidth;
+    } else if (target >= baseWidth) {
+      target = target % baseWidth;
     }
     viewport.scrollTo({ left: target, behavior: 'smooth' });
+    tickerFrameTimeRef.current = null;
     pauseTickerTemporarily();
   };
 
@@ -311,7 +343,7 @@ export default function TrendingNewsSlider({
   const handleTickerMouseLeave = () => {
     if (!isTickerMode) return;
     clearTickerPauseTimeout();
-    setTickerPaused(false);
+    setTickerPaused(() => { tickerFrameTimeRef.current = null; return false; });
   };
 
   const handleTickerPointerDown = () => {
@@ -325,14 +357,14 @@ export default function TrendingNewsSlider({
     if (event.pointerType === 'touch') {
       pauseTickerTemporarily(2500);
     } else {
-      setTickerPaused(false);
+      setTickerPaused(() => { tickerFrameTimeRef.current = null; return false; });
     }
   };
 
   const handleTickerPointerCancel = () => {
     if (!isTickerMode) return;
     clearTickerPauseTimeout();
-    setTickerPaused(false);
+    setTickerPaused(() => { tickerFrameTimeRef.current = null; return false; });
   };
 
   const tickerContent = isTickerMode && hasArticles ? (
@@ -411,11 +443,11 @@ export default function TrendingNewsSlider({
                     alt={first?.altText || title}
                     fill
                     priority={index === 0}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
                     style={{ objectFit: 'cover' }}
                     placeholder={base64 ? 'blur' : undefined}
                     blurDataURL={base64}
-                    unoptimized={!!base64}
                   />
                   {first?.caption ? (
                     <figcaption className={styles.detailCaption}>{first.caption}</figcaption>

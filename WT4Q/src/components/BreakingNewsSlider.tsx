@@ -27,10 +27,13 @@ type Props = {
 };
 
 const ROTATE_MS = 5000;
-const TICKER_BREAKPOINT = 768;
-const TICKER_SPEED = 0.5;
+const TICKER_SPEED_PX_PER_SEC = 24;
 const TICKER_PAUSE_AFTER_ARROW_MS = 4000;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 48;
+
+const MARQUEE_PIXELS_PER_SEC = 20;
+const MARQUEE_MIN_DURATION_SEC = 12;
+const MARQUEE_MIN_DISTANCE_PX = 120;
 
 export default function BreakingNewsSlider({
   articles: initialArticles,
@@ -41,7 +44,6 @@ export default function BreakingNewsSlider({
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [manualPause, setManualPause] = useState(false);
-  const [isSmallViewport, setIsSmallViewport] = useState(false);
   const [tickerPaused, setTickerPaused] = useState(false);
 
   const fetchedOnceRef = useRef(false);
@@ -49,21 +51,14 @@ export default function BreakingNewsSlider({
   const tickerViewportRef = useRef<HTMLDivElement>(null);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
   const tickerPauseTimeoutRef = useRef<number | null>(null);
+  const tickerBaseWidthRef = useRef<number>(0);
 
   const needFetch = useMemo(
     () => !(initialArticles && initialArticles.length > 0),
     [initialArticles],
   );
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const updateViewport = () => setIsSmallViewport(window.innerWidth <= TICKER_BREAKPOINT);
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    return () => window.removeEventListener('resize', updateViewport);
-  }, []);
-
-  const isTickerMode = !showDetails && isSmallViewport && articles.length > 0;
+  const isTickerMode = !showDetails && articles.length > 0;
 
   const tickerBaseArticles = useMemo(() => {
     if (!articles.length) return [];
@@ -96,28 +91,29 @@ export default function BreakingNewsSlider({
     return undefined;
   }, [isTickerMode, tickerKey]);
 
+  // Setup CSS-driven ticker animation based on measured width
   useEffect(() => {
     if (!isTickerMode) return undefined;
     const viewport = tickerViewportRef.current;
     const track = tickerTrackRef.current;
     if (!viewport || !track || !tickerLoop.length) return undefined;
 
-    let frame = 0;
-    const step = () => {
-      if (!tickerPaused) {
-        const baseWidth = track.scrollWidth / 2;
-        if (baseWidth > 0) {
-          viewport.scrollLeft += TICKER_SPEED;
-          if (viewport.scrollLeft >= baseWidth) {
-            viewport.scrollLeft -= baseWidth;
-          }
-        }
+    const measure = () => {
+      tickerBaseWidthRef.current = Math.floor(track.scrollWidth / 2);
+      const baseWidth = tickerBaseWidthRef.current;
+      if (baseWidth > 0) {
+        const durationSeconds = Math.max(6, baseWidth / TICKER_SPEED_PX_PER_SEC);
+        track.style.setProperty('--ticker-distance', `${baseWidth}px`);
+        track.style.setProperty('--ticker-duration', `${durationSeconds}s`);
       }
-      frame = window.requestAnimationFrame(step);
     };
-    frame = window.requestAnimationFrame(step);
-    return () => window.cancelAnimationFrame(frame);
-  }, [isTickerMode, tickerPaused, tickerLoop.length, tickerKey]);
+    measure();
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [isTickerMode, tickerLoop.length, tickerKey]);
 
   useEffect(() => () => {
     if (tickerPauseTimeoutRef.current) {
@@ -247,14 +243,23 @@ export default function BreakingNewsSlider({
     const container = el?.parentElement as HTMLElement | null;
     if (!el || !container) return;
 
-    const offset = el.scrollWidth - container.clientWidth;
-    if (offset > 0) {
-      el.style.setProperty('--scroll-distance', `-${offset}px`);
-      el.style.setProperty('--scroll-duration', `${offset / 50}s`);
-      el.classList.add(styles.marquee);
-    } else {
+    if (!el.textContent?.trim()) {
       el.classList.remove(styles.marquee);
+      return;
     }
+
+    const travelDistance = Math.max(
+      el.scrollWidth + container.clientWidth,
+      MARQUEE_MIN_DISTANCE_PX,
+    );
+    const durationSeconds = Math.max(
+      travelDistance / MARQUEE_PIXELS_PER_SEC,
+      MARQUEE_MIN_DURATION_SEC,
+    );
+
+    el.style.setProperty('--scroll-distance', `-${travelDistance}px`);
+    el.style.setProperty('--scroll-duration', `${durationSeconds}s`);
+    el.classList.add(styles.marquee);
   }, [index, articles]);
 
   useEffect(() => {
@@ -332,13 +337,16 @@ export default function BreakingNewsSlider({
     <div
       className={styles.tickerViewport}
       ref={tickerViewportRef}
-      onMouseEnter={handleTickerMouseEnter}
-      onMouseLeave={handleTickerMouseLeave}
       onPointerDown={handleTickerPointerDown}
       onPointerUp={handleTickerPointerUp}
       onPointerCancel={handleTickerPointerCancel}
     >
-      <div className={styles.tickerTrack} ref={tickerTrackRef}>
+      <div
+        className={`${styles.tickerTrack} ${
+          tickerPaused ? styles.tickerPaused : styles.tickerAnimating
+        }`.trim()}
+        ref={tickerTrackRef}
+      >
         {tickerLoop.map((article, loopIndex) => {
           const isCycleStart = loopIndex % tickerBaseLength === 0;
           return (
@@ -404,11 +412,11 @@ export default function BreakingNewsSlider({
                     alt={first?.altText || title}
                     fill
                     priority={index === 0}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
                     style={{ objectFit: 'cover' }}
                     placeholder={base64 ? 'blur' : undefined}
                     blurDataURL={base64}
-                    unoptimized={!!base64}
                   />
                   {first?.caption ? (
                     <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
@@ -479,3 +487,5 @@ export default function BreakingNewsSlider({
     </div>
   );
 }
+
+

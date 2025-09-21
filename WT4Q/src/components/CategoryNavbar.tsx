@@ -42,6 +42,9 @@ export default function CategoryNavbar({ open, onNavigate, forceSidebar }: Props
             <PrefetchLink href="/trending" className={styles.link} onClick={onNavigate}>
        Trending news 
       </PrefetchLink>
+      <PrefetchLink href="/crypto" className={styles.link} onClick={onNavigate}>
+        Crypto
+      </PrefetchLink>
       <div className={styles.dropdown}>
         <PrefetchLink href="/tools" className={styles.link} onClick={onNavigate}>
           Tools

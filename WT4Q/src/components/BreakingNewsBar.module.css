@@ -9,12 +9,14 @@
 }
 
 .grow {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .bar {
   margin: 0;
   border-radius: 0;
+  min-width: 0;
 }
 
 .controls {
@@ -77,3 +79,4 @@
     width: min(85vw, 100%);
   }
 }
+

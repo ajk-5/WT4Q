@@ -1,0 +1,17 @@
+## Production target: modern evergreen browsers only
+[production]
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Edge versions
+last 2 Safari versions
+last 2 iOS versions
+not dead
+not op_mini all
+not IE 11
+
+## Dev target: current browsers for faster HMR
+[development]
+last 1 Chrome version
+last 1 Firefox version
+last 1 Safari version
+

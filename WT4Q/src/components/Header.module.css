@@ -234,11 +234,27 @@
   .categories {
     z-index: 40;
   }
-    .search {
+
+  .search {
     width: auto;
     justify-content: flex-start;
     margin-left: 20%;
-  
+  }
+
+  .dateline {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dateline {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dateline {
+    font-size: 0.7rem;
   }
 }
 
@@ -250,4 +266,5 @@
     transform: translateY(0);
   }
 }
+
 

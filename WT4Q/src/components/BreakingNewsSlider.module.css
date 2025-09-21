@@ -3,10 +3,10 @@
   --placeholder-base: rgba(17, 17, 17, 0.08);
   --placeholder-highlight: rgba(17, 17, 17, 0.18);
 
-  background: var(--paper, #fefcf7);
+  background: transparent;
   color: #111111;
-  padding: clamp(0.6rem, 1.2vw, 0.85rem) clamp(0.75rem, 2vw, 1.25rem);
-  margin: 0.2rem 0;
+  padding: clamp(0.35rem, 1vw, 0.55rem) clamp(0.45rem, 1.5vw, 0.9rem);
+  margin: 0;
   border-radius: 0.5rem;
   text-align: center;
   position: relative;
@@ -15,6 +15,7 @@
   border: 1px solid rgba(17, 17, 17, 0.1);
   box-shadow: 0 0.75rem 1.5rem rgba(17, 17, 17, 0.08);
   transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  min-width: 0;
 }
 
 .slider:hover {
@@ -29,6 +30,7 @@
 }
 
 .detailMode {
+  background: var(--paper, #fefcf7);
   min-height: clamp(22rem, 34vw, 28rem);
   display: flex;
   align-items: stretch;
@@ -47,39 +49,56 @@
 .tickerViewport {
   display: flex;
   align-items: center;
-  overflow-x: auto;
-  scrollbar-width: none;
-  gap: 0.65rem;
-  padding: 0.15rem 0;
+  overflow: hidden; /* transform-based ticker */
+  gap: 0.24rem;
+  padding: 0.04rem 0;
   margin: 0;
-  cursor: grab;
-}
-
-.tickerViewport::-webkit-scrollbar {
-  display: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tickerTrack {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.65rem;
+  gap: 0.22rem;
   width: max-content;
+  will-change: transform;
+}
+
+/* Transform-based continuous ticker animation */
+.tickerAnimating {
+  animation: ticker-move var(--ticker-duration, 24s) linear infinite;
+}
+
+.tickerPaused {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-move {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-1 * var(--ticker-distance, 50%))); }
 }
 
 .tickerItem {
   display: inline-flex;
   align-items: center;
   font-weight: 700;
+  font-size: clamp(0.62rem, 1.45vw, 0.78rem);
   color: inherit;
   text-decoration: none;
   white-space: nowrap;
-  padding: 0 0.5rem;
+  padding: 0 0.16rem;
+}
+
+.tickerItem:hover {
+  text-decoration: underline;
 }
 
 .tickerSeparator {
-  width: 0.35rem;
-  height: 0.35rem;
+  width: 0.25rem;
+  height: 0.25rem;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.85);
   flex: 0 0 auto;
@@ -103,12 +122,17 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  font-size: clamp(0.7rem, 1.65vw, 0.88rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  padding: 0.25rem clamp(2.5rem, 6vw, 3.5rem);
-  gap: 0.5rem;
+  padding: 0.1rem clamp(0.9rem, 3.2vw, 1.5rem);
+  gap: 0.22rem;
+}
+
+.item:hover {
+  text-decoration: underline;
 }
 
 .item span {
@@ -315,7 +339,7 @@
 }
 
 .snippet::-webkit-scrollbar {
-  width: 0.35rem;
+  width: 0.25rem;
 }
 
 .snippet::-webkit-scrollbar-track {
@@ -396,7 +420,12 @@
   height: 36px;
 }
 
-.slider:hover .arrow {
+.slider:hover .arrow,
+.slider:focus-within .arrow {
+  opacity: 1;
+}
+
+.arrow:focus-visible {
   opacity: 1;
 }
 
@@ -450,13 +479,13 @@
   }
 
   .tickerViewport {
-    gap: 0.5rem;
-    padding: 0.1rem 0;
+    gap: 0.25rem;
+    padding: 0.05rem 0;
   }
 
   .tickerItem {
-    font-size: clamp(0.95rem, 3.4vw, 1.05rem);
-    padding: 0 0.35rem;
+    font-size: clamp(0.6rem, 2.6vw, 0.78rem);
+    padding: 0 0.2rem;
   }
 
   .tickerSeparator {
@@ -465,12 +494,13 @@
   }
 
   .arrow {
-    opacity: 0.75;
+    opacity: 0;
     background: rgba(255, 255, 255, 0.65);
     border-radius: 50%;
   }
 
-  .slider:hover .arrow {
+  .slider:hover .arrow,
+  .slider:focus-within .arrow {
     opacity: 0.9;
   }
 
@@ -490,6 +520,10 @@
   }
 
   .item {
-    padding-inline: clamp(1.5rem, 7vw, 2.25rem);
+    font-size: clamp(0.66rem, 2.7vw, 0.84rem);
+    padding-inline: clamp(1.35rem, 6.5vw, 2rem);
   }
 }
+
+
+

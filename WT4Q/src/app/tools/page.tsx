@@ -3,9 +3,30 @@ import PrefetchLink from '@/components/PrefetchLink';
 import styles from './Tools.module.css';
 
 export const metadata: Metadata = {
-  title: 'Tools',
+  title: 'Newsroom Tools | QR Scanner, World Clock & Typing Practice',
   description:
-    'Handy utilities including a world clock, typing practice, and a free QR code scanner.',
+    'Use The Nineties Times toolbox for a lightning-fast QR code scanner, global world clock, and typing speed practice while you follow breaking news.',
+  keywords: [
+    'free qr code scanner',
+    'world clock online',
+    'typing speed test',
+    'newsroom productivity tools',
+    'browser utilities 2025',
+    '90sTimes tools',
+    'real-time world time zones'
+  ],
+  alternates: { canonical: '/tools' },
+  openGraph: {
+    title: 'Newsroom Tools by The Nineties Times',
+    description: 'Scan QR codes, check world time zones, and sharpen your typing speed with free utilities from The Nineties Times.',
+    url: '/tools',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Free QR Scanner & World Clock | The Nineties Times Tools',
+    description: 'Access a quick QR reader, interactive world clock, and typing practice in one newsroom toolkit.',
+  },
 };
 
 export default function ToolsPage() {

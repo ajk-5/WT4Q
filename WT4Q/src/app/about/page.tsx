@@ -1,7 +1,30 @@
+import type { Metadata } from 'next';
 import styles from './page.module.css';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'About The Nineties Times',
+  description: "Discover how The Nineties Times (90sTimes) delivers breaking news, fact-checked reporting, and culture coverage with an independent newsroom built for today's readers.",
+  keywords: [
+    'independent news brand',
+    'breaking news 2025',
+    'unbiased journalism',
+    'digital newsroom team',
+    'The Nineties Times',
+    '90sTimes editors',
+    'fact checked reporting'
+  ],
+  alternates: { canonical: '/about' },
+  openGraph: {
+    title: 'About The Nineties Times',
+    description: "Meet the team behind The Nineties Times (90sTimes) and learn how we deliver independent, breaking news coverage across politics, business, tech, sport, and culture.",
+    url: '/about',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'About The Nineties Times',
+    description: "Learn how The Nineties Times newsroom combines trusted reporting, emerging tech, and reader-first coverage to deliver the day's biggest stories.",
+  },
 };
 
 export default function AboutPage() {
@@ -26,8 +49,23 @@ The Nineties Times also integrates smart external services to make your experien
 <p>
 Security is a top priority for The Nineties Times. The platform uses Bcrypt encryption to protect user data and integrates Google OAuth for secure authentication. This ensures that every user can browse, interact, and participate with complete peace of mind. By combining the intelligence of AI with trusted external APIs, The Nineties Times delivers a comprehensive digital hub where staying informed is effortless, engaging, and secure.
 </p>
-<p>Our next top priority is  Newsletter functionality. We are working on it and will be published after some week.</p>
-<p></p>
+<h2 className={styles.heading}>Crypto Markets at 90sTimes</h2>
+<p>
+We offer a transparent Crypto section to help readers understand market
+movements at a glance. Prices and 24‑hour stats for top assets are sourced
+from public APIs (e.g., Binance for USDT pairs) and market‑cap rankings from
+CoinGecko. Clicking any asset opens a candlestick chart with multiple
+timeframes (1m to 1y). News items related to a coin are aggregated via Google
+News RSS. This feature is informational only—we do not provide trading, hold
+funds, or offer investment advice.
+</p>
+<p>
+To keep pages fast, we briefly cache small responses and store optional
+display preferences (such as your last selected symbol or timeframe) in your
+browser. You can clear these any time. Data may be delayed or unavailable; we
+cannot guarantee accuracy. Always do your own research.
+</p>
+<p>Our next top priority is Newsletter functionality. We are working on it and will be published after some week.</p>
     </div>
   );
 }

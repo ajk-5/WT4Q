@@ -46,24 +46,6 @@ export default function WeatherWidget() {
     return () => clearInterval(id);
   }, []);
 
-  const refresh = () => {
-    fetch(API_ROUTES.WEATHER.CURRENT)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setWeather(data);
-      })
-      .catch(() => {});
-
-    fetch(API_ROUTES.USER_LOCATION.GET)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.city && data.country) {
-          setLocation({ city: data.city, country: data.country });
-        }
-      })
-      .catch(() => {});
-  };
-
   if (!weather) return null;
 
   return (
@@ -90,7 +72,6 @@ export default function WeatherWidget() {
           {location.city}, {location.country}
         </span>
       )}
-      <button className={styles.button} onClick={refresh} aria-label="Refresh weather">↻</button>
     </div>
   );
 }

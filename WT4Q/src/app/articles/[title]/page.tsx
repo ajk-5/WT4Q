@@ -8,6 +8,7 @@ import type { Comment } from '@/components/CommentsSection';
 import { API_ROUTES } from '@/lib/api';
 import type { Metadata } from 'next';
 import styles from '../article.module.css';
+import BackButton from '@/components/BackButton';
 export const revalidate = 300; // ISR article page revalidation
 
 // Preload Inter font only on article pages to scope font preloading
@@ -150,7 +151,8 @@ export async function generateMetadata(
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
-  const url = new URL(`/articles/${title}`, siteUrl).toString();
+  const canonicalPath = `/articles/${article.slug || title}`;
+  const url = new URL(canonicalPath, siteUrl).toString();
 
   const description =
     article.summary || (article.content || '').slice(0, 160);
@@ -244,6 +246,9 @@ export default async function ArticlePage(
         })}
       </Script>
       <article className={styles.main}>
+        <div className={styles.backRow}>
+          <BackButton className={styles.backButton} fallback="/" />
+        </div>
         {isBreakingActive && (
           <div className={styles.breaking}>Breaking News</div>
         )}

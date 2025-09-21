@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PrefetchLink from './PrefetchLink';
 import CategoryNavbar from './CategoryNavbar';
 import UserMenu from './UserMenu';
@@ -11,18 +11,43 @@ import styles from './Header.module.css';
 // Revert portal usage
 
 export default function Header() {
+  const headerRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dateline = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
+    weekday: 'short',
     month: 'long',
     day: 'numeric',
+    year: 'numeric',
   });
 
   const handleNavigate = () => {
     if (window.innerWidth <= 1024) setOpen(false);
   };
+
+  const updateHeaderOffset = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const height = headerRef.current?.offsetHeight ?? 0;
+    document.documentElement.style.setProperty('--header-offset', `${height}px`);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    updateHeaderOffset();
+
+    const observer = 'ResizeObserver' in window ? new ResizeObserver(() => updateHeaderOffset()) : null;
+    const target = headerRef.current;
+    if (observer && target) observer.observe(target);
+
+    const onResize = () => updateHeaderOffset();
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      if (observer) observer.disconnect();
+    };
+  }, [updateHeaderOffset]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -51,12 +76,13 @@ export default function Header() {
     } else {
       root.classList.remove('header-scrolled');
     }
-  }, [scrolled]);
+    updateHeaderOffset();
+  }, [scrolled, updateHeaderOffset]);
 
   // No portal: rely on CSS to show/hide the sidebar when scrolled/mobile
 
   return (
-    <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
+    <header ref={headerRef} className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.inner}>
         {/* Mobile menu button at top-left */}

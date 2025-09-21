@@ -1,4 +1,7 @@
-/* Self-host Inter via next/font in layout; removed render-blocking @import */
+import type { ReactElement } from 'react';
+
+const globalCss = String.raw`
+/* Global baseline styles inlined to avoid a render-blocking stylesheet */
 
 /* =========
    Fonts
@@ -24,6 +27,7 @@
   --accent: #e63946;
   --ink: #000;
   --muted: #6c757d;
+  --font-inter: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 
   /* Theme (kept) */
   --wt4q-yellow: #ffd166;
@@ -65,7 +69,8 @@
   --shadow-elev: 0 6px 15px rgba(0,0,0,0.4);
   --shadow-elev-lg: 0 12px 25px rgba(0,0,0,0.45);
   /* Reserve space for the fixed header without JS measurements */
-  --header-height: calc(clamp(1.4rem, 5vw, 2.8rem) * 1.05 + 4.5rem);
+  --header-height: calc(clamp(1.6rem, 6vw, 3.6rem) * 1.1 + 6.75rem);
+  --header-offset: calc(var(--header-height) - clamp(0.65rem, 2vw, 1.6rem));
 }
 
 /* Dark scheme tweaks (kept) */
@@ -90,7 +95,7 @@ html {
 }
 
 /* =========
-   Background fix — always covers screen
+   Background fix -- always covers screen
    ========= */
 body {
   color: var(--foreground);
@@ -106,7 +111,7 @@ body {
   min-height: 100svh;
   min-height: -webkit-fill-available;
   /* Reserve space below fixed header so content isn't hidden */
-  padding-top: var(--header-height);
+  padding-top: var(--header-offset);
 }
 
 body::before {
@@ -125,24 +130,38 @@ body::before {
 body.site-bg--purple::before {
   background-image:
     radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
-    radial-gradient(1400px circle at 80% 0%, #3a17a7 0%, #2b0a86 55%, #1f085f 85%, #14043d 100%),
+    radial-gradient(1400px circle at 80% 0, #3a17a7 0, #2b0a86 55%, #1f085f 85%, #14043d 100%),
     url('/images/paper_background.webp');
 }
 
-/* =========
-   Images & links
-   ========= */
-img, svg, video, canvas { max-width: 100%; height: auto; display: block; }
+canvas,
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
 
-a { color: inherit; text-decoration: none; }
-a:focus-visible, button:focus-visible {
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible {
   outline: 3px solid var(--wt4q-yellow);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
 /* Headings */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-variant: small-caps;
 }
 
@@ -174,8 +193,10 @@ main {
 
 .shinyText {
   background: var(--metal-gradient);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* =========
@@ -201,20 +222,34 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* =========
    RESPONSIVE
    ========= */
 @media (max-width: 1024px) {
+  :root {
+    --header-offset: calc(var(--header-height) - clamp(0.85rem, 2.75vw, 1.9rem));
+  }
+
   main {
     margin-block-start: clamp(var(--space-3), 2.5vw, var(--space-4));
     margin-block-end: clamp(var(--space-4), 3vw, var(--space-5));
   }
-  button { letter-spacing: 0.04em; }
+
+  button {
+    letter-spacing: 0.04em;
+  }
 }
 
 @media (max-width: 768px) {
+  :root {
+    --header-offset: calc(var(--header-height) - clamp(0.95rem, 3.25vw, 2.1rem));
+  }
+
   main {
     width: min(var(--content-max), 100% - clamp(16px, 5vw, 40px));
     margin-block-start: clamp(var(--space-2), 2.5vw, var(--space-3));
@@ -230,9 +265,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 @media (max-width: 480px) {
-  :root { --radius: 12px; }
+  :root {
+    --radius: 12px;
+    --header-offset: calc(var(--header-height) - clamp(1.05rem, 3.75vw, 2.3rem));
+  }
 
-  body { font-size: clamp(14px, 3.5vw, 16px); }
+  body {
+    font-size: clamp(14px, 3.5vw, 16px);
+  }
 
   main {
     width: min(var(--content-max), 100% - clamp(12px, 4.5vw, 28px));
@@ -248,10 +288,25 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* =========
    Nice-to-haves
    ========= */
-.metallicBg.rounded { border-radius: 1rem; }
-hr { border: 0; height: 1px; background: rgba(0,0,0,0.08); margin: var(--space-5) 0; }
+.metallicBg.rounded {
+  border-radius: 1rem;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+  margin: var(--space-5) 0;
+}
 
 /* Hide the breaking bar when header is compacted */
 html.header-scrolled [data-component='breaking-bar'] {
   display: none !important;
 }
+`;
+
+export function GlobalStyles(): ReactElement {
+  return <style data-inline="global" dangerouslySetInnerHTML={{ __html: globalCss }} />;
+}
+
+export default GlobalStyles;

@@ -4,8 +4,29 @@ import styles from './Games.module.css';
 import Image from 'next/image';
 
 export const metadata: Metadata = {
-  title: 'Games',
-  description: 'Casual games to play during your break.',
+  title: 'Free Online Games | The Nineties Times Arcade',
+  description: 'Play trending browser games including 2048, Tetris, and MetroTrader while you catch up on the latest headlines from The Nineties Times.',
+  keywords: [
+    'free online games',
+    'play 2048 online',
+    'tetris browser game',
+    'casual newsroom games',
+    'metro trader simulator',
+    'news break games',
+    '90sTimes arcade'
+  ],
+  alternates: { canonical: '/games' },
+  openGraph: {
+    title: 'Play Free Online Games at The Nineties Times',
+    description: 'Relax with 2048, Tetris, MetroTrader, and more casual games curated by The Nineties Times newsroom.',
+    url: '/games',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Free Online Games | The Nineties Times',
+    description: 'Try trending browser games like 2048, Tetris, and MetroTrader while staying connected to the news.',
+  },
 };
 
 export default function GamesPage() {

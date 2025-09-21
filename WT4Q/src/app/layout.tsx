@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
-import "./globals.css";
+
+import GlobalStyles from "./global-styles";
 import Header from "@/components/Header";
 import BreakingNewsBar from "@/components/BreakingNewsBar";
 import Footer from "@/components/Footer";
@@ -10,13 +10,6 @@ import PageVisitReporter from "@/components/PageVisitReporter";
 import AdSenseLoader from "@/components/AdSenseLoader";
 import SwgLoader from "@/components/SwgLoader";
 import GoogleAnalyticsLoader from "@/components/GoogleAnalyticsLoader";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false, // reduce 'preloaded but not used' warnings
-});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.90stimes.com";
 
@@ -67,6 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <GlobalStyles />
         {/* Preload background texture used on homepage to avoid late paint */}
         <link rel="preload" as="image" href="/images/paper_background.webp" />
         {/* Structured data for brand synonyms */}
@@ -114,8 +108,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
         <link rel="preconnect" href="https://news.google.com" />
+        <link rel="preconnect" href="https://api.binance.com" />
       </head>
-      <body className={`${inter.variable}`}>
+      <body>
         <PageVisitReporter />
         <AdSenseLoader />
         <GoogleAnalyticsLoader />
@@ -129,7 +124,6 @@ export default function RootLayout({
     </html>
   );
 }
-
 
 export const viewport = {
   width: 'device-width',
