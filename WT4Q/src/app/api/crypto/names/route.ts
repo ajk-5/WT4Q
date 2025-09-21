@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         'Cache-Control': `public, max-age=0, s-maxage=${ttl}, stale-while-revalidate=${ttl}`,
       },
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json([], { status: 200 });
   }
 }

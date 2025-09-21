@@ -127,10 +127,6 @@ export default function CryptoAllPage() {
   );
 }
 
-function prettySymbol(s: string) {
-  return s.replace('USDT', '/USDT');
-}
-
 function formatNumber(n: number) {
   if (!isFinite(n)) return '-';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
@@ -155,12 +151,6 @@ function renderMiniRange(t: Row) {
       <span className={styles.miniMarker} style={{ left: `${pos * 100}%` }} />
     </div>
   );
-}
-
-function renderName(t: Row, map: Record<string, string>) {
-  const base = t.symbol.replace(/USDT$/, '').toUpperCase();
-  const n = map[base];
-  return n ? ` (${n})` : '';
 }
 
 function renderDisplayName(t: Row, map: Record<string, string>) {

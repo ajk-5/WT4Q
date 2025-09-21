@@ -4,7 +4,16 @@ const FEED = (q: string) =>
   `https://news.google.com/rss/search?q=${encodeURIComponent(q)}%20when:7d&hl=en-US&gl=US&ceid=US:en`;
 
 const TTL_MS = 10 * 60 * 1000; // 10 minutes
-let cache: Record<string, { at: number; items: any[] }> = {};
+
+type RssItem = {
+  title?: string;
+  link?: string;
+  pubDate?: string;
+  source?: string;
+  description?: string;
+};
+
+const cache: Record<string, { at: number; items: RssItem[] }> = {};
 
 export async function GET(req: Request) {
   try {
@@ -22,7 +31,7 @@ export async function GET(req: Request) {
     const items = parseRssItems(xml).slice(0, 40);
     cache[key] = { at: now, items };
     return NextResponse.json(items, { headers: cacheHeaders(TTL_MS) });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'failed' }, { status: 500 });
   }
 }

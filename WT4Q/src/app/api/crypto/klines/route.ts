@@ -5,6 +5,16 @@ import { NextResponse } from 'next/server';
 
 const BINANCE_KLINES_URL = 'https://api.binance.com/api/v3/klines';
 
+type BinanceCandle = [
+  number | string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  ...unknown[]
+];
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -31,14 +41,14 @@ export async function GET(req: Request) {
     if (!res.ok) {
       return NextResponse.json({ error: `Upstream error ${res.status}` }, { status: 502 });
     }
-    const raw = (await res.json()) as unknown[];
-    const candles = (raw as any[]).map((c) => ({
-      time: Math.floor(Number(c[0]) / 1000),
-      open: Number(c[1]),
-      high: Number(c[2]),
-      low: Number(c[3]),
-      close: Number(c[4]),
-      volume: Number(c[5]),
+    const raw = (await res.json()) as BinanceCandle[];
+    const candles = raw.map((candle) => ({
+      time: Math.floor(Number(candle[0]) / 1000),
+      open: Number(candle[1]),
+      high: Number(candle[2]),
+      low: Number(candle[3]),
+      close: Number(candle[4]),
+      volume: Number(candle[5]),
     }));
 
     return NextResponse.json(candles, {
@@ -48,7 +58,7 @@ export async function GET(req: Request) {
         'Vercel-CDN-Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=${Math.max(2 * ttl, 60)}`,
       },
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load klines' }, { status: 500 });
   }
 }

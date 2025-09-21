@@ -38,7 +38,22 @@ const STABLES = new Set([
 ]);
 
 let exInfoCache: { at: number; usdtPairs: Set<string> } | null = null;
-let topCache: { at: number; items: any[] } | null = null;
+type TopItem = {
+  symbol: string;
+  lastPrice: number;
+  priceChangePercent: number;
+  highPrice: number;
+  lowPrice: number;
+  volume: number;
+  quoteVolume: number;
+  openPrice: number;
+  prevClosePrice: number;
+  name: string;
+  marketCap: number;
+  marketCapRank: number | null;
+};
+
+let topCache: { at: number; items: TopItem[] } | null = null;
 
 async function getUsdtPairs(): Promise<Set<string>> {
   const now = Date.now();
@@ -73,7 +88,7 @@ export async function GET(req: Request) {
     if (!cgRes.ok) return NextResponse.json({ error: 'coingecko error' }, { status: 502 });
     const coins = (await cgRes.json()) as CGCoin[];
 
-    const items: any[] = [];
+    const items: TopItem[] = [];
     for (const c of coins) {
       const base = c.symbol.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (STABLES.has(base)) continue;
@@ -98,7 +113,7 @@ export async function GET(req: Request) {
 
     topCache = { at: now, items };
     return NextResponse.json(items.slice(0, limit), { headers: cacheHeaders(TOP_TTL_MS) });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load top list' }, { status: 500 });
   }
 }

@@ -300,18 +300,6 @@ export default function BreakingNewsSlider({
     setManualPause(false);
   };
 
-  const handleTickerMouseEnter = () => {
-    if (!isTickerMode) return;
-    clearTickerPauseTimeout();
-    setTickerPaused(true);
-  };
-
-  const handleTickerMouseLeave = () => {
-    if (!isTickerMode) return;
-    clearTickerPauseTimeout();
-    setTickerPaused(false);
-  };
-
   const handleTickerPointerDown = () => {
     if (!isTickerMode) return;
     clearTickerPauseTimeout();

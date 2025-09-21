@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CryptoChart, { Candle } from './CryptoChart';
 import styles from './CryptoDetail.module.css';
@@ -111,7 +112,9 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
         </button>
       </div>
       <div className={styles.header}>
-        {coin?.image ? <img src={coin.image} alt="" width={36} height={36} /> : null}
+        {coin?.image ? (
+          <Image src={coin.image} alt={`${coin?.name ?? base} logo`} width={36} height={36} />
+        ) : null}
         <h1 className={styles.title}>{(coin?.name || base)} ({base})</h1>
         {coin ? <span className={styles.meta}>Mkt cap: {coin.marketCap ? formatCurrency(coin.marketCap) : '—'}</span> : null}
       </div>
