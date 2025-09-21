@@ -4,14 +4,19 @@
 }
 
 .icon {
-  font-family: var(--font-inter), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-weight: 700;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  font-weight: 800;
   background: var(--secondary);
-  color: #a44646;
+  color: #fff;
   border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border-radius: 6px; /* square avatar */
+  width: 36px;
+  height: 36px;
+  line-height: 1;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
@@ -45,6 +50,7 @@
 
 @media (max-width: 768px) {
   .loginIconBox { width: 32px; height: 32px; }
+  .icon { width: 32px; height: 32px; font-size: 0.85rem; }
   .loginText { font-size: 0.75rem; }
 }
 

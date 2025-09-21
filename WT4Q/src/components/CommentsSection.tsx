@@ -4,7 +4,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
-import { isLoggedIn, setLoggedIn } from '@/lib/auth';
+import { setLoggedIn } from '@/lib/auth';
 import styles from './CommentsSection.module.css';
 
 export interface Comment {
@@ -39,40 +39,48 @@ export default function CommentsSection({
   useEffect(() => {
     let active = true;
 
-    if (isLoggedIn()) {
-      apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' })
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((session: { authenticated?: boolean; user?: { userName?: string } }) => {
-          if (!active) return;
-          if (session.authenticated && session.user) {
-            setLoggedInState(true);
-            setCurrentUser(session.user.userName || null);
-            setLoggedIn(true);
-          } else {
-            setLoggedInState(false);
-            setCurrentUser(null);
-            setLoggedIn(false);
-          }
-        })
-        .catch(() => {
-          if (!active) return;
+    const loadSession = async () => {
+      try {
+        const res = await apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' });
+        if (!active) return;
+        if (!res.ok) throw new Error('unauth');
+        const session: { authenticated?: boolean; user?: { userName?: string } } = await res.json();
+        if (!active) return;
+        if (session.authenticated && session.user) {
+          setLoggedInState(true);
+          setCurrentUser(session.user.userName || null);
+          setLoggedIn(true);
+        } else {
           setLoggedInState(false);
           setCurrentUser(null);
           setLoggedIn(false);
-        });
-    } else {
-      setLoggedInState(false);
-      setCurrentUser(null);
-    }
+        }
+      } catch {
+        if (!active) return;
+        setLoggedInState(false);
+        setCurrentUser(null);
+        setLoggedIn(false);
+      }
+    };
+
+    loadSession();
 
     setLoginHref(
       `/login?returnUrl=${encodeURIComponent(window.location.href + '#comments')}`
     );
 
+    const onFocus = () => loadSession();
+    window.addEventListener('focus', onFocus);
     return () => {
       active = false;
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
+
+  const handleGoogleSignIn = () => {
+    const returnUrl = window.location.href + '#comments';
+    window.location.href = `${API_ROUTES.GOOGLE_SIGN_IN.AUTH}?returnUrl=${encodeURIComponent(returnUrl)}`;
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -445,9 +453,15 @@ export default function CommentsSection({
           {error && <p className={styles.error}>{error}</p>}
         </form>
       ) : (
-        <p className={styles.loginPrompt}>
-          <PrefetchLink href={loginHref}>Log in to comment</PrefetchLink>
-        </p>
+        <div className={styles.loginPrompt}>
+          <p>
+            <PrefetchLink href={loginHref}>Log in to comment</PrefetchLink>
+          </p>
+          <button type="button" className={styles.googleButton} onClick={handleGoogleSignIn}>
+            <img src="/images/google.svg" alt="Google" className={styles.googleIcon} />
+            <span>Sign in with Google</span>
+          </button>
+        </div>
       )}
     </section>
   );

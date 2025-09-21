@@ -5,7 +5,7 @@ import PrefetchLink from '@/components/PrefetchLink';
 import { useRouter } from 'next/navigation';
 import styles from './UserMenu.module.css';
 import { API_ROUTES, apiFetch } from '@/lib/api';
-import { isLoggedIn, setLoggedIn } from '@/lib/auth';
+import { setLoggedIn } from '@/lib/auth';
 
 interface User {
   id: string;
@@ -21,21 +21,11 @@ export default function UserMenu() {
   useEffect(() => {
     let mounted = true;
 
-    if (!isLoggedIn()) {
-      setUser(null);
-      setLoggedIn(false);
-      return () => {
-        mounted = false;
-      };
-    }
-
     const loadSession = async () => {
       try {
         const res = await apiFetch(API_ROUTES.AUTH.SESSION, { method: 'GET' });
         if (!mounted) return;
-        if (!res.ok) {
-          throw new Error('Unauthenticated');
-        }
+        if (!res.ok) throw new Error('Unauthenticated');
         const sess: { authenticated: boolean; user?: User } = await res.json();
         if (!mounted) return;
         if (sess.authenticated && sess.user) {
@@ -52,16 +42,37 @@ export default function UserMenu() {
       }
     };
 
+    // Always check session on mount (cookies drive auth)
     loadSession();
+
+    // React to storage changes from other tabs/pages
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === '90stimes_logged_in') {
+        if (e.newValue === 'true') {
+          loadSession();
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // Refresh on window focus in case cookies changed
+    const onFocus = () => loadSession();
+    window.addEventListener('focus', onFocus);
 
     return () => {
       mounted = false;
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 
   const initials = user?.userName
     ? user.userName
+        .trim()
         .split(/\s+/)
+        .slice(0, 2)
         .map((w) => w[0])
         .join('')
         .toUpperCase()

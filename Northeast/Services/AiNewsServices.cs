@@ -350,7 +350,8 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             generationConfig = gen
         };
 
-        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_opts.ApiKey}";
+        // Keep API key out of logs by removing it from the URL; rely on header instead
+        var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
         var json = JsonSerializer.Serialize(payload);
 
         // Slot spacing to keep under 2 RPM
@@ -398,6 +399,15 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             {
                 var delay = res.Headers.RetryAfter?.Delta ??
                             TimeSpan.FromMilliseconds(300 * Math.Pow(2, attempt) + rnd.Next(0, 200));
+
+                // Respect server backoff globally to avoid hammering while circuit may be half-open
+                if (code == 429)
+                {
+                    await _slotLock.WaitAsync(ct);
+                    try { _nextSlotUtc = DateTimeOffset.UtcNow + (delay > _minSpacing ? delay : _minSpacing); }
+                    finally { _slotLock.Release(); }
+                }
+
                 await Task.Delay(delay, ct);
                 continue;
             }
@@ -434,11 +444,13 @@ You are a senior news editor. Paraphrase and expand using simple, neutral langua
 
 Hard rules:
 - Output STRICT JSON only (UTF-8). No prose outside JSON.
-- Each item: ≥ {o.MinWordCount} words but maximum words is upto your limit possible. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs describing properrly the context for wide range of users. END with sub heading 'What happens next' or similar conclusions based on news.
-- No fabricated quotes or numbers. But add statistics and important information you have access. Use only the feed info provided plus widely-known, non-controversial background.
-- add proper depth to the news so that it does not look plagiarized or AI written.
-- If needed add tables and comparisions (in necessary case)
-- try to make every article bit different.
+- Each item: ≥ {o.MinWordCount} words but maximum words is upto your limit possible. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs describing properrly the context for wide range of users. END with sub heading such as: 'What happens next' ,'Expert or Local Perspective', 'Why does this matter?' or similar conclusions based on news.
+- describe or explain if there are technical words difficult to understand for normal people.
+- No fabricated quotes or numbers. But add statistics and important information you have access. 
+- Use only the feed info provided plus widely-known, non-controversial background.
+- add proper depth to the news articles so that it does not look plagiarized or AI written.
+- add HTML tables and comparisions (in necessary case with priority) for high quality content
+- (important) try to make every article bit different and prioritize paraphrasing, add Deeper Background and Unique Insights.
 
 Country selection (very important):
 - Decide country **from the article’s subject/event location** (look at named places, demonyms, officials, cities).
@@ -1015,6 +1027,14 @@ public static class AiNewsRegistration
             o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(120);
             o.CircuitBreaker.FailureRatio = 0.2;
             o.CircuitBreaker.MinimumThroughput = 10;
+            // Do not break on 429 (Too Many Requests) – let client-side backoff handle it
+            o.CircuitBreaker.ShouldHandle = args =>
+                new ValueTask<bool>(
+                    args.Outcome.Exception is HttpRequestException
+                    || args.Outcome.Exception is TimeoutRejectedException
+                    || (args.Outcome.Result is { } r &&
+                        (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
+                );
 
             // --- Retry (treat Polly timeouts as transient) ---
             o.Retry.MaxRetryAttempts = 3;
