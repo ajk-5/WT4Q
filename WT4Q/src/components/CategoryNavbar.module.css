@@ -52,7 +52,10 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background: /*var(--background, #fff);*/ rgba(255, 255, 255, 0.75);
+   background-color: #EEE9DA;
+  background-image:
+    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px);
   border-radius: var(--radius);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   flex-direction: column;
@@ -96,7 +99,10 @@
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 1200; /* above fixed header */
-    /* Transparent; body background covers page */
+     background-color: #EEE9DA;
+  background-image:
+    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px);
     /* Hide scrollbar while keeping scroll functionality */
     -ms-overflow-style: none;    /* IE and older Edge */
     scrollbar-width: none;       /* Firefox */
