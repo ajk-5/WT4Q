@@ -1,8 +1,10 @@
 
 /* Container for the article page with a newspaper-like layout */
 .newspaper {
-  background: #f7f5ef;
-  background-image: url('/images/paper_background.webp');
+  background-color: #EEE9DA;
+  background-image:
+    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px);
   color: #111;
   padding: 1.5rem clamp(1rem, 3vw, 1rem) 2rem;
   margin: 0 auto;

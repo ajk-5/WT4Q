@@ -121,7 +121,12 @@ body::before {
   inset: 0;
   z-index: -1;
   /* Decorative paper texture is lazy-applied via CSS var to avoid blocking paint */
-  background-image: var(--paper-bg, none);
+  background-color: #EEE9DA;
+  background-image: var(
+    --paper-bg,
+    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px)
+  );
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -130,17 +135,22 @@ body::before {
 
 /* For the purple site background variant */
 body.site-bg--purple::before {
+  background-color: #EEE9DA;
   background-image:
     radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
     radial-gradient(1400px circle at 80% 0, #3a17a7 0, #2b0a86 55%, #1f085f 85%, #14043d 100%),
-    var(--paper-bg, none);
+    var(
+      --paper-bg,
+      radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+      radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px)
+    );
 }
 
 /* Respect data-saver preferences: never load the decorative background */
 @media (prefers-reduced-data: reduce) {
   body::before,
   body.site-bg--purple::before {
-    background-image: none !important;
+    background: none !important;
   }
 }
 

@@ -61,8 +61,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <GlobalStyles />
-        {/* Preload background texture used on homepage to avoid late paint */}
-        <link rel="preload" as="image" href="/images/paper_background.webp" />
+        {/* Paper texture now rendered with CSS gradients; no preload required */}
         {/* Structured data for brand synonyms */}
         <Script id="ld-org" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({

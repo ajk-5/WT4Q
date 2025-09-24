@@ -12,7 +12,10 @@
   
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
   animation: slideIn 0.6s ease-out;
-  background-image: url('/images/paper_background.webp');
+  background-color: #EEE9DA;
+  background-image:
+    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
+    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

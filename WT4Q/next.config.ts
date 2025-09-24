@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
         source: "/_next/image",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, must-revalidate" }],
       },
-      // Public images (e.g., /images/paper_background.webp): long-lived cache
+      // Public images (e.g., icons and logos served from /public): long-lived cache
       {
         // Match common image extensions served from /public
         source: "/:path*\.(png|jpg|jpeg|gif|svg|webp|avif|ico)",
