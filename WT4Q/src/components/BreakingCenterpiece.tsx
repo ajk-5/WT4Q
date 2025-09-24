@@ -10,8 +10,6 @@ export default function BreakingCenterpiece({
   articles: BreakingArticle[];
   label?: string;
 }) {
-  if (!articles || articles.length === 0) return null;
-
   return (
     <section className={styles.centerpiece} aria-label={label}>
       <div className={styles.header}>
@@ -20,7 +18,7 @@ export default function BreakingCenterpiece({
 
       {/* Reuse your dynamic slider inside the big box */}
       <BreakingNewsSlider
-        articles={articles}
+        articles={articles && articles.length > 0 ? articles : undefined}
         className={styles.slider}
         showDetails
       />

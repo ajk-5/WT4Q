@@ -14,12 +14,23 @@ export default function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const dateline = new Date().toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  // Render an empty dateline on the server to avoid hydration mismatch,
+  // then compute on the client in a stable way (UTC timezone).
+  const [dateline, setDateline] = useState('');
+  useEffect(() => {
+    try {
+      const fmt = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      });
+      setDateline(fmt.format(new Date()));
+    } catch {
+      setDateline(new Date().toUTCString());
+    }
+  }, []);
 
   const handleNavigate = () => {
     if (window.innerWidth <= 1024) setOpen(false);
@@ -100,13 +111,15 @@ export default function Header() {
           </span>
         </PrefetchLink>
         <div className={styles.infoRow}>
-          <div className={styles.dateline}>{dateline}</div>
+          <div className={styles.dateline}>
+            <span suppressHydrationWarning>{dateline}</span>
+          </div>
           <PrefetchLink
             href="/weather"
             aria-label="Weather details"
             className={styles.weather}
           >
-            <WeatherWidget />
+            <WeatherWidget showWind={false} />
           </PrefetchLink>
         </div>
         <div className={styles.actions}>

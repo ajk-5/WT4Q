@@ -3,7 +3,7 @@ import Script from "next/script";
 
 import GlobalStyles from "./global-styles";
 import Header from "@/components/Header";
-import BreakingNewsBar from "@/components/BreakingNewsBar";
+import BreakingNewsBarClient from "@/components/BreakingNewsBarClient";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import PageVisitReporter from "@/components/PageVisitReporter";
@@ -61,8 +61,15 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <GlobalStyles />
-        {/* Preload background texture used on homepage to avoid late paint */}
-        <link rel="preload" as="image" href="/images/paper_background.webp" />
+        {/* Preload brand font for faster masthead and centerpiece overlays */}
+        <link
+          rel="preload"
+          as="font"
+          href="/fonts/CloisterBlack.woff2"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        {/* Removed eager preload of decorative paper background to improve LCP */}
         {/* Structured data for brand synonyms */}
         <Script id="ld-org" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({
@@ -90,6 +97,20 @@ export default function RootLayout({
             },
           })}
         </Script>
+        {/* Lazy-apply decorative paper texture after page is interactive */}
+        <Script id="paper-bg" strategy="lazyOnload">
+          {`
+            try {
+              var docEl = document.documentElement;
+              // Avoid setting when user prefers reduced data
+              var reduce = false;
+              try { reduce = window.matchMedia('(prefers-reduced-data: reduce)').matches; } catch {}
+              if (!reduce) {
+                docEl.style.setProperty('--paper-bg', "url('/images/paper_background.webp')");
+              }
+            } catch (e) { /* no-op */ }
+          `}
+        </Script>
         {/* Google Consent Mode v2: define gtag and default consent early */}
         <Script id="consent-default" strategy="beforeInteractive">
           {`
@@ -109,6 +130,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
         <link rel="preconnect" href="https://news.google.com" />
         <link rel="preconnect" href="https://api.binance.com" />
+        <link rel="preconnect" href="https://stream.binance.com" />
+        {/* Preconnect to our API origin to reduce request latency (PSI suggestion) */}
+        <link rel="preconnect" href="https://server.90stimes.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//server.90stimes.com" />
       </head>
       <body>
         <PageVisitReporter />
@@ -116,7 +141,7 @@ export default function RootLayout({
         <GoogleAnalyticsLoader />
         <SwgLoader />
         <Header />
-        <BreakingNewsBar />
+        <BreakingNewsBarClient />
         <main>{children}</main>
         <Footer />
         <CookieBanner />

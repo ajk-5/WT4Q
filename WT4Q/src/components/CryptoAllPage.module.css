@@ -11,8 +11,13 @@
  .rowBtn span { color: inherit; }
  .rowBtn:hover { background: rgba(0,0,0,0.035); }
  .sym { font-weight: 800; }
- .pos { color: #0a7a26; }
- .neg { color: #b00020; }
+.pos { color: #0a7a26; }
+.neg { color: #b00020; }
+/* Ensure change color overrides rowBtn span inherit */
+.rowBtn .pos { color: #0a7a26; }
+.rowBtn .neg { color: #b00020; }
+.change { display: inline-flex; align-items: center; gap: 0.25rem; }
+.changeIcon { display: inline-block; vertical-align: middle; }
  .miniRange { position: relative; height: 6px; border-radius: 999px; background: transparent; }
  .miniFill { position: absolute; top:0; bottom:0; left:0; border-radius: 999px; }
  .miniFillUp { background: linear-gradient(90deg, #b8e5c7, #4caf50); }

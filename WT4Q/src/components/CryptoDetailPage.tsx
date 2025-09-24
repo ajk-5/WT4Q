@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CryptoChart, { Candle } from './CryptoChart';
@@ -59,6 +59,53 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
     return () => { active = false; };
   }, [base]);
 
+  // Realtime updates for current price and 24h percent using @ticker stream
+  useEffect(() => {
+    const sym = (symbol || '').toLowerCase();
+    if (!sym) return;
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@ticker`);
+      ws.onmessage = (ev) => {
+        try {
+          const payload = JSON.parse(ev.data);
+          const last = parseFloat(payload?.c ?? '');
+          const open = parseFloat(payload?.o ?? '');
+          const pct = parseFloat(payload?.P ?? '');
+          if (Number.isFinite(last)) {
+            setCoin((prev) => prev ? { ...prev, currentPrice: last } : prev);
+          }
+          if (Number.isFinite(pct) || Number.isFinite(open)) {
+            const computedPct = Number.isFinite(pct) ? pct : (Number.isFinite(last) && Number.isFinite(open) && open ? ((last - open) / open) * 100 : undefined);
+            if (computedPct !== undefined) {
+              setCoin((prev) => prev ? { ...prev, priceChange24h: computedPct } : prev);
+            }
+          }
+        } catch {}
+      };
+    } catch {}
+    return () => { try { ws?.close(); } catch {} };
+  }, [symbol]);
+
+  // Periodically refresh coin info to keep percent live
+  useEffect(() => {
+    if (!base) return;
+    let disposed = false;
+    const tick = async () => {
+      try {
+        const res = await fetch(`/api/crypto/coin?base=${base}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as CoinInfo;
+        if (!disposed) setCoin(data);
+      } catch {}
+    };
+    const timer = setInterval(tick, 20000);
+    return () => {
+      disposed = true;
+      clearInterval(timer);
+    };
+  }, [base]);
+
   useEffect(() => {
     let active = true;
     const q = coin?.name ? `${coin.name} OR ${base}` : base;
@@ -115,7 +162,26 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
         {coin?.image ? (
           <Image src={coin.image} alt={`${coin?.name ?? base} logo`} width={36} height={36} />
         ) : null}
-        <h1 className={styles.title}>{(coin?.name || base)} ({base})</h1>
+        <h1 className={styles.title}>
+          {(coin?.name || base)} ({base})
+          {typeof coin?.priceChange24h === 'number' && isFinite(coin.priceChange24h) ? (
+            <span
+              className={`${coin.priceChange24h >= 0 ? styles.pos : styles.neg} ${styles.change}`.trim()}
+              aria-live="polite"
+            >
+              {coin.priceChange24h >= 0 ? (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                  <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                  <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
+                </svg>
+              )}
+              {Math.abs(coin.priceChange24h).toFixed(2)}%
+            </span>
+          ) : null}
+        </h1>
         {coin ? <span className={styles.meta}>Mkt cap: {coin.marketCap ? formatCurrency(coin.marketCap) : '—'}</span> : null}
       </div>
       <div className={styles.grid}>
@@ -192,10 +258,24 @@ function formatNumber(n?: number | null) {
   return `${n}`;
 }
 
-function fmtPct(n?: number | null) {
+function fmtPct(n?: number | null): ReactNode {
   if (n === null || n === undefined || !isFinite(n)) return '—';
-  const s = `${Math.abs(n).toFixed(2)}%`;
-  return n >= 0 ? `▲ ${s}` : `▼ ${s}`;
+  const up = n >= 0;
+  const pct = `${Math.abs(n).toFixed(2)}%`;
+  return (
+    <span className={`${up ? styles.pos : styles.neg} ${styles.change}`.trim()}>
+      {up ? (
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden className={styles.changeIcon}>
+          <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden className={styles.changeIcon}>
+          <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
+        </svg>
+      )}
+      {pct}
+    </span>
+  );
 }
 
 function stripHtml(html?: string) {

@@ -113,6 +113,8 @@
 .sym { font-weight: 800; }
 .pos { color: #0a7a26; }
 .neg { color: #b00020; }
+.change { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; }
+.changeIcon { display: inline-block; vertical-align: middle; }
 
 .miniRange {
   position: relative;

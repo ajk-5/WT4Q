@@ -33,6 +33,65 @@ export default function CryptoAllPage() {
     return () => { active = false; };
   }, []);
 
+  // Realtime updates for the visible asset list using Binance all-mini-tickers stream
+  useEffect(() => {
+    // Build a set of symbols we track (from initial fetch). We'll update only those.
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+      type MiniTicker = { s: string; c: string; o: string; h: string; l: string; q?: string };
+      ws.onmessage = (ev) => {
+        try {
+          const payload = JSON.parse(ev.data) as unknown;
+          const arr: MiniTicker[] | undefined = Array.isArray(payload)
+            ? (payload as MiniTicker[])
+            : (payload as { data?: MiniTicker[] } | undefined)?.data;
+          if (!arr || !Array.isArray(arr)) return;
+          setRows((prev) => {
+            if (!prev.length) return prev;
+            // Build index for quick lookup
+            const index: Record<string, number> = Object.create(null);
+            for (let i = 0; i < prev.length; i++) index[prev[i].symbol] = i;
+            // Apply updates to a shallow-copied array only if changed
+            let changed = false;
+            const next = prev.slice();
+            for (const u of arr) {
+              const sym = u?.s;
+              if (!sym) continue;
+              const idx = index[sym];
+              if (idx === undefined) continue;
+              const cur = next[idx];
+              const last = parseFloat(u.c);
+              const open = parseFloat(u.o);
+              const high = parseFloat(u.h);
+              const low = parseFloat(u.l);
+              const volQ = parseFloat(u.q ?? '0');
+              const pct = open ? ((last - open) / open) * 100 : 0;
+              if (
+                last !== cur.lastPrice ||
+                Math.round(pct * 100) !== Math.round(cur.priceChangePercent * 100) ||
+                high !== cur.highPrice || low !== cur.lowPrice || volQ !== cur.quoteVolume || open !== cur.openPrice
+              ) {
+                changed = true;
+                next[idx] = {
+                  ...cur,
+                  lastPrice: last,
+                  priceChangePercent: pct,
+                  highPrice: high,
+                  lowPrice: low,
+                  quoteVolume: volQ,
+                  openPrice: open,
+                };
+              }
+            }
+            return changed ? next : prev;
+          });
+        } catch {}
+      };
+    } catch {}
+    return () => { try { ws?.close(); } catch {} };
+  }, []);
+
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
@@ -112,8 +171,31 @@ export default function CryptoAllPage() {
                 >
                   <span className={styles.sym}>{renderDisplayName(t, nameMap)}</span>
                   <span>{formatNumber(t.lastPrice)}</span>
-                  <span className={t.priceChangePercent >= 0 ? styles.pos : styles.neg}>
-                    {t.priceChangePercent >= 0 ? '▲' : '▼'} {Math.abs(t.priceChangePercent).toFixed(2)}%
+                  <span className={`${t.priceChangePercent >= 0 ? styles.pos : styles.neg} ${styles.change}`.trim()}>
+                    {t.priceChangePercent >= 0 ? (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                        focusable="false"
+                        className={styles.changeIcon}
+                      >
+                        <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                        focusable="false"
+                        className={styles.changeIcon}
+                      >
+                        <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
+                      </svg>
+                    )}
+                    {Math.abs(t.priceChangePercent).toFixed(2)}%
                   </span>
                   <span>{renderMiniRange(t)}</span>
                   <span>{formatNumber(t.quoteVolume)}</span>

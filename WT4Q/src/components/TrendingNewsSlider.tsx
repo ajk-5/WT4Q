@@ -28,11 +28,31 @@ type Props = {
 };
 
 const ROTATE_MS = 5000;
+const ROTATE_DELAY_MS = 3500; // delay start to avoid impacting LCP
 const TICKER_BREAKPOINT = 768;
 const TICKER_PIXELS_PER_SEC = 24;
 const TICKER_SCROLL_RATIO = 0.85;
 const TICKER_PAUSE_AFTER_ARROW_MS = 4000;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 48;
+
+// Marquee tuning for non-detail compact view
+const MARQUEE_PIXELS_PER_SEC = 20;
+const MARQUEE_MIN_DURATION_SEC = 12;
+
+// Compute a stable, deterministic title font size based on length
+function computeTitleFontRem(title: string): number {
+  const len = (title || '').trim().length;
+  // Short titles: big; very long titles: smaller, but with a floor for readability
+  // Linear falloff from ~1.9rem at 60 chars to ~1.2rem at 160+ chars
+  const base = 1.9;
+  const min = 1.2;
+  const start = 60;
+  const end = 160;
+  if (len <= start) return base;
+  if (len >= end) return min;
+  const t = (len - start) / (end - start);
+  return +(base - t * (base - min)).toFixed(3);
+}
 
 export default function TrendingNewsSlider({
   articles: initialArticles,
@@ -45,6 +65,7 @@ export default function TrendingNewsSlider({
   const [manualPause, setManualPause] = useState(false);
   const [isSmallViewport, setIsSmallViewport] = useState(false);
   const [tickerPaused, setTickerPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const fetchedOnceRef = useRef(false);
   const textRef = useRef<HTMLSpanElement>(null);
@@ -53,6 +74,8 @@ export default function TrendingNewsSlider({
   const tickerPauseTimeoutRef = useRef<number | null>(null);
   const tickerFrameTimeRef = useRef<number | null>(null);
   const tickerBaseWidthRef = useRef<number>(0);
+  const rotateStartTimeoutRef = useRef<number | null>(null);
+  const rotateIntervalRef = useRef<number | null>(null);
 
   const needFetch = useMemo(
     () => !(initialArticles && initialArticles.length > 0),
@@ -69,17 +92,23 @@ export default function TrendingNewsSlider({
 
   const isTickerMode = !showDetails && isSmallViewport && articles.length > 0;
 
+  // Avoid hydration mismatch: use a stable initial "now" for SSR/first render
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const tickerBaseArticles = useMemo(() => {
     if (!articles.length) return [];
-    const threshold = Date.now() - TWO_DAYS_MS;
+    if (now == null) return articles.slice(0, 40);
+    const threshold = now - TWO_DAYS_MS;
     const recent = articles.filter((article) => {
       if (!article.createdDate) return false;
       const ts = new Date(article.createdDate).getTime();
       return Number.isFinite(ts) && ts >= threshold;
     });
-    const base = (recent.length >= 2 ? recent : articles).slice(0, 40);
-    return base;
-  }, [articles]);
+    return (recent.length >= 2 ? recent : articles).slice(0, 40);
+  }, [articles, now]);
 
   const tickerLoop = useMemo(() => {
     if (!isTickerMode) return [] as TrendingArticle[];
@@ -158,7 +187,28 @@ export default function TrendingNewsSlider({
     }
   }, []);
 
-  const autoRotateEnabled = !showDetails && !isTickerMode && articles.length >= 2;
+  // Track user motion preference to optionally disable auto-rotate
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('matchMedia' in window)) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(mq.matches);
+    update();
+    if ('addEventListener' in mq) {
+      mq.addEventListener('change', update);
+      return () => mq.removeEventListener('change', update);
+    } else if ('addListener' in mq) {
+      // @ts-expect-error legacy Safari
+      mq.addListener(update);
+      return () => {
+        // @ts-expect-error legacy Safari
+        mq.removeListener(update);
+      };
+    }
+    return undefined;
+  }, []);
+
+  // Enable auto-rotate in both detail and compact (non-ticker) modes
+  const autoRotateEnabled = !isTickerMode && articles.length >= 2 && !reducedMotion;
 
   const pauseTickerTemporarily = (ms = TICKER_PAUSE_AFTER_ARROW_MS) => {
     if (!isTickerMode) return;
@@ -274,11 +324,30 @@ export default function TrendingNewsSlider({
 
   useEffect(() => {
     if (!autoRotateEnabled || manualPause) return undefined;
-    const timer = window.setInterval(() => {
-      setDirection('next');
-      setIndex((current) => (articles.length < 2 ? current : (current + 1) % articles.length));
-    }, ROTATE_MS);
-    return () => window.clearInterval(timer);
+    if (rotateStartTimeoutRef.current) {
+      window.clearTimeout(rotateStartTimeoutRef.current);
+      rotateStartTimeoutRef.current = null;
+    }
+    if (rotateIntervalRef.current) {
+      window.clearInterval(rotateIntervalRef.current);
+      rotateIntervalRef.current = null;
+    }
+    rotateStartTimeoutRef.current = window.setTimeout(() => {
+      rotateIntervalRef.current = window.setInterval(() => {
+        setDirection('next');
+        setIndex((current) => (articles.length < 2 ? current : (current + 1) % articles.length));
+      }, ROTATE_MS);
+    }, ROTATE_DELAY_MS);
+    return () => {
+      if (rotateStartTimeoutRef.current) {
+        window.clearTimeout(rotateStartTimeoutRef.current);
+        rotateStartTimeoutRef.current = null;
+      }
+      if (rotateIntervalRef.current) {
+        window.clearInterval(rotateIntervalRef.current);
+        rotateIntervalRef.current = null;
+      }
+    };
   }, [autoRotateEnabled, manualPause, articles.length]);
 
   useEffect(() => {
@@ -286,14 +355,33 @@ export default function TrendingNewsSlider({
     const container = el?.parentElement as HTMLElement | null;
     if (!el || !container) return;
 
-    const offset = el.scrollWidth - container.clientWidth;
-    if (offset > 0) {
-      el.style.setProperty('--scroll-distance', `-${offset}px`);
-      el.style.setProperty('--scroll-duration', `${offset / 50}s`);
-      el.classList.add(styles.marquee);
-    } else {
-      el.classList.remove(styles.marquee);
-    }
+    const measure = () => {
+      const distance = Math.max(el.scrollWidth - container.clientWidth, 0);
+      if (distance > 0) {
+        const durationSeconds = Math.max(
+          MARQUEE_MIN_DURATION_SEC,
+          distance / MARQUEE_PIXELS_PER_SEC,
+        );
+        el.style.setProperty('--scroll-distance', `-${distance}px`);
+        el.style.setProperty('--scroll-duration', `${durationSeconds}s`);
+        el.classList.add(styles.marquee);
+      } else {
+        el.classList.remove(styles.marquee);
+      }
+    };
+
+    measure();
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(container);
+    ro.observe(el);
+    const docWithFonts = document as Document & { fonts?: FontFaceSet };
+    docWithFonts.fonts?.ready.then(() => measure());
+    return () => {
+      window.removeEventListener('resize', onResize);
+      try { ro.disconnect(); } catch {}
+    };
   }, [index, articles]);
 
   useEffect(() => {
@@ -322,6 +410,7 @@ export default function TrendingNewsSlider({
     : undefined;
   const title = current?.title ?? '';
   const slug = current?.slug ?? '#';
+  const titleFontRem = computeTitleFontRem(title);
   const disableArrows = !isTickerMode && articles.length < 2;
 
   const handleSliderMouseEnter = () => {
@@ -435,9 +524,9 @@ export default function TrendingNewsSlider({
       {showDetails ? (
         hasArticles ? (
           <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
-            <div className={`${styles.detail} ${!imageSrc ? styles.detailNoImage : ''}`.trim()}>
-              {imageSrc ? (
-                <figure className={styles.detailFigure}>
+            <div className={styles.detail}>
+              <figure className={`${styles.detailFigure} ${!imageSrc ? styles.detailFigurePlaceholder : ''}`.trim()}>
+                {imageSrc ? (
                   <Image
                     src={imageSrc}
                     alt={first?.altText || title}
@@ -449,12 +538,21 @@ export default function TrendingNewsSlider({
                     placeholder={base64 ? 'blur' : undefined}
                     blurDataURL={base64}
                   />
-                  {first?.caption ? (
-                    <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-                  ) : null}
-                </figure>
-              ) : null}
-              <h3 className={styles.detailTitle}>{title}</h3>
+                ) : (
+                  <>
+                    <div className={styles.mediaPlaceholder} />
+                    <div className={styles.brandOverlay} aria-hidden="true">The Nineties Times</div>
+                  </>
+                )}
+                {first?.caption ? (
+                  <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                ) : (
+                  <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">
+                    &nbsp;
+                  </figcaption>
+                )}
+              </figure>
+              <h3 className={styles.detailTitle} style={{ fontSize: `${titleFontRem}rem` }}>{title}</h3>
               {snippet ? (
                 <p className={styles.snippet}>
                   {snippet}
@@ -476,9 +574,10 @@ export default function TrendingNewsSlider({
           </PrefetchLink>
         ) : (
           <div className={styles.detail}>
-            <div className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
+            <figure className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
               <div className={styles.mediaPlaceholder} />
-            </div>
+              <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">&nbsp;</figcaption>
+            </figure>
             <div className={styles.titlePlaceholder} aria-hidden="true" />
             <div className={styles.snippetPlaceholder} aria-hidden="true">
               <span />

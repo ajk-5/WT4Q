@@ -2,6 +2,10 @@
  .header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
  .title { font-weight: 600; font-size: clamp(1rem, 2.6vw, 1.35rem); margin: 0; color: var(--ink, #111); }
  .meta { color: rgba(0,0,0,0.65); font-size: 0.9rem; }
+ .pos { color: #0a7a26; }
+ .neg { color: #b00020; }
+ .change { display: inline-flex; align-items: center; gap: 0.25rem; margin-left: 0.5rem; font-weight: 700; }
+ .changeIcon { display: inline-block; vertical-align: middle; }
  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
  .card { background: transparent; border: none; padding: 0.5rem 0; color: var(--ink, #111); }
  .backRow { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }

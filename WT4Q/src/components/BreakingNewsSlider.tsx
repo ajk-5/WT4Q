@@ -27,12 +27,30 @@ type Props = {
 };
 
 const ROTATE_MS = 5000;
-const TICKER_SPEED_PX_PER_SEC = 24;
+const ROTATE_DELAY_MS = 3500; // delay start to avoid impacting LCP
+// Slightly slower default ticker speed to improve readability
+const TICKER_SPEED_PX_PER_SEC = 16;
+const TICKER_MIN_DURATION_SEC = 18; // ensure short loops don't rush
 const TICKER_PAUSE_AFTER_ARROW_MS = 4000;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 48;
 
 const MARQUEE_PIXELS_PER_SEC = 20;
 const MARQUEE_MIN_DURATION_SEC = 12;
+
+// Compute a stable, deterministic title font size based on length
+function computeTitleFontRem(title: string): number {
+  const len = (title || '').trim().length;
+  // Short titles: big; very long titles: smaller, but with a floor for readability
+  // Linear falloff from ~1.9rem at 60 chars to ~1.2rem at 160+ chars
+  const base = 1.9;
+  const min = 1.2;
+  const start = 60;
+  const end = 160;
+  if (len <= start) return base;
+  if (len >= end) return min;
+  const t = (len - start) / (end - start);
+  return +(base - t * (base - min)).toFixed(3);
+}
 const MARQUEE_MIN_DISTANCE_PX = 120;
 
 export default function BreakingNewsSlider({
@@ -45,6 +63,7 @@ export default function BreakingNewsSlider({
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [manualPause, setManualPause] = useState(false);
   const [tickerPaused, setTickerPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const fetchedOnceRef = useRef(false);
   const textRef = useRef<HTMLSpanElement>(null);
@@ -52,6 +71,8 @@ export default function BreakingNewsSlider({
   const tickerTrackRef = useRef<HTMLDivElement>(null);
   const tickerPauseTimeoutRef = useRef<number | null>(null);
   const tickerBaseWidthRef = useRef<number>(0);
+  const rotateStartTimeoutRef = useRef<number | null>(null);
+  const rotateIntervalRef = useRef<number | null>(null);
 
   const needFetch = useMemo(
     () => !(initialArticles && initialArticles.length > 0),
@@ -60,17 +81,23 @@ export default function BreakingNewsSlider({
 
   const isTickerMode = !showDetails && articles.length > 0;
 
+  // Avoid hydration mismatch: use a stable initial "now" for SSR/first render
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const tickerBaseArticles = useMemo(() => {
     if (!articles.length) return [];
-    const threshold = Date.now() - TWO_DAYS_MS;
+    if (now == null) return articles.slice(0, 40);
+    const threshold = now - TWO_DAYS_MS;
     const recent = articles.filter((article) => {
       if (!article.createdDate) return false;
       const ts = new Date(article.createdDate).getTime();
       return Number.isFinite(ts) && ts >= threshold;
     });
-    const base = (recent.length >= 2 ? recent : articles).slice(0, 40);
-    return base;
-  }, [articles]);
+    return (recent.length >= 2 ? recent : articles).slice(0, 40);
+  }, [articles, now]);
 
   const tickerLoop = useMemo(() => {
     if (!isTickerMode) return [] as BreakingArticle[];
@@ -99,19 +126,31 @@ export default function BreakingNewsSlider({
     if (!viewport || !track || !tickerLoop.length) return undefined;
 
     const measure = () => {
-      tickerBaseWidthRef.current = Math.floor(track.scrollWidth / 2);
-      const baseWidth = tickerBaseWidthRef.current;
+      const baseWidth = Math.floor(track.scrollWidth / 2);
+      tickerBaseWidthRef.current = baseWidth;
       if (baseWidth > 0) {
-        const durationSeconds = Math.max(6, baseWidth / TICKER_SPEED_PX_PER_SEC);
+        const durationSeconds = Math.max(
+          TICKER_MIN_DURATION_SEC,
+          baseWidth / TICKER_SPEED_PX_PER_SEC,
+        );
         track.style.setProperty('--ticker-distance', `${baseWidth}px`);
         track.style.setProperty('--ticker-duration', `${durationSeconds}s`);
       }
     };
+
+    // Initial measure and observers for dynamic layout/font changes
     measure();
     const onResize = () => measure();
     window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(track);
+    // Some browsers load webfonts after mount; re-measure when fonts are ready
+    const docWithFonts = document as Document & { fonts?: FontFaceSet };
+    docWithFonts.fonts?.ready.then(() => measure());
+
     return () => {
       window.removeEventListener('resize', onResize);
+      try { ro.disconnect(); } catch {}
     };
   }, [isTickerMode, tickerLoop.length, tickerKey]);
 
@@ -122,7 +161,28 @@ export default function BreakingNewsSlider({
     }
   }, []);
 
-  const autoRotateEnabled = !showDetails && !isTickerMode && articles.length >= 2;
+  // Enable auto-rotate in both detail and compact (non-ticker) modes
+  const autoRotateEnabled = !isTickerMode && articles.length >= 2 && !reducedMotion;
+
+  // Track user motion preference to optionally disable auto-rotate
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('matchMedia' in window)) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(mq.matches);
+    update();
+    if ('addEventListener' in mq) {
+      mq.addEventListener('change', update);
+      return () => mq.removeEventListener('change', update);
+    } else if ('addListener' in mq) {
+      // @ts-expect-error legacy Safari
+      mq.addListener(update);
+      return () => {
+        // @ts-expect-error legacy Safari
+        mq.removeListener(update);
+      };
+    }
+    return undefined;
+  }, []);
 
   const pauseTickerTemporarily = (ms = TICKER_PAUSE_AFTER_ARROW_MS) => {
     if (!isTickerMode) return;
@@ -231,11 +291,32 @@ export default function BreakingNewsSlider({
 
   useEffect(() => {
     if (!autoRotateEnabled || manualPause) return undefined;
-    const timer = window.setInterval(() => {
-      setDirection('next');
-      setIndex((current) => (articles.length < 2 ? current : (current + 1) % articles.length));
-    }, ROTATE_MS);
-    return () => window.clearInterval(timer);
+    // Clear any existing timers
+    if (rotateStartTimeoutRef.current) {
+      window.clearTimeout(rotateStartTimeoutRef.current);
+      rotateStartTimeoutRef.current = null;
+    }
+    if (rotateIntervalRef.current) {
+      window.clearInterval(rotateIntervalRef.current);
+      rotateIntervalRef.current = null;
+    }
+    // Delay rotation start so LCP settles before we change content
+    rotateStartTimeoutRef.current = window.setTimeout(() => {
+      rotateIntervalRef.current = window.setInterval(() => {
+        setDirection('next');
+        setIndex((current) => (articles.length < 2 ? current : (current + 1) % articles.length));
+      }, ROTATE_MS);
+    }, ROTATE_DELAY_MS);
+    return () => {
+      if (rotateStartTimeoutRef.current) {
+        window.clearTimeout(rotateStartTimeoutRef.current);
+        rotateStartTimeoutRef.current = null;
+      }
+      if (rotateIntervalRef.current) {
+        window.clearInterval(rotateIntervalRef.current);
+        rotateIntervalRef.current = null;
+      }
+    };
   }, [autoRotateEnabled, manualPause, articles.length]);
 
   useEffect(() => {
@@ -288,6 +369,7 @@ export default function BreakingNewsSlider({
     : undefined;
   const title = current?.title ?? '';
   const slug = current?.slug ?? '#';
+  const titleFontRem = computeTitleFontRem(title);
   const disableArrows = !isTickerMode && articles.length < 2;
 
   const handleSliderMouseEnter = () => {
@@ -392,9 +474,9 @@ export default function BreakingNewsSlider({
       {showDetails ? (
         hasArticles ? (
           <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
-            <div className={`${styles.detail} ${!imageSrc ? styles.detailNoImage : ''}`.trim()}>
-              {imageSrc ? (
-                <figure className={styles.detailFigure}>
+            <div className={styles.detail}>
+              <figure className={`${styles.detailFigure} ${!imageSrc ? styles.detailFigurePlaceholder : ''}`.trim()}>
+                {imageSrc ? (
                   <Image
                     src={imageSrc}
                     alt={first?.altText || title}
@@ -406,12 +488,21 @@ export default function BreakingNewsSlider({
                     placeholder={base64 ? 'blur' : undefined}
                     blurDataURL={base64}
                   />
-                  {first?.caption ? (
-                    <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-                  ) : null}
-                </figure>
-              ) : null}
-              <h3 className={styles.detailTitle}>{title}</h3>
+                ) : (
+                  <>
+                    <div className={styles.mediaPlaceholder} />
+                    <div className={styles.brandOverlay} aria-hidden="true">The Nineties Times</div>
+                  </>
+                )}
+                {first?.caption ? (
+                  <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                ) : (
+                  <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">
+                    &nbsp;
+                  </figcaption>
+                )}
+              </figure>
+              <h3 className={styles.detailTitle} style={{ fontSize: `${titleFontRem}rem` }}>{title}</h3>
               {snippet ? (
                 <p className={styles.snippet}>
                   {snippet}
@@ -433,9 +524,10 @@ export default function BreakingNewsSlider({
           </PrefetchLink>
         ) : (
           <div className={styles.detail}>
-            <div className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
+            <figure className={`${styles.detailFigure} ${styles.detailFigurePlaceholder}`} aria-hidden="true">
               <div className={styles.mediaPlaceholder} />
-            </div>
+              <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">&nbsp;</figcaption>
+            </figure>
             <div className={styles.titlePlaceholder} aria-hidden="true" />
             <div className={styles.snippetPlaceholder} aria-hidden="true">
               <span />

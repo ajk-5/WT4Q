@@ -9,7 +9,8 @@ const globalCss = String.raw`
 /* Self-host CloisterBlack (provided TTF at public/fonts/CloisterBlack.ttf) */
 @font-face {
   font-family: 'CloisterBlack';
-  src: url('/fonts/CloisterBlack.ttf') format('truetype');
+  src: url('/fonts/CloisterBlack.woff2') format('woff2'),
+       url('/fonts/CloisterBlack.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -119,7 +120,8 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-image: url('/images/paper_background.webp');
+  /* Decorative paper texture is lazy-applied via CSS var to avoid blocking paint */
+  background-image: var(--paper-bg, none);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -131,7 +133,15 @@ body.site-bg--purple::before {
   background-image:
     radial-gradient(900px circle at 60% 15%, rgba(255,255,255,0.12), transparent 45%),
     radial-gradient(1400px circle at 80% 0, #3a17a7 0, #2b0a86 55%, #1f085f 85%, #14043d 100%),
-    url('/images/paper_background.webp');
+    var(--paper-bg, none);
+}
+
+/* Respect data-saver preferences: never load the decorative background */
+@media (prefers-reduced-data: reduce) {
+  body::before,
+  body.site-bg--purple::before {
+    background-image: none !important;
+  }
 }
 
 canvas,

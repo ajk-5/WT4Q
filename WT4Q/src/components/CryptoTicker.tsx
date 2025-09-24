@@ -38,9 +38,63 @@ export default function CryptoTicker({ onSelect, className }: Props) {
     };
     load();
     const timer = setInterval(load, FETCH_MS);
+
+    // Realtime updates for displayed symbols using Binance all-mini-tickers stream
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+      type MiniTicker = { s: string; c: string; o: string; h: string; l: string; q?: string };
+      ws.onmessage = (ev) => {
+        try {
+          const payload = JSON.parse(ev.data) as unknown;
+          const arr: MiniTicker[] | undefined = Array.isArray(payload)
+            ? (payload as MiniTicker[])
+            : (payload as { data?: MiniTicker[] } | undefined)?.data;
+          if (!arr || !Array.isArray(arr)) return;
+          setTickers((prev) => {
+            if (!prev.length) return prev;
+            const map: Record<string, MiniTicker> = Object.create(null);
+            for (const it of arr) {
+              if (it && typeof it.s === 'string') map[it.s] = it;
+            }
+            let changed = false;
+            const next = prev.map((t) => {
+              const u = map[t.symbol];
+              if (!u) return t;
+              const last = parseFloat(u.c);
+              const open = parseFloat(u.o);
+              const high = parseFloat(u.h);
+              const low = parseFloat(u.l);
+              const volQ = parseFloat(u.q ?? '0');
+              const pct = open ? ((last - open) / open) * 100 : 0;
+              if (
+                last !== t.lastPrice ||
+                Math.round(pct * 100) !== Math.round(t.priceChangePercent * 100) ||
+                high !== t.highPrice || low !== t.lowPrice || volQ !== t.quoteVolume || open !== t.openPrice
+              ) {
+                changed = true;
+                return {
+                  ...t,
+                  lastPrice: last,
+                  priceChangePercent: pct,
+                  highPrice: high,
+                  lowPrice: low,
+                  quoteVolume: volQ,
+                  openPrice: open,
+                };
+              }
+              return t;
+            });
+            return changed ? next : prev;
+          });
+        } catch {}
+      };
+    } catch {}
+
     return () => {
       active = false;
       clearInterval(timer);
+      try { ws?.close(); } catch {}
     };
   }, []);
 

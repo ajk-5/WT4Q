@@ -90,12 +90,14 @@
   opacity: 0;               /* only fade in/out */
   transition: opacity 0.2s ease-in-out;
   padding: 0;               /* prevent size change on hover */
-  z-index: 1;
+  /* Ensure arrows sit above the full-card overlay link */
+  z-index: 3;
   width: 36px;              /* fixed box avoids translateY recalc */
   height: 36px;
 }
 
-.slider:hover .arrow {
+.slider:hover .arrow,
+.slider:focus-within .arrow {
   opacity: 1;
 }
 

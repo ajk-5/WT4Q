@@ -5,7 +5,7 @@
 
   background: transparent;
   color: #111111;
-  padding: clamp(0.35rem, 1vw, 0.55rem) clamp(0.45rem, 1.5vw, 0.9rem);
+  padding: clamp(0.35rem, 1vw, 0.5rem) clamp(0.35rem, 1.5vw, 0.5rem);
   margin: 0;
   border-radius: 0.5rem;
   text-align: center;
@@ -31,7 +31,8 @@
 
 .detailMode {
   background: var(--paper, #fefcf7);
-  min-height: clamp(22rem, 34vw, 28rem);
+  /* Fill the centerpiece height; rely on grid row to define it */
+  height: 100%;
   display: flex;
   align-items: stretch;
   padding: clamp(0.9rem, 1.8vw, 1.35rem) clamp(1rem, 2.4vw, 1.75rem);
@@ -69,10 +70,16 @@
 
 /* Transform-based continuous ticker animation */
 .tickerAnimating {
-  animation: ticker-move var(--ticker-duration, 24s) linear infinite;
+  /* Slower fallback if JS measurement hasn't set --ticker-duration yet */
+  animation: ticker-move var(--ticker-duration, 36s) linear infinite;
 }
 
 .tickerPaused {
+  animation-play-state: paused;
+}
+
+/* Pause ticker when user hovers anywhere over the slider bar */
+.slider:hover .tickerTrack {
   animation-play-state: paused;
 }
 
@@ -245,7 +252,10 @@
 .detail {
   text-align: left;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  /* Reserve a stable row for the title (≈3 lines) and allow rest to fill */
+  grid-template-rows: auto minmax(calc(1.2 * 3em), auto) 1fr;
+  height: 100%;
+  min-height: 0; /* allow children like snippet to shrink without overflowing */
   gap: clamp(0.75rem, 1.8vw, 1.25rem);
   width: 100%;
 }
@@ -289,6 +299,39 @@
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
+/* Centered brand overlay used when no image is available */
+.brandOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  text-align: center;
+  font-family: 'CloisterBlack', Georgia, "Times New Roman", serif;
+  /* Smaller + tighter tracking to keep one line across mobiles */
+  font-size: clamp(0.95rem, 2.8vw, 1.85rem);
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+
+/* On smaller screens, allow wrapping and bump size for readability */
+@media (max-width: 520px) {
+  .brandOverlay {
+    /* Larger but still responsive; two lines allowed if needed */
+    font-size: clamp(1.15rem, 5.2vw, 2rem);
+    line-height: 1.06;
+    white-space: normal;
+    word-break: normal;
+    text-wrap: balance;
+    letter-spacing: 0.005em;
+    padding: 0.35rem;
+  }
+}
+
 .detailCaption {
   font-size: 0.85rem;
   color: rgba(17, 17, 17, 0.7);
@@ -307,6 +350,7 @@
   color: #060606;
   line-height: 1.2;
   overflow-wrap: anywhere;
+  /* Reserve at least 3 lines to keep layout stable, but allow full title */
   min-height: calc(1.2 * 3em);
 }
 

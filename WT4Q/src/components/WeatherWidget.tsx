@@ -17,7 +17,9 @@ interface Location {
   country: string;
 }
 
-export default function WeatherWidget() {
+type Props = { showWind?: boolean };
+
+export default function WeatherWidget({ showWind = true }: Props) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [unit, setUnit] = useState<'C' | 'F'>('C');
@@ -61,7 +63,7 @@ export default function WeatherWidget() {
           {unit === 'C' ? '°F' : '°C'}
         </button>
       </span>
-      {weather.windspeed != null && (
+      {showWind && weather.windspeed != null && (
         <span className={styles.location}>
           <WindIcon className={styles.windIcon} />
           {Math.round(weather.windspeed)} km/h

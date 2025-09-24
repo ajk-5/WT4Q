@@ -9,8 +9,6 @@ export default function TrendingCenterpiece({
 }: {
   articles: TrendingArticle[];
 }) {
-  if (!articles || articles.length === 0) return null;
-
   return (
     <section className={styles.centerpiece} aria-label="Trending News">
       <div className={styles.header}>
@@ -20,7 +18,7 @@ export default function TrendingCenterpiece({
       </div>
 
       <TrendingNewsSlider
-        articles={articles}
+        articles={articles && articles.length > 0 ? articles : undefined}
         className={styles.slider}
         showDetails
       />

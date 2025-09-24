@@ -10,6 +10,16 @@ const DEFAULT_SYMBOL = 'BTCUSDT';
 const TIMEFRAMES = ['1m', '5m', '1h', '1d', '1w', '1M', '1y'] as const;
 type Timeframe = typeof TIMEFRAMES[number];
 
+// Binance miniTicker payload for !miniTicker@arr
+type BinanceMiniTicker = {
+  s: string; // symbol
+  c: string; // close price
+  o: string; // open price
+  h: string; // high price
+  l: string; // low price
+  q?: string; // quote volume (optional)
+};
+
 export default function CryptoPage() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
   const [nameMap, setNameMap] = useState<Record<string, string>>({}); // BASE -> name
@@ -37,6 +47,60 @@ export default function CryptoPage() {
       active = false;
       clearInterval(timer);
     };
+  }, []);
+
+  // Realtime updates for table via Binance miniTicker array stream
+  useEffect(() => {
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+      ws.onmessage = (ev) => {
+        try {
+          const payload = JSON.parse(ev.data) as unknown;
+          const arr: BinanceMiniTicker[] | undefined = Array.isArray(payload)
+            ? (payload as BinanceMiniTicker[])
+            : (payload as { data?: BinanceMiniTicker[] } | undefined)?.data;
+          if (!arr || !Array.isArray(arr)) return;
+          const map: Record<string, BinanceMiniTicker> = Object.create(null);
+          for (const it of arr) {
+            if (it && typeof it.s === 'string') map[it.s] = it;
+          }
+          setTickers((prev) => {
+            if (!prev.length) return prev;
+            let changed = false;
+            const next = prev.map((t) => {
+              const u = map[t.symbol];
+              if (!u) return t;
+              const last = parseFloat(u.c);
+              const open = parseFloat(u.o);
+              const high = parseFloat(u.h);
+              const low = parseFloat(u.l);
+              const volQ = parseFloat(u.q ?? '0');
+              const pct = open ? ((last - open) / open) * 100 : 0;
+              if (
+                last !== t.lastPrice ||
+                Math.round(pct * 100) !== Math.round(t.priceChangePercent * 100) ||
+                high !== t.highPrice || low !== t.lowPrice || volQ !== t.quoteVolume || open !== t.openPrice
+              ) {
+                changed = true;
+                return {
+                  ...t,
+                  lastPrice: last,
+                  priceChangePercent: pct,
+                  highPrice: high,
+                  lowPrice: low,
+                  quoteVolume: volQ,
+                  openPrice: open,
+                };
+              }
+              return t;
+            });
+            return changed ? next : prev;
+          });
+        } catch {}
+      };
+    } catch {}
+    return () => { try { ws?.close(); } catch {} };
   }, []);
 
   // When user searches, load full list on demand once
@@ -125,7 +189,28 @@ export default function CryptoPage() {
       <div className={styles.grid}>
         <section className={styles.card}>
           <div className={styles.toolbar}>
-            <strong>{prettySymbol(symbol)}</strong>
+            <strong className={styles.sym}>{prettySymbol(symbol)}</strong>
+            {(() => {
+              const sel = tickers.find((t) => t.symbol === symbol);
+              const change = sel?.priceChangePercent;
+              if (typeof change !== 'number' || !isFinite(change)) return null;
+              const up = change >= 0;
+              const pct = Math.abs(change).toFixed(2) + '%';
+              return (
+                <span className={`${up ? styles.pos : styles.neg} ${styles.change}`.trim()} aria-live="polite">
+                  {up ? (
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                      <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                      <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
+                    </svg>
+                  )}
+                  {pct}
+                </span>
+              );
+            })()}
             {TIMEFRAMES.map((k) => (
               <button
                 key={k}
