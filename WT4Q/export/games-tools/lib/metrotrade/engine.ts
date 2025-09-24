@@ -2,7 +2,7 @@ import type { GameState, InitOptions, Player } from "./types";
 import { BOARD, START_CASH, PASS_START_BONUS } from "./constants";
 import { rollDice, wrap, nextSeed } from "./utils";
 import { adjustNetWorth, computeRent, jailPlayer, leaveJail } from "./rules";
-import { LearningAgent } from "../../services/metrotrade/LearningAgent";
+import { LearningAgent } from "@/services/metrotrade/LearningAgent";
 
 function clone<T>(x:T):T { return JSON.parse(JSON.stringify(x)); }
 
