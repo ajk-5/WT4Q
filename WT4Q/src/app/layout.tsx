@@ -106,7 +106,10 @@ export default function RootLayout({
               var reduce = false;
               try { reduce = window.matchMedia('(prefers-reduced-data: reduce)').matches; } catch {}
               if (!reduce) {
-                docEl.style.setProperty('--paper-bg', "url('/images/paper_background.webp')");
+                docEl.style.setProperty(
+                  '--paper-bg',
+                  "radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px), radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px)"
+                );
               }
             } catch (e) { /* no-op */ }
           `}
