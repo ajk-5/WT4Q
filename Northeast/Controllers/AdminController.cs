@@ -8,6 +8,8 @@ using Northeast.Services;
 using Northeast.Data;
 using Northeast.Models;
 using Northeast.Utilities;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Northeast.Controllers
 {
@@ -49,16 +51,57 @@ namespace Northeast.Controllers
                 return Unauthorized(new { message = "Invalid login attempt" });
 
             }
-            var cookieOptions = new CookieOptions
+            // Access token cookie (HttpOnly, cross-site)
+            var accessExp = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
+                ;
+            var accessCookie = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Path = "/",
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpireMinutes"]))
+                Expires = accessExp,
+                Domain = ".90stimes.com"
             };
+            Response.Cookies.Append("JwtToken", token, accessCookie);
 
-            Response.Cookies.Append("JwtToken", token, cookieOptions);
+            // Also issue a RefreshToken cookie so the frontend's generic refresh flow works for admins
+            string GenerateSecureToken()
+            {
+                var bytes = RandomNumberGenerator.GetBytes(32);
+                return Convert.ToBase64String(bytes);
+            }
+            string HashToken(string raw)
+            {
+                var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(raw));
+                return Convert.ToHexString(bytes).ToLowerInvariant();
+            }
+
+            var refreshRaw = GenerateSecureToken();
+            var refreshExp = DateTime.UtcNow.AddDays(14);
+            var refreshEntity = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                TokenHash = HashToken(refreshRaw),
+                ExpiresAtUtc = refreshExp,
+                CreatedAtUtc = DateTime.UtcNow,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                UserAgent = Request.Headers["User-Agent"].ToString()
+            };
+            await _context.RefreshTokens.AddAsync(refreshEntity);
+            await _context.SaveChangesAsync();
+
+            var refreshCookie = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/",
+                Expires = refreshExp,
+                Domain = ".90stimes.com"
+            };
+            Response.Cookies.Append("RefreshToken", refreshRaw, refreshCookie);
 
             return Ok(new { response = token });
 
@@ -74,7 +117,19 @@ namespace Northeast.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
-                    Path = "/"
+                    Path = "/",
+                    Domain = ".90stimes.com"
+                });
+            }
+            if (Request.Cookies.ContainsKey("RefreshToken"))
+            {
+                Response.Cookies.Delete("RefreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/",
+                    Domain = ".90stimes.com"
                 });
             }
 

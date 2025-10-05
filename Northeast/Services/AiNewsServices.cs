@@ -8,6 +8,7 @@ using Northeast.DTOs;
 using Northeast.Models;
 using Polly.Timeout;                      // ✅ Polly timeout type
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -33,7 +34,7 @@ namespace Northeast.Services;
 public sealed class AiNewsOptions
 {
     public string ApiKey { get; set; } = string.Empty;                 // Gemini key for paraphrasing/expansion
-    public string Model { get; set; } = "gemini-2.5-flash";
+    public string Model { get; set; } = "gemini-2.5-flash-latest";
 
     // NEW intervals for RSS-based writers
     public TimeSpan CategoryRotationInterval { get; set; } = TimeSpan.FromMinutes(10);
@@ -42,17 +43,25 @@ public sealed class AiNewsOptions
 
     // Output & behavior
     public double Creativity { get; set; } = 0.9;
-    public int MinWordCount { get; set; } = 180;
-    public int PreInsertMinWordCount { get; set; } = 80;      // low bar before mapping/padding
+    public int MinWordCount { get; set; } = 350;       // long-form baseline
+    public int PreInsertMinWordCount { get; set; } = 175;
     public bool FillMissingHtml { get; set; } = true;          // auto-build HTML if AI omits it
     public int BreakingWindowHours { get; set; } = 24;         // what counts as breaking
 
     // Locale defaults for Google News (used when not selecting a specific country)
-    public string DefaultLang { get; set; } = "fr";           // UI language, e.g., fr, en-US
-    public string DefaultCountry { get; set; } = "FR";        // Edition country code, e.g., FR, US
+    public string DefaultLang { get; set; } = "en";           // UI language, e.g., fr, en-US
+    public string DefaultCountry { get; set; } = "US";        // Edition country code, e.g., FR, US
 
     // Images (kept off by default)
     public bool UseExternalImages { get; set; } = false;
+
+    // Output/token controls
+    public int MaxOutputTokensHardCap { get; set; } = 1600;  // ≈ 900–1,100 words
+    public int OutputTokensPerWord { get; set; } = 14;       // ≈1.4 tokens/word ×10 (fixed-point)
+
+    // Backoff pacing (raise if quota tight)
+    public int MinSpacingSeconds { get; set; } = 5;
+    public int MaxSpacingSeconds { get; set; } = 10;
 }
 #endregion
 
@@ -112,6 +121,28 @@ internal static class HtmlText
         return Regex.Matches(text, @"\b\w+\b").Count;
     }
 
+    public static string AppendSourcesIfMissing(string html, string link, string? publisher)
+    {
+        if (string.IsNullOrWhiteSpace(html) || string.IsNullOrWhiteSpace(link)) return html;
+        try
+        {
+            if (Regex.IsMatch(html, @"<(h2|h3)[^>]*>\s*(Sources|Citations|References)\s*<", RegexOptions.IgnoreCase))
+                return html;
+
+            string display = publisher;
+            if (string.IsNullOrWhiteSpace(display) && Uri.TryCreate(link, UriKind.Absolute, out var uri))
+                display = uri.Host;
+            display ??= "Source";
+
+            var snippet = $"\n<h2>Sources</h2>\n<ul>\n<li><a href=\"{WebUtility.HtmlEncode(link)}\" target=\"_blank\" rel=\"noopener nofollow\">{WebUtility.HtmlEncode(display)}</a></li>\n</ul>";
+
+            if (Regex.IsMatch(html, "</div>\\s*$", RegexOptions.IgnoreCase))
+                return Regex.Replace(html, "</div>\\s*$", snippet + "\n</div>", RegexOptions.IgnoreCase);
+
+            return html + snippet;
+        }
+        catch { return html; }
+    }
     public static string EnsureHtmlDivWithStructure(string html, int minWords)
     {
         var t = html?.Trim() ?? string.Empty;
@@ -125,8 +156,7 @@ internal static class HtmlText
         // Split long text blocks into paragraphs for readability
         t = Paragraphize(t);
 
-        if (!Regex.IsMatch(t, @"What happens next", RegexOptions.IgnoreCase))
-            t += "\n<h2>What happens next</h2><p>We will keep tracking this story and update as officials or primary sources provide new, verified details.</p>";
+        // Do not inject a generic conclusion; leave conclusion style to the writer/prompt
 
         // pad if very short
         if (CountWords(t) < minWords)
@@ -135,6 +165,20 @@ internal static class HtmlText
         return t;
     }
 
+    public static string DeGenericizeConclusions(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return html;
+        try
+        {
+            var variants = new[] { "Key takeaway", "Outlook", "The bottom line", "What to watch", "Where it stands" };
+            var idx = Math.Abs(html.GetHashCode()) % variants.Length;
+            var replacement = WebUtility.HtmlEncode(variants[idx]);
+
+            var rx = new Regex(@"<h(?<lvl>[23])(?<attrs>[^>]*)>\s*(what\s*(’|')?s\s*next|what happens next|why does this matter\??)\s*</h\k<lvl>>", RegexOptions.IgnoreCase);
+            return rx.Replace(html, m => $"<h{m.Groups["lvl"].Value}{m.Groups["attrs"].Value}>{replacement}</h{m.Groups["lvl"].Value}>");
+        }
+        catch { return html; }
+    }
     private static string Paragraphize(string html)
     {
         // Add <p> around loose text lines (simple heuristic)
@@ -292,54 +336,148 @@ public interface IGenerativeTextClient
     Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct);
 }
 
+
 public sealed class GeminiRestClient : IGenerativeTextClient
 {
     private readonly HttpClient _http;
     private readonly ILogger<GeminiRestClient> _log;
     private readonly AiNewsOptions _opts;
 
-    // Enforce ~2 req/min globally — queue instead of fail.
-    private static readonly FixedWindowRateLimiter _limiter = new(
-        new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = 2,
-            Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 6,
-            AutoReplenishment = true
-        });
+    private static readonly object _throttleSync = new();
+    private static DateTimeOffset _cooldownUntilUtc = DateTimeOffset.MinValue;
+    private static DateTimeOffset _lastThrottleUtc = DateTimeOffset.MinValue;
+    private static int _consecutive429 = 0;
 
-    // Extra safety: ensure ≥ 31s between sends across process
-    private static readonly SemaphoreSlim _slotLock = new(1, 1);
-    private static DateTimeOffset _nextSlotUtc = DateTimeOffset.MinValue;
-    private static readonly TimeSpan _minSpacing = TimeSpan.FromSeconds(31);
+    private static readonly TimeSpan MaxCooldown = TimeSpan.FromHours(6);
+    private static readonly TimeSpan CooldownResetAfter = TimeSpan.FromMinutes(20);
 
     public GeminiRestClient(HttpClient http, IOptions<AiNewsOptions> opts, ILogger<GeminiRestClient> log)
-    { _http = http; _log = log; _opts = opts.Value; }
+    {
+        _http = http;
+        _log = log;
+        _opts = opts.Value;
+    }
 
     public async Task<string> GenerateJsonAsync(string model, string systemInstruction, string userPrompt, double temperature, CancellationToken ct)
     {
-        // Strategy 1: JSON mode
-        var (ok1, body1) = await CallAsync(model, systemInstruction, userPrompt, temperature, jsonMode: true, ct);
+        if (IsCoolingDown(out var remaining, out var until))
+        {
+            _log.LogWarning("Skipping AI call due to active cooldown ({Remaining} remaining, until {Until:u}).", remaining, until);
+            return "{}";
+        }
+
+        var targetOut = WordsToTokens(_opts.MinWordCount, _opts.OutputTokensPerWord);
+        var maxOut = Math.Min(_opts.MaxOutputTokensHardCap, Math.Max(800, targetOut));
+
+        var (ok1, body1) = await CallAsync(model, systemInstruction, userPrompt, temperature, jsonMode: true, maxOut, ct);
         var text = ok1 ? Extract(body1!) : null;
-        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}")
+        {
+            return text!;
+        }
 
-        // Strategy 2: plain text forcing JSON
+        if (IsCoolingDown(out remaining, out until))
+        {
+            _log.LogWarning("Gemini cooldown engaged after first attempt ({Remaining} remaining).", remaining);
+            return "{}";
+        }
+
         var forced = userPrompt + "\n\nReturn ONLY valid JSON per schema in 'items'. No prose outside JSON.";
-        var (ok2, body2) = await CallAsync(model, systemInstruction, forced, temperature, jsonMode: false, ct);
+        var (ok2, body2) = await CallAsync(model, systemInstruction, forced, temperature, jsonMode: false, maxOut, ct);
         text = ok2 ? Extract(body2!) : null;
-        if (!string.IsNullOrWhiteSpace(text) && text != "{}") return text!;
+        if (!string.IsNullOrWhiteSpace(text) && text != "{}")
+        {
+            return text!;
+        }
 
-        _log.LogWarning("Gemini returned no usable JSON after retries.");
+        if (IsCoolingDown(out remaining, out until))
+        {
+            _log.LogWarning("Gemini returned no usable JSON; cooldown in effect for {Remaining}.", remaining);
+        }
+        else
+        {
+            _log.LogWarning("Gemini returned no usable JSON after retries.");
+        }
+
         return "{}";
     }
 
-    private async Task<(bool ok, string? body)> CallAsync(string model, string sys, string prompt, double temperature, bool jsonMode, CancellationToken ct)
+    internal static bool TryGetCooldown(out TimeSpan remaining, out DateTimeOffset until)
+        => IsCoolingDown(out remaining, out until);
+
+    public static bool IsCoolingDown(out TimeSpan remaining)
+        => IsCoolingDown(out remaining, out _);
+
+    private static bool IsCoolingDown(out TimeSpan remaining, out DateTimeOffset until)
+    {
+        lock (_throttleSync)
+        {
+            var now = DateTimeOffset.UtcNow;
+            if (_cooldownUntilUtc > now)
+            {
+                remaining = _cooldownUntilUtc - now;
+                until = _cooldownUntilUtc;
+                return true;
+            }
+
+            remaining = TimeSpan.Zero;
+            until = DateTimeOffset.MinValue;
+            return false;
+        }
+    }
+
+    private static void RegisterSuccess()
+    {
+        lock (_throttleSync)
+        {
+            if (_consecutive429 > 0 || _cooldownUntilUtc > DateTimeOffset.UtcNow)
+            {
+                _consecutive429 = 0;
+                _cooldownUntilUtc = DateTimeOffset.MinValue;
+                _lastThrottleUtc = DateTimeOffset.MinValue;
+            }
+        }
+    }
+
+    private TimeSpan ScheduleCooldown(TimeSpan? retryAfter, string? responseBody)
+    {
+        var baseDelay = retryAfter
+            ?? ExtractRetryDelayFromBody(responseBody)
+            ?? TimeSpan.FromSeconds(Math.Max(_opts.MinSpacingSeconds, AiGlobalRateLimiter.MinSpacingSeconds));
+
+        var floor = TimeSpan.FromSeconds(Math.Max(5, Math.Max(_opts.MinSpacingSeconds, AiGlobalRateLimiter.MinSpacingSeconds)));
+        if (baseDelay < floor)
+            baseDelay = floor;
+
+        lock (_throttleSync)
+        {
+            var now = DateTimeOffset.UtcNow;
+            if (now - _lastThrottleUtc > CooldownResetAfter)
+            {
+                _consecutive429 = 0;
+            }
+
+            _consecutive429++;
+            _lastThrottleUtc = now;
+
+            var multiplier = Math.Min(_consecutive429 - 1, 5); // up to 32x
+            var scaledTicks = baseDelay.Ticks * (1L << multiplier);
+            var cooldown = TimeSpan.FromTicks(Math.Min(scaledTicks, MaxCooldown.Ticks));
+            if (cooldown < baseDelay)
+                cooldown = baseDelay;
+
+            _cooldownUntilUtc = now + cooldown;
+            return cooldown;
+        }
+    }
+
+    private async Task<(bool ok, string? body)> CallAsync(string model, string sys, string prompt, double temperature, bool jsonMode, int maxOutputTokens, CancellationToken ct)
     {
         var gen = new Dictionary<string, object?>
         {
             ["temperature"] = temperature,
             ["candidateCount"] = 1,
-            ["maxOutputTokens"] = 8192
+            ["maxOutputTokens"] = maxOutputTokens
         };
         if (jsonMode) gen["responseMimeType"] = "application/json";
 
@@ -350,67 +488,72 @@ public sealed class GeminiRestClient : IGenerativeTextClient
             generationConfig = gen
         };
 
-        // Keep API key out of logs by removing it from the URL; rely on header instead
         var uri = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
         var json = JsonSerializer.Serialize(payload);
 
-        // Slot spacing to keep under 2 RPM
-        await _slotLock.WaitAsync(ct);
-        try
-        {
-            var now = DateTimeOffset.UtcNow;
-            if (_nextSlotUtc > now)
-            {
-                var wait = _nextSlotUtc - now;
-                await Task.Delay(wait, ct);
-            }
-        }
-        finally { _slotLock.Release(); }
-
+        const int maxAttempts = 2;
         var attempt = 0;
-        var maxAttempts = 3;
-        var rnd = new Random();
 
         while (true)
         {
+            await AiGlobalRateLimiter.WaitPacingAsync(ct);
+
             attempt++;
-            using var lease = await _limiter.AcquireAsync(1, ct);
-            if (!lease.IsAcquired) throw new Exception("Local Gemini rate limit exceeded (queue full)");
+            using var lease = await AiGlobalRateLimiter.AcquireAsync(1, ct);
+            if (!lease.IsAcquired)
+                throw new Exception("Local Gemini rate limit exceeded (queue full)");
 
             using var req = new HttpRequestMessage(HttpMethod.Post, uri)
             { Content = new StringContent(json, Encoding.UTF8, "application/json") };
             req.Headers.TryAddWithoutValidation("x-goog-api-key", _opts.ApiKey);
 
-            var start = DateTimeOffset.UtcNow;
             using var res = await _http.SendAsync(req, ct);
-            var took = DateTimeOffset.UtcNow - start;
             var body = await res.Content.ReadAsStringAsync(ct);
 
             if (res.IsSuccessStatusCode)
             {
-                await _slotLock.WaitAsync(ct);
-                try { _nextSlotUtc = DateTimeOffset.UtcNow + _minSpacing; }
-                finally { _slotLock.Release(); }
+                RegisterSuccess();
+                var min = Math.Max(1, _opts.MinSpacingSeconds);
+                var max = Math.Max(min + 1, _opts.MaxSpacingSeconds);
+                var next = TimeSpan.FromSeconds(Random.Shared.Next(min, max + 1));
+                await AiGlobalRateLimiter.BumpSpacingAsync(next, ct);
                 return (true, body);
             }
 
-            var code = (int)res.StatusCode;
-            if ((code == 429 || code >= 500) && attempt < maxAttempts)
+            var status = (int)res.StatusCode;
+            if (status == 429)
             {
-                var delay = res.Headers.RetryAfter?.Delta ??
-                            TimeSpan.FromMilliseconds(300 * Math.Pow(2, attempt) + rnd.Next(0, 200));
-
-                // Respect server backoff globally to avoid hammering while circuit may be half-open
-                if (code == 429)
+                var retryAfter = res.Headers.RetryAfter?.Delta;
+                if (res.Headers.RetryAfter?.Date is DateTimeOffset retryDate)
                 {
-                    await _slotLock.WaitAsync(ct);
-                    try { _nextSlotUtc = DateTimeOffset.UtcNow + (delay > _minSpacing ? delay : _minSpacing); }
-                    finally { _slotLock.Release(); }
+                    var delta = retryDate - DateTimeOffset.UtcNow;
+                    if (delta > TimeSpan.Zero)
+                        retryAfter = delta;
                 }
 
-                await Task.Delay(delay, ct);
+                var cooldown = ScheduleCooldown(retryAfter, body);
+                await AiGlobalRateLimiter.ApplyCooldownAsync(cooldown, ct);
+                await AiGlobalRateLimiter.BumpSpacingAsync(cooldown, ct);
+
+                var reason = ExtractQuotaReason(body);
+                _log.LogWarning(
+                    "Gemini rate limit hit (429). Reason: {Reason}. Cooling down for {Cooldown:g}.",
+                    reason ?? res.ReasonPhrase ?? "unknown",
+                    cooldown);
+
+                return (false, body);
+            }
+
+            if (status >= 500 && attempt < maxAttempts)
+            {
+                var retryDelay = TimeSpan.FromSeconds(Random.Shared.Next(3, 8));
+                await AiGlobalRateLimiter.BumpSpacingAsync(retryDelay, ct);
+                await Task.Delay(retryDelay, ct);
                 continue;
             }
+
+            await AiGlobalRateLimiter.BumpSpacingAsync(TimeSpan.FromSeconds(Math.Max(1, _opts.MinSpacingSeconds)), ct);
+            _log.LogError("Gemini error {Status}: {Body}", status, SafeErr(body));
             return (false, body);
         }
     }
@@ -419,37 +562,208 @@ public sealed class GeminiRestClient : IGenerativeTextClient
     {
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-        if (!root.TryGetProperty("candidates", out var cands) || cands.ValueKind != JsonValueKind.Array || cands.GetArrayLength() == 0)
+        if (!root.TryGetProperty("candidates", out var candidates) || candidates.ValueKind != JsonValueKind.Array || candidates.GetArrayLength() == 0)
             return null;
-        var content = cands[0].GetProperty("content");
-        var parts = content.GetProperty("parts");
-        foreach (var p in parts.EnumerateArray())
+
+        var cand0 = candidates[0];
+
+        static string? FromContent(JsonElement contentEl)
         {
-            if (p.TryGetProperty("text", out var t))
+            if (contentEl.ValueKind == JsonValueKind.Object)
             {
-                var s = t.GetString();
-                if (!string.IsNullOrWhiteSpace(s)) return s;
+                if (contentEl.TryGetProperty("parts", out var parts) && parts.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var part in parts.EnumerateArray())
+                    {
+                        if (part.TryGetProperty("text", out var textEl) && textEl.ValueKind == JsonValueKind.String)
+                        {
+                            var value = textEl.GetString();
+                            if (!string.IsNullOrWhiteSpace(value)) return value;
+                        }
+                    }
+                }
             }
+            else if (contentEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in contentEl.EnumerateArray())
+                {
+                    var nested = FromContent(el);
+                    if (!string.IsNullOrWhiteSpace(nested)) return nested;
+                }
+            }
+
+            return null;
         }
+
+        if (cand0.TryGetProperty("content", out var content))
+        {
+            var textFromContent = FromContent(content);
+            if (!string.IsNullOrWhiteSpace(textFromContent)) return textFromContent;
+        }
+
+        if (cand0.TryGetProperty("text", out var textEl) && textEl.ValueKind == JsonValueKind.String)
+        {
+            var value = textEl.GetString();
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+
+        if (cand0.TryGetProperty("output_text", out var outputTextEl) && outputTextEl.ValueKind == JsonValueKind.String)
+        {
+            var value = outputTextEl.GetString();
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+
         return null;
     }
+
+    private static TimeSpan? ExtractRetryDelayFromBody(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (!doc.RootElement.TryGetProperty("error", out var error))
+                return null;
+
+            if (error.TryGetProperty("details", out var details) && details.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var detail in details.EnumerateArray())
+                {
+                    if (detail.ValueKind != JsonValueKind.Object) continue;
+
+                    if (detail.TryGetProperty("retryDelay", out var retryDelayEl) && retryDelayEl.ValueKind == JsonValueKind.String &&
+                        TryParseDuration(retryDelayEl.GetString(), out var delay))
+                        return delay;
+
+                    if (detail.TryGetProperty("metadata", out var metadata) && metadata.ValueKind == JsonValueKind.Object)
+                    {
+                        if (metadata.TryGetProperty("retryDelay", out var mdRetry) && mdRetry.ValueKind == JsonValueKind.String &&
+                            TryParseDuration(mdRetry.GetString(), out var mdDelay))
+                            return mdDelay;
+
+                        if (metadata.TryGetProperty("retry_delay", out var mdRetryAlt) && mdRetryAlt.ValueKind == JsonValueKind.String &&
+                            TryParseDuration(mdRetryAlt.GetString(), out var mdDelayAlt))
+                            return mdDelayAlt;
+                    }
+                }
+            }
+
+            if (error.TryGetProperty("message", out var messageEl) && messageEl.ValueKind == JsonValueKind.String)
+            {
+                var message = messageEl.GetString();
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    var match = Regex.Match(message, @"retry(?:\s+again)?\s+after\s+(\d+)\s*seconds?", RegexOptions.IgnoreCase);
+                    if (match.Success && int.TryParse(match.Groups[1].Value, out var seconds))
+                        return TimeSpan.FromSeconds(seconds);
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static bool TryParseDuration(string? value, out TimeSpan result)
+    {
+        result = TimeSpan.Zero;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        value = value.Trim();
+        if (value.EndsWith("s", StringComparison.OrdinalIgnoreCase))
+        {
+            if (double.TryParse(value[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds))
+            {
+                result = TimeSpan.FromSeconds(Math.Max(0, seconds));
+                return true;
+            }
+            return false;
+        }
+        if (value.EndsWith("m", StringComparison.OrdinalIgnoreCase))
+        {
+            if (double.TryParse(value[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var minutes))
+            {
+                result = TimeSpan.FromMinutes(Math.Max(0, minutes));
+                return true;
+            }
+            return false;
+        }
+        if (value.EndsWith("h", StringComparison.OrdinalIgnoreCase))
+        {
+            if (double.TryParse(value[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var hours))
+            {
+                result = TimeSpan.FromHours(Math.Max(0, hours));
+                return true;
+            }
+            return false;
+        }
+        if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var secondsFallback))
+        {
+            result = TimeSpan.FromSeconds(Math.Max(0, secondsFallback));
+            return true;
+        }
+        return false;
+    }
+
+    private static string? ExtractQuotaReason(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (!doc.RootElement.TryGetProperty("error", out var error))
+                return null;
+
+            if (error.TryGetProperty("message", out var messageEl) && messageEl.ValueKind == JsonValueKind.String)
+            {
+                var message = messageEl.GetString();
+                if (!string.IsNullOrWhiteSpace(message))
+                    return message.Length > 280 ? message.Substring(0, 280) + "..." : message;
+            }
+
+            if (error.TryGetProperty("details", out var details) && details.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var detail in details.EnumerateArray())
+                {
+                    if (detail.ValueKind != JsonValueKind.Object) continue;
+                    if (detail.TryGetProperty("reason", out var reasonEl) && reasonEl.ValueKind == JsonValueKind.String)
+                    {
+                        var reason = reasonEl.GetString();
+                        if (!string.IsNullOrWhiteSpace(reason))
+                            return reason;
+                    }
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static int WordsToTokens(int words, int tenthsTokPerWord)
+        => (int)Math.Ceiling(words * (tenthsTokPerWord / 10.0));
+
+    private static string SafeErr(string s) => s.Length > 2000 ? s.Substring(0, 2000) + "...[trunc]" : s;
 }
 #endregion
+
 
 #region Prompt builder for PARAPHRASING only (no invention)
 internal static class ParaphrasePrompt
 {
     public static string BuildSystem(AiNewsOptions o) => $@"
-You are a senior news editor. Paraphrase and expand using simple, neutral language.
+You are a senior news editor and detailed or investigative journalist. Paraphrase and expand using simple, neutral language.
 
-Hard rules:
-- Output STRICT JSON only (UTF-8). No prose outside JSON.
+ Hard rules:
+ - Output STRICT JSON only (UTF-8). No prose outside JSON.
 - Each item: ≥ {o.MinWordCount} words but maximum words is upto your limit possible. ONE <div> root. Use <h2>/<h3> sub-headings. Multiple short <p> paragraphs describing properrly the context for wide range of users. END with sub heading such as: 'What happens next' ,'Expert or Local Perspective', 'Why does this matter?' or similar conclusions based on news.
-- describe or explain if there are technical words difficult to understand for normal people.
+        - Conclusion: write a brief, story-specific wrap-up under a varied subheading (e.g., 'Key takeaway', 'Outlook', 'The bottom line', 'By the numbers' when appropriate). Avoid stock phrases like 'What happens next' or 'Why does this matter?'.
+        - After the conclusion, add a <h2>Sources links and external news coverage on this topic</h2> section listing 1–3 credible links with publisher names. Always include the provided feed link.
+        - describe or explain if there are technical words difficult to understand for normal people.
 - No fabricated quotes or numbers. But add statistics and important information you have access. 
 - Use only the feed info provided plus widely-known, non-controversial background.
-- add proper depth to the news articles so that it does not look plagiarized or AI written.
-- add HTML tables and comparisions (in necessary case with priority) for high quality content
+- add proper depth to the news articles .
+-(very important) Article must look credible and high value content.
+- Do not make it look plagiarized or AI written.
+- add HTML elements: like bordered tables and comparisions (in necessary case with priority) for high quality content
 - (important) try to make every article bit different and prioritize paraphrasing, add Deeper Background and Unique Insights.
 
 Country selection (very important):
@@ -464,7 +778,7 @@ Other fields:
 - isBreaking = true if within last {o.BreakingWindowHours} hours.
 ";
 
-    public static string BuildUser(string title, string? summary, string? content, string category, string? countryName, string? countryCode)
+    public static string BuildUser(string title, string? summary, string? content, string category, string? countryName, string? countryCode, string? publisherName, string link)
     {
         // The model must return AiArticleDraftBatch JSON with one item.
         return $@"
@@ -485,10 +799,16 @@ Return JSON shape:
   ]
 }}
 
+ 
+
 Source snippet to paraphrase and deepen (do NOT copy lines verbatim):
 TITLE: {Escape(title)}
 SUMMARY: {Escape(summary ?? string.Empty)}
 CONTENT: {Escape(content ?? string.Empty)}
+
+Primary source to cite:
+PUBLISHER: {Escape(publisherName ?? string.Empty)}
+LINK: {Escape(link)}
 ";
     }
 
@@ -545,6 +865,7 @@ internal static class ArticleMapping
         { countryName = null; countryCode = null; }
 
         var html = HtmlText.EnsureHtmlDivWithStructure(d.ArticleHtml ?? string.Empty, opts.MinWordCount);
+        html = HtmlText.DeGenericizeConclusions(html);
 
         return new Article
         {
@@ -627,23 +948,39 @@ internal static class RssIngest
         CancellationToken ct)
     {
         var key = LinkCanon.Fingerprint(item);
+        var cacheKey = $"news:{key}";
         var db = scopeSp.GetRequiredService<AppDbContext>();
         var now = DateTimeOffset.UtcNow;
 
         var exists = await db.Set<Article>().AnyAsync(a => a.UniqueKey == key, ct);
         if (exists) return null;
 
-        var system = ParaphrasePrompt.BuildSystem(opts);
-        var user = ParaphrasePrompt.BuildUser(
-            title: item.Title,
-            summary: item.Summary,
-            content: string.IsNullOrWhiteSpace(item.Content) ? item.Summary : item.Content,
-            category: category.ToString(),
-            countryName: countryName,
-            countryCode: countryCode);
+        var cache = scopeSp.GetService<IAiTransientCache>();
+        string? json = null;
+        if (cache != null && cache.TryGet(cacheKey, out var cached))
+        {
+            json = cached;
+        }
 
-        var json = await ai.GenerateJsonAsync(opts.Model, system, user, opts.Creativity, ct);
-        var batch = DeserializeSafe(json);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            var system = ParaphrasePrompt.BuildSystem(opts);
+            var user = ParaphrasePrompt.BuildUser(
+                title: item.Title,
+                summary: item.Summary,
+                content: string.IsNullOrWhiteSpace(item.Content) ? item.Summary : item.Content,
+                category: category.ToString(),
+                countryName: countryName,
+                countryCode: countryCode,
+                publisherName: item.Source ?? LinkCanon.TryExtractPublisherUri(item.Link)?.Host,
+                link: item.Link);
+
+            json = await ai.GenerateJsonAsync(opts.Model, system, user, opts.Creativity, ct);
+            if (cache != null && !string.IsNullOrWhiteSpace(json) && json != "{}")
+                cache.Set(cacheKey, json, TimeSpan.FromMinutes(5));
+        }
+
+        var batch = DeserializeSafe(json ?? "{}");
         if (batch.Items.Count == 0) return null;
         var d = batch.Items[0];
 
@@ -689,6 +1026,9 @@ internal static class RssIngest
             authorId: await ResolveAdminIdAsync(db, ct), opts, now);
 
         article.SourceUrlCanonical = LinkCanon.TryExtractPublisherUri(item.Link)?.ToString();
+        // Ensure a Sources section exists, using canonical if available
+        var pubHost = LinkCanon.TryExtractPublisherUri(item.Link)?.Host;
+        article.Content = HtmlText.AppendSourcesIfMissing(article.Content, article.SourceUrlCanonical ?? item.Link, item.Source ?? pubHost);
         article.UniqueKey = key;
         return article;
     }
@@ -710,6 +1050,12 @@ internal static class RssIngest
         }
         catch
         {
+            // Strip simple Markdown code fences if present
+            if (json.Contains("```"))
+            {
+                json = json.Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase)
+                           .Replace("```", string.Empty);
+            }
             var start = json.IndexOf('{');
             var end = json.LastIndexOf('}');
             if (start >= 0 && end > start)
@@ -798,6 +1144,7 @@ public sealed class GoogleNewsCategoryRotationService : BackgroundService
 
             var svc = sp.GetRequiredService<ArticleServices>();
             await svc.Publish(ArticleMapping.MapToDto(article), article.AuthorId);
+            sp.GetService<IAiTransientCache>()?.Remove($"news:{LinkCanon.Fingerprint(pick)}");
             _log.LogInformation("Inserted category article: {Title} [{Category}]", article.Title, cat);
         }
         catch (Exception ex)
@@ -894,14 +1241,14 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
         var items = await GoogleNews.FetchAsync(_http, url, ct);
         if (items.Count == 0) { _log.LogInformation("No global top stories."); return; }
 
-        // Try up to 3 insertions from the first 12 items, avoiding duplicates
+        // Try only 1 insertion from the first 8 items, avoiding duplicates
         var rnd = new Random();
         var seen = new HashSet<string>();
         var picks = items
             .Where(i => seen.Add(LinkCanon.Fingerprint(i)))
-            .Take(12)
+            .Take(8)
             .OrderBy(_ => rnd.Next())
-            .Take(3)
+            .Take(1)
             .ToList();
 
         var svc = sp.GetRequiredService<ArticleServices>();
@@ -915,6 +1262,8 @@ public sealed class GoogleNewsTopStoriesService : BackgroundService
                 var article = await RssIngest.ProcessOneAsync(sp, _opts, _ai, pick, Category.Info, null, null, ct);
                 if (article is null) continue;
                 await svc.Publish(ArticleMapping.MapToDto(article), adminId);
+                // Invalidate cache for this item after publish
+                sp.GetService<IAiTransientCache>()?.Remove($"news:{LinkCanon.Fingerprint(pick)}");
                 _log.LogInformation("Inserted top story: {Title}", article.Title);
             }
             catch (Exception ex)
@@ -993,6 +1342,7 @@ public sealed class GoogleNewsLocalCountryService : BackgroundService
             if (article is null) { _log.LogInformation("No article produced for {Code}", c.Code); return; }
             var svc = sp.GetRequiredService<ArticleServices>();
             await svc.Publish(ArticleMapping.MapToDto(article), article.AuthorId);
+            sp.GetService<IAiTransientCache>()?.Remove($"news:{LinkCanon.Fingerprint(pick)}");
             _log.LogInformation("Inserted local top story ({Code}): {Title}", c.Code, article.Title);
         }
         catch (Exception ex)
@@ -1013,7 +1363,8 @@ public static class AiNewsRegistration
         {
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.Timeout = Timeout.InfiniteTimeSpan;                 // ✅ let Polly handle timeouts
-        })
+        });
+#if false
         .AddStandardResilienceHandler(o =>
         {
             // --- Timeouts ---
@@ -1036,16 +1387,12 @@ public static class AiNewsRegistration
                         (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
                 );
 
-            // --- Retry (treat Polly timeouts as transient) ---
-            o.Retry.MaxRetryAttempts = 3;
-            o.Retry.ShouldHandle = args =>
-                new ValueTask<bool>(
-                    args.Outcome.Exception is HttpRequestException
-                    || args.Outcome.Exception is TimeoutRejectedException
-                    || (args.Outcome.Result is { } r &&
-                        (r.StatusCode == HttpStatusCode.RequestTimeout || (int)r.StatusCode >= 500))
-                );
+            // --- Retry (delegate retries/backoff to our client logic) ---
+            // Keep at 1 to satisfy options validation (no automatic retries)
+            o.Retry.MaxRetryAttempts = 1; // effectively disables retries
+            o.Retry.ShouldHandle = _ => new ValueTask<bool>(false);
         });
+#endif
 
         // Lightweight client for Google News RSS pulls
         services.AddHttpClient("gn", client =>
@@ -1062,4 +1409,3 @@ public static class AiNewsRegistration
     }
 }
 #endregion
-

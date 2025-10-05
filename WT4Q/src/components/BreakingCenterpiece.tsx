@@ -21,6 +21,7 @@ export default function BreakingCenterpiece({
         articles={articles && articles.length > 0 ? articles : undefined}
         className={styles.slider}
         showDetails
+        priorityFirstImage
       />
     </section>
   );

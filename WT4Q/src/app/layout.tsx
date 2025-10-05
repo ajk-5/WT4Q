@@ -45,9 +45,6 @@ export const metadata: Metadata = {
     description:
       "Real-time breaking news and trusted reporting - The Nineties Times (90sTimes).",
   },
-  alternates: {
-    canonical: "/",
-  },
   robots: {
     index: true,
     follow: true,
@@ -62,6 +59,7 @@ export default function RootLayout({
       <head>
         <GlobalStyles />
         {/* Preload brand font for faster masthead and centerpiece overlays */}
+        {/* Preload WOFF2 with best compression; TTF remains as fallback */}
         <link
           rel="preload"
           as="font"

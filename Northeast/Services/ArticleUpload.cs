@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Northeast.Services;
 using Northeast.Interface;
 using System.Linq;
+using Northeast.DTOs;
 
 
 namespace Northeast.Services
@@ -188,6 +189,13 @@ namespace Northeast.Services
             var results = await _articleRepository.SearchByAuthor(authorId);
             await SetViewsAsync(results);
             return results;
+        }
+
+        public async Task<PagedResult<Article>> SearchPagedAsync(SearchQueryDto query)
+        {
+            var result = await _articleRepository.SearchPagedAsync(query);
+            await SetViewsAsync(result.Items);
+            return result;
         }
 
         public async Task<IEnumerable<Article>> FilterArticles(Guid? id, string? title, string? content,

@@ -1,7 +1,5 @@
 import type { MetadataRoute } from 'next';
 import { unstable_cache } from 'next/cache';
-import { readdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
 
@@ -42,31 +40,13 @@ function getCategoryPaths(): string[] {
   return CATEGORIES.map((c) => `/category/${encodeURIComponent(c)}`);
 }
 
-async function getSubPaths(dir: string): Promise<string[]> {
-  try {
-    const base = join(process.cwd(), 'src/app', dir);
-    const entries = await readdir(base, { withFileTypes: true });
-    const paths: string[] = [];
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const files = await readdir(join(base, entry.name));
-      if (files.some((f) => /^page\.(t|j)sx?$/.test(f))) {
-        paths.push(`/${dir}/${entry.name}`);
-      }
-    }
-    return paths;
-  } catch {
-    return [];
-  }
-}
+// Removed tools/games discovery; no longer part of the site
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
-  const [articleRoutes, categoryPaths, toolPaths, gamePaths] = await Promise.all([
+  const [articleRoutes, categoryPaths] = await Promise.all([
     fetchArticlePaths(),
     getCategoryPaths(),
-    getSubPaths('tools'),
-    getSubPaths('games'),
   ]);
 
   const now = new Date();
@@ -90,18 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
       lastModified: now,
     },
-    {
-      url: `${siteUrl}/games`,
-      changeFrequency: 'weekly',
-      priority: 0.6,
-      lastModified: now,
-    },
-    {
-      url: `${siteUrl}/tools`,
-      changeFrequency: 'weekly',
-      priority: 0.6,
-      lastModified: now,
-    },
+    // Games and Tools removed from sitemap
     {
       url: `${siteUrl}/search`,
       changeFrequency: 'monthly',
@@ -144,23 +113,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified,
   }));
 
-  const toolEntries: MetadataRoute.Sitemap = toolPaths.map((path) => ({
-    url: `${siteUrl}${path}`,
-    changeFrequency: 'weekly',
-    priority: 0.4,
-  }));
-
-  const gameEntries: MetadataRoute.Sitemap = gamePaths.map((path) => ({
-    url: `${siteUrl}${path}`,
-    changeFrequency: 'weekly',
-    priority: 0.4,
-  }));
+  // No tool/game entries
 
   return [
     ...staticEntries,
     ...categoryEntries,
     ...articleEntries,
-    ...toolEntries,
-    ...gameEntries,
   ];
 }

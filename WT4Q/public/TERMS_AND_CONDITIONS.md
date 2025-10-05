@@ -60,5 +60,5 @@ These Terms are governed by EU law and applicable international regulations.
 
 For questions about these Terms:
 
-📧 wt4q.com@gmail.com
+Email: wt4q.com@gmail.com
 

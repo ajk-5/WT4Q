@@ -38,9 +38,17 @@ const nextConfig: NextConfig = {
       // Public images (e.g., icons and logos served from /public): long-lived cache
       {
         // Match common image extensions served from /public
-        source: "/:path*\.(png|jpg|jpeg|gif|svg|webp|avif|ico)",
+        source: "/:path*\\.(png|jpg|jpeg|gif|svg|webp|avif|ico)",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // Public fonts: long-lived cache + CORS for cross-origin preloads if needed
+      {
+        source: "/:path*\\.(woff2|woff|ttf)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
         ],
       },
       // API responses: never cached by browser
@@ -65,3 +73,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

@@ -84,5 +84,5 @@ We use encryption, secure servers, and restricted access to safeguard your data.
 
 For questions or requests, contact us:
 
-📧 wt4q.com@gmail.com
+Email: wt4q.com@gmail.com
 

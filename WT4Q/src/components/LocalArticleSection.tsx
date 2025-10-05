@@ -105,7 +105,7 @@ export default function LocalArticleSection() {
 
         const fetchBy = async (param: string, value: string) => {
           const res = await fetch(
-            `${API_ROUTES.ARTICLE.FILTER}?${param}=${encodeURIComponent(value)}`,
+            `/api/bridge/article/filter?${param}=${encodeURIComponent(value)}`,
             { signal: controller.signal },
           );
           if (!res.ok) return [] as Article[];

@@ -24,6 +24,8 @@ type Props = {
   articles?: BreakingArticle[];
   className?: string;
   showDetails?: boolean;
+  /** Prioritize first image for LCP (only for the true hero). */
+  priorityFirstImage?: boolean;
 };
 
 const ROTATE_MS = 5000;
@@ -57,6 +59,7 @@ export default function BreakingNewsSlider({
   articles: initialArticles,
   className,
   showDetails = false,
+  priorityFirstImage = false,
 }: Props) {
   const [articles, setArticles] = useState<BreakingArticle[]>(() => initialArticles ?? []);
   const [index, setIndex] = useState(0);
@@ -256,14 +259,12 @@ export default function BreakingNewsSlider({
 
     const ac = new AbortController();
     (async () => {
-      const res = await apiFetch(API_ROUTES.ARTICLE.BREAKING, {
+      const res = await fetch('/api/bridge/article/breaking', {
         signal: ac.signal,
         headers: { Accept: 'application/json' },
         cache: 'no-store',
       });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) return;
       const data: { id: string; slug: string; title: string; createdDate?: string }[] = await res.json();
       setArticles(
         data
@@ -276,11 +277,7 @@ export default function BreakingNewsSlider({
           .map((a) => ({ id: a.id, slug: a.slug, title: a.title, createdDate: a.createdDate })),
       );
       setIndex(0);
-    })().catch((err: unknown) => {
-      if (!(err instanceof Error) || err.name !== 'AbortError') {
-        setArticles([]);
-      }
-    });
+    })().catch(() => { setArticles([]); });
 
     return () => ac.abort();
   }, [needFetch]);
@@ -364,6 +361,7 @@ export default function BreakingNewsSlider({
   const first = current?.images?.[0];
   const base64 = first?.photo ? `data:image/jpeg;base64,${first.photo}` : undefined;
   const imageSrc = first?.photoLink || base64;
+  const hasImage = !!imageSrc;
   const snippet = current?.content
     ? truncateWords(stripHtml(current.content), 130)
     : undefined;
@@ -474,34 +472,29 @@ export default function BreakingNewsSlider({
       {showDetails ? (
         hasArticles ? (
           <PrefetchLink href={`/articles/${slug}`} className={styles.detailLink}>
-            <div className={styles.detail}>
-              <figure className={`${styles.detailFigure} ${!imageSrc ? styles.detailFigurePlaceholder : ''}`.trim()}>
-                {imageSrc ? (
+            <div className={`${styles.detail} ${!hasImage ? styles.detailNoImage : ''}`.trim()}>
+              {hasImage ? (
+                <figure className={styles.detailFigure}>
                   <Image
-                    src={imageSrc}
+                    src={imageSrc as string}
                     alt={first?.altText || title}
                     fill
-                    priority={index === 0}
-                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    priority={priorityFirstImage && index === 0}
+                    fetchPriority={priorityFirstImage && index === 0 ? 'high' : 'auto'}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 900px"
                     style={{ objectFit: 'cover' }}
                     placeholder={base64 ? 'blur' : undefined}
                     blurDataURL={base64}
                   />
-                ) : (
-                  <>
-                    <div className={styles.mediaPlaceholder} />
-                    <div className={styles.brandOverlay} aria-hidden="true">The Nineties Times</div>
-                  </>
-                )}
-                {first?.caption ? (
-                  <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
-                ) : (
-                  <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">
-                    &nbsp;
-                  </figcaption>
-                )}
-              </figure>
+                  {first?.caption ? (
+                    <figcaption className={styles.detailCaption}>{first.caption}</figcaption>
+                  ) : (
+                    <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">
+                      &nbsp;
+                    </figcaption>
+                  )}
+                </figure>
+              ) : null}
               <h3 className={styles.detailTitle} style={{ fontSize: `${titleFontRem}rem` }}>{title}</h3>
               {snippet ? (
                 <p className={styles.snippet}>

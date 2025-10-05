@@ -45,63 +45,7 @@ export default function CategoryNavbar({ open, onNavigate, forceSidebar }: Props
       <PrefetchLink href="/crypto" className={styles.link} onClick={onNavigate}>
         Crypto
       </PrefetchLink>
-      <div className={styles.dropdown}>
-        <PrefetchLink href="/tools" className={styles.link} onClick={onNavigate}>
-          Tools
-        </PrefetchLink>
-        <div className={styles.dropdownMenu}>
-          <PrefetchLink
-            href="/tools/world-clock"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            World Clock
-          </PrefetchLink>
-          {/** Mememaker removed */}
-          <PrefetchLink
-            href="/tools/qr-code-generator"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            QR Code Scanner
-          </PrefetchLink>
-            <PrefetchLink
-           href="/tools/typing-practice"
-        className={styles.link}
-        onClick={onNavigate}
-                >
-             Typing Practice
-       </PrefetchLink>
-        </div>
-      </div>
-      <div className={styles.dropdown}>
-        <PrefetchLink href="/games" className={styles.link} onClick={onNavigate}>
-          Games
-        </PrefetchLink>
-        <div className={styles.dropdownMenu}>
-          <PrefetchLink
-            href="/games/2048_game_online"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            2048
-          </PrefetchLink>
-          <PrefetchLink
-            href="/games/metrotrade"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            Metropolotan Trader
-          </PrefetchLink>
-          <PrefetchLink
-            href="/games/tetris"
-            className={styles.link}
-            onClick={onNavigate}
-          >
-            Tetris
-          </PrefetchLink>
-        </div>
-      </div>
+      {/* Tools and Games links removed for credibility */}
       <PrefetchLink href="/weather" className={styles.link} onClick={onNavigate}>
         Weather
       </PrefetchLink>

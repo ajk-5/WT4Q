@@ -63,3 +63,8 @@ next-env.d.ts
 # Ignore Excel files
 *.xlsx
 ~$*.xlsx
+
+# application secrets
+Northeast/appsettings.Local.json
+Northeast/appsettings.*.local.json
+

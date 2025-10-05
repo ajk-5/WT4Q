@@ -56,6 +56,17 @@ function ContactFormInner() {
   return (
     <main style={{ padding: '1rem' }}>
       <h1>Contact Us</h1>
+      <section style={{ margin: '0 0 1rem 0' }}>
+        <p>
+          Send tips, feedback, partnership ideas, or support requests using the form below.
+          Prefer email? Reach us at{' '}
+          <a href="mailto:wt4q.com@gmail.com">wt4q.com@gmail.com</a>.
+        </p>
+        <p>
+          For privacy or legal inquiries, please include the words Privacy or Legal in the subject line.
+          We review all messages and aim to reply promptly.
+        </p>
+      </section>
       <form
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}

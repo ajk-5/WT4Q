@@ -37,6 +37,15 @@ export default function DashboardClient() {
     { id: string; title: string; createdDate?: string }[]
   >([]);
 
+  // AI writer state
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiType, setAiType] = useState<'Article' | 'News'>('Article');
+  const [aiCategory, setAiCategory] = useState('');
+  const [aiUseRecent, setAiUseRecent] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiJobId, setAiJobId] = useState<string | null>(null);
+  const [aiStatus, setAiStatus] = useState<string>('');
+
   useEffect(() => {
     async function load() {
       if (!admin?.id) return;
@@ -60,12 +69,72 @@ export default function DashboardClient() {
     load();
   }, [admin]);
 
+  async function reloadMyArticles() {
+    if (!admin?.id) return;
+    try {
+      const res = await apiFetch(API_ROUTES.ARTICLE.SEARCH_BY_AUTHOR(admin.id));
+      if (!res.ok) return;
+      const data: { id: string; title: string; createdDate?: string }[] =
+        await res.json();
+      data.sort(
+        (a, b) =>
+          new Date(b.createdDate ?? 0).getTime() -
+          new Date(a.createdDate ?? 0).getTime(),
+      );
+      setArticles(data);
+    } catch {}
+  }
+
 
   const handleLogout = async () => {
     await apiFetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
       method: 'POST',
     });
     router.replace('/admin-login');
+  };
+
+  const handleAiWrite = async () => {
+    setError(null);
+    setSuccess(null);
+    if (!aiTopic || !aiCategory) {
+      setError('Please enter a topic and select a category');
+      return;
+    }
+    setAiBusy(true);
+    try {
+      const body = {
+        topic: aiTopic,
+        category: aiCategory,
+        articleType: aiType,
+        useRecentNews: aiType === 'News' ? aiUseRecent : false,
+      } as Record<string, unknown>;
+      const res = await apiFetch(API_ROUTES.ARTICLE.AI_WRITE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.status === 202) {
+        const data = (await res.json().catch(() => ({}))) as { jobId?: string };
+        if (data?.jobId) {
+          setAiJobId(data.jobId);
+          setAiStatus('queued');
+          setSuccess('Queued. Generating in background...');
+        } else {
+          setSuccess('Queued.');
+        }
+      } else if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || 'Generation failed');
+      } else {
+        setSuccess('AI article generated and published');
+        await reloadMyArticles();
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'AI generation failed';
+      setError(msg);
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -159,6 +228,50 @@ export default function DashboardClient() {
       </button>
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
+      <section className={styles.form}>
+        <h2 className={styles.subtitle}>AI Writer</h2>
+        <input
+          type="text"
+          placeholder="Topic (e.g., AI in healthcare)"
+          value={aiTopic}
+          onChange={(e) => setAiTopic(e.target.value)}
+          className={styles.input}
+        />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <select
+            value={aiType}
+            onChange={(e) => setAiType(e.target.value as 'Article' | 'News')}
+            className={styles.select}
+          >
+            {ARTICLE_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <select
+            value={aiCategory}
+            onChange={(e) => setAiCategory(e.target.value)}
+            className={styles.select}
+          >
+            <option value="" disabled>Select Category</option>
+            {UPLOADCATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        {aiType === 'News' && (
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={aiUseRecent}
+              onChange={(e) => setAiUseRecent(e.target.checked)}
+            />
+            Use recent news sources (Google News)
+          </label>
+        )}
+        <button type="button" onClick={handleAiWrite} disabled={aiBusy} className={styles.button}>
+          {aiBusy ? 'Generating…' : 'Generate & Publish'}
+        </button>
+      </section>
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"

@@ -3,7 +3,8 @@ import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Terms of Service & Cookie Policy | The Nineties Times',
-  description: "Review the latest Terms of Service, community guidelines, and cookie policy for The Nineties Times (90sTimes), your hub for breaking news and analysis.",
+  description:
+    'Review the latest Terms of Service, community guidelines, and cookie policy for The Nineties Times (90sTimes), your hub for breaking news and analysis.',
   keywords: [
     'terms of service 2025',
     'cookie policy update',
@@ -11,19 +12,21 @@ export const metadata: Metadata = {
     'community standards',
     'The Nineties Times terms',
     '90sTimes legal',
-    'content moderation policies'
+    'content moderation policies',
   ],
   alternates: { canonical: '/terms' },
   openGraph: {
     title: 'The Nineties Times Terms & Cookie Policy',
-    description: "Stay up to date on user responsibilities, content rules, and cookie usage across The Nineties Times network.",
+    description:
+      'Stay up to date on user responsibilities, content rules, and cookie usage across The Nineties Times network.',
     url: '/terms',
     type: 'article',
   },
   twitter: {
     card: 'summary',
     title: 'The Nineties Times Terms & Cookie Policy',
-    description: "Learn about account rules, data usage, and advertising consent for readers and contributors at 90sTimes.",
+    description:
+      'Learn about account rules, data usage, and advertising consent for readers and contributors at 90sTimes.',
   },
 };
 
@@ -35,7 +38,7 @@ export default function TermsPage() {
         Editorial independence: Our reporting is produced free of outside influence. We strive for accuracy, balance, and respect, without favor toward any political party, race, or group.
       </p>
       <p>
-        Welcome to the summary of The Nineties Times&apos; Terms of Service and Cookie Policy.
+        Welcome to the summary of The Nineties Times&rsquo; Terms of Service and Cookie Policy.
         Visiting or using the site means you agree to the rules described here.
         This page highlights key points in plain language, but it is not a legal
         document. For the full text, please read the{' '}
@@ -56,7 +59,7 @@ export default function TermsPage() {
         <li>We may remove content or suspend accounts that violate these rules.</li>
         <li>External links are offered for convenience; we do not control those sites.</li>
         <li>Features may change or disappear as we improve the service.</li>
-        <li>The Nineties Times is provided “as is,” without warranties about accuracy or availability.</li>
+        <li>The Nineties Times is provided &quot;as is,&quot; without warranties about accuracy or availability.</li>
         <li>We are not liable for damages that result from your use of the site.</li>
         <li>Local laws govern these terms, and continued use after updates signifies acceptance.</li>
         <li>You are responsible for ensuring your contributions do not infringe intellectual property rights.</li>
@@ -99,8 +102,8 @@ export default function TermsPage() {
       <h2 className={styles.heading}>Crypto Market Data &amp; Disclaimers</h2>
       <p>
         The Crypto section aggregates prices, charts and rankings from
-        third‑party providers (including Binance and CoinGecko) and headlines
-        from Google News RSS. This information is provided “as‑is” for
+        third-party providers (including Binance and CoinGecko) and headlines
+        from Google News RSS. This information is provided &quot;as-is&quot; for
         educational and informational purposes only. It is not investment
         advice, a solicitation, or a recommendation to buy or sell any asset.
       </p>
@@ -108,11 +111,11 @@ export default function TermsPage() {
         <li>Data may be delayed, incomplete or incorrect. Availability is not guaranteed.</li>
         <li>We are not responsible for market losses incurred based on information displayed here.</li>
         <li>The site does not facilitate trading or hold customer funds.</li>
-        <li>Use of third‑party APIs is subject to those providers’ terms.</li>
+        <li>Use of third-party APIs is subject to those providers&rsquo; terms.</li>
       </ul>
       <h2 className={styles.heading}>Crypto Preferences &amp; Cookies</h2>
       <p>
-        To improve usability, the Crypto pages may store non‑essential
+        To improve usability, the Crypto pages may store non-essential
         preferences (such as a last selected symbol or timeframe) in cookies or
         local storage. These do not track you across sites and can be cleared in
         your browser at any time. Analytics/advertising cookies remain optional
@@ -120,8 +123,8 @@ export default function TermsPage() {
       </p>
       <p>
         If you have questions about any of these terms or how we handle cookies,
-        please email <a href="mailto:privacy@90stimes.example.com">privacy@90stimes.example.com</a>
-        or use the contact page. We value transparency and are happy to explain
+        please email <a href="mailto:wt4q.com@gmail.com">wt4q.com@gmail.com</a>
+        {' '}or use the contact page. We value transparency and are happy to explain
         our practices.
       </p>
     </div>

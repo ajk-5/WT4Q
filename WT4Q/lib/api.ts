@@ -37,6 +37,8 @@ export const API_ROUTES = {
     SEARCH: (query: string) =>
       `${API_BASE_URL}/api/ArticleSearch?query=${encodeURIComponent(query)}`,
     SEARCH_ADVANCED: `${API_BASE_URL}/api/ArticleSearch/advanced`,
+    SEARCH_PAGED: (queryString: string) =>
+      `${API_BASE_URL}/api/ArticleSearch/paged${queryString.startsWith('?') ? '' : '?'}${queryString}`,
     FILTER: `${API_BASE_URL}/api/ArticleFilter`,
     UPDATE: (id: string) => `${API_BASE_URL}/api/Article/${id}`,
     DELETE: `${API_BASE_URL}/api/Article`,
@@ -47,6 +49,8 @@ export const API_ROUTES = {
     SEARCH_BY_AUTHOR: (id: string) => `${API_BASE_URL}/api/ArticleSearch/by-author/${id}`,
     BREAKING: `${API_BASE_URL}/api/Article/breaking`,
     TRENDING: (limit = 5) => `${API_BASE_URL}/api/Article/trending?limit=${limit}`,
+    AI_WRITE: `${API_BASE_URL}/api/Article/ai-write`,
+    AI_WRITE_JOB: (id: string) => `${API_BASE_URL}/api/Article/ai-write/jobs/${id}`,
   },
 
   COCKTAIL: {

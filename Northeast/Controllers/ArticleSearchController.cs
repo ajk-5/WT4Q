@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Northeast.Models;
 using Northeast.Services;
+using Northeast.DTOs;
 
 namespace Northeast.Controllers
 {
@@ -71,6 +72,15 @@ namespace Northeast.Controllers
                 return NotFound(new { message = "No articles found" });
             }
             return Ok(results);
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> SearchPaged([FromQuery] SearchQueryDto query)
+        {
+            if (query.PageSize <= 0 || query.PageSize > 100) query.PageSize = 20;
+            if (query.Page <= 0) query.Page = 1;
+            var result = await _articleServices.SearchPagedAsync(query);
+            return Ok(result);
         }
     }
 }

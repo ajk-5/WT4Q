@@ -50,7 +50,7 @@ namespace Northeast.Services
         public async Task<Article> FromRandomCategoryAsync(Guid authorId, Category category, CancellationToken ct)
         {
             var seedTitle = $"What's happening in {category} right now";
-            var prompt = $@"Write a timely, original short article in simple words for the category: {category}.\nFollow the same HTML/output rules as before (div.article, h2 sub-headings, What's next, meta keywords).\nFocus on a current trend or explainer many readers ask this week. No fluff.";
+            var prompt = $@"Write a timely, original short article in simple words for the category: {category}.\nFollow the same HTML/output rules as before (div.article, h2 sub-headings, varied story-specific conclusion, Sources list with links, meta keywords).\nFocus on a current trend or explainer many readers ask this week. No fluff.";
             var html = await _gemini.GenerateAsync(prompt, ct);
             html = ContentBuilder.EnforceDiv(html);
             var keywords = ContentBuilder.ExtractKeywords(html);

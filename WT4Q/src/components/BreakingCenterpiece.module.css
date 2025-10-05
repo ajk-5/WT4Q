@@ -1,4 +1,6 @@
 .centerpiece {
+  /* Doubled outer height */
+  --centerpiece-h: clamp(40rem, 108vw, 56rem);
   background: #ffffff06;
   border: 4px double var(--ink, #111);
   box-shadow: inset 0 0 0 1px var(--thin-rule, #2c1616);
@@ -9,20 +11,18 @@
   /* Stretch to fill the grid row height so it matches adjacent columns */
   align-self: stretch;
   height: 100%;
-
-  min-height: 10rem;
+  /* Lock height to a constant responsive value to avoid shifts */
+  min-height: var(--centerpiece-h);
+  max-height: var(--centerpiece-h);
 
   display: grid;
   grid-template-rows: auto 1fr; /* header | content */
   gap: .75rem;
 }
 
-/* On single-column/mobile layouts, enforce a stable minimum height
-   so auto-rotation does not change surrounding layout. */
-@media (max-width: 1100px) {
-  .centerpiece {
-    min-height: var(--centerpiece-min-h, clamp(22rem, 70vw, 26rem));
-  }
+/* On very small screens we can slightly relax the fixed height bounds */
+@media (max-width: 520px) {
+  .centerpiece { --centerpiece-h: clamp(36rem, 160vw, 48rem); }
 }
 
 .header {

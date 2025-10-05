@@ -373,14 +373,17 @@
   font-size: clamp(1.05rem, 1.8vw, 1.15rem);
   line-height: 1.55;
   overflow-wrap: anywhere;
-  max-height: clamp(12rem, 32vw, 16rem);
-  min-height: clamp(9rem, 24vw, 13rem);
+  /* Allow the content section to flex and scroll without forcing a minimum size */
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   padding-right: 0.25rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(17, 17, 17, 0.4) rgba(17, 17, 17, 0.05);
   -webkit-overflow-scrolling: touch;
 }
+/* Ensure snippet can shrink freely inside grid when no image */
+.detailNoImage .snippet { min-height: 0; max-height: none; }
 
 .snippet::-webkit-scrollbar {
   width: 0.25rem;
@@ -549,7 +552,8 @@
   }
 
   .detailMode {
-    min-height: clamp(20rem, 70vw, 24rem);
+    /* Let the centerpiece container dictate height on mobile */
+    min-height: 0;
     padding: clamp(0.75rem, 2vw, 1rem);
   }
 
@@ -559,8 +563,14 @@
 
   .snippet,
   .snippetPlaceholder {
-    min-height: clamp(7.5rem, 48vw, 10.5rem);
-    max-height: clamp(10rem, 60vw, 14rem);
+    min-height: 0;
+    max-height: none;
+  }
+
+  .detailNoImage .snippet,
+  .detailNoImage .snippetPlaceholder {
+    min-height: 0;
+    max-height: none;
   }
 
   .item {

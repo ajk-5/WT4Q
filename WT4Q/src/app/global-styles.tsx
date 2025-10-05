@@ -6,9 +6,10 @@ const globalCss = String.raw`
 /* =========
    Fonts
    ========= */
-/* Self-host CloisterBlack (provided TTF at public/fonts/CloisterBlack.ttf) */
+/* Self-host CloisterBlack (WOFF2 + TTF fallback in /public/fonts) */
 @font-face {
   font-family: 'CloisterBlack';
+  /* Prefer WOFF2 with TTF fallback */
   src: url('/fonts/CloisterBlack.woff2') format('woff2'),
        url('/fonts/CloisterBlack.ttf') format('truetype');
   font-weight: 400;

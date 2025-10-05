@@ -27,6 +27,14 @@
   transition: background 0.2s, transform 0.2s;
 }
 
+.select {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--secondary);
+  background: var(--background);
+  color: var(--foreground);
+}
+
 .button:hover {
   background: var(--secondary);
   transform: translateY(-2px);
@@ -54,5 +62,27 @@
   .results {
     grid-template-columns: 1fr;
   }
+  .form { flex-wrap: wrap; }
+  .input { flex: 1 1 100%; }
+  .select { flex: 0 0 auto; }
+  .button { flex: 0 0 auto; }
 }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pageBtn {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--secondary);
+  background: var(--background);
+  color: var(--foreground);
+  border-radius: 0.4rem;
+}
+
+.pageInfo { color: var(--secondary); }
 

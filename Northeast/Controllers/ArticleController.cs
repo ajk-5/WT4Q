@@ -19,19 +19,25 @@ namespace Northeast.Controllers
         private readonly GetConnectedUser _connectedUser;
         private readonly IArticleRecommendationService _recommendations;
         private readonly CommentRepository _commentRepository;
+        private readonly AiArticleWriterService _aiWriter;
+        private readonly IAiWriteQueue _aiQueue;
 
         public ArticleController(
             ArticleServices _articleUpload,
             LikeRepository likeRepository,
             GetConnectedUser connectedUser,
             IArticleRecommendationService recommendations,
-            CommentRepository commentRepository)
+            CommentRepository commentRepository,
+            AiArticleWriterService aiWriter,
+            IAiWriteQueue aiQueue)
         {
             articleUpload = _articleUpload;
             _likeRepository = likeRepository;
             _connectedUser = connectedUser;
             _recommendations = recommendations;
             _commentRepository = commentRepository;
+            _aiWriter = aiWriter;
+            _aiQueue = aiQueue;
         }
 
         [Authorize(Policy = "AdminOnly")]
@@ -65,6 +71,50 @@ namespace Northeast.Controllers
             }
             return Ok(articles);
 
+        }
+
+        // Admin AI writer: queue a job to avoid gateway timeouts, then poll status
+        [Authorize(Policy = "AdminOnly")]
+        [HttpPost("ai-write")]
+        public async Task<IActionResult> AiWrite([FromBody] AiWriteRequestDto req, CancellationToken ct)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Topic))
+                return BadRequest(new { message = "Topic is required" });
+
+            var authorId = _connectedUser.Id;
+            if (authorId == Guid.Empty)
+                return Unauthorized();
+
+            try
+            {
+                var job = _aiQueue.Enqueue(authorId, req);
+                // 202 Accepted with job id for polling
+                return Accepted(new { jobId = job.Id });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal error while generating article", error = ex.Message });
+            }
+        }
+
+        // Admin AI writer job status
+        [Authorize(Policy = "AdminOnly")]
+        [HttpGet("ai-write/jobs/{id:guid}")]
+        public IActionResult AiWriteStatus([FromRoute] Guid id)
+        {
+            if (!_aiQueue.TryGet(id, out var job))
+                return NotFound(new { message = "Job not found" });
+            return Ok(new
+            {
+                id = job.Id,
+                status = job.Status.ToString(),
+                slug = job.Slug,
+                error = job.Error
+            });
         }
 
         [HttpGet("breaking")]

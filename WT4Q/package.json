@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "cross-env HTTPS=true next dev --turbopack",
     "build": "next build",
+    "prebuild": "npm run build:fonts",
     "start": "next start",
     "lint": "next lint",
+    "build:fonts": "node scripts/build-fonts.mjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -37,6 +39,7 @@
     "eslint-config-next": "15.5.3",
     "happy-dom": "^18.0.1",
     "jsdom": "^27.0.0",
+    "ttf2woff2": "^8.0.0",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }

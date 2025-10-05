@@ -2,6 +2,7 @@
 using Northeast.Data;
 using Northeast.Models;
 using System.Linq;
+using Northeast.DTOs;
 
 namespace Northeast.Repository
 {
@@ -93,6 +94,111 @@ namespace Northeast.Repository
             return await _context.Articles.AsNoTracking()
                 .Where(a => a.AuthorId == authorId)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<Article>> SearchPagedAsync(SearchQueryDto q)
+        {
+            var queryable = _context.Articles.AsNoTracking().AsQueryable();
+
+            // Time range
+            if (q.From.HasValue)
+            {
+                var from = q.From.Value.Date;
+                queryable = queryable.Where(a => a.CreatedDate >= from);
+            }
+            if (q.To.HasValue)
+            {
+                var to = q.To.Value.Date.AddDays(1).AddTicks(-1);
+                queryable = queryable.Where(a => a.CreatedDate <= to);
+            }
+
+            // Broad query (applies across several fields)
+            if (!string.IsNullOrWhiteSpace(q.Q))
+            {
+                var ql = q.Q.ToLower();
+                queryable = queryable.Where(a =>
+                    a.Title.ToLower().Contains(ql)
+                    || a.Content.ToLower().Contains(ql)
+                    || (a.CountryName != null && a.CountryName.ToLower().Contains(ql))
+                    || (a.CountryCode != null && a.CountryCode.ToLower().Contains(ql))
+                    || (a.Keywords != null && a.Keywords.Any(k => k.ToLower().Contains(ql))));
+            }
+
+            // Field-specific filters
+            if (!string.IsNullOrWhiteSpace(q.Title))
+            {
+                var t = q.Title.ToLower();
+                queryable = queryable.Where(a => a.Title.ToLower().Contains(t));
+            }
+            if (!string.IsNullOrWhiteSpace(q.Keyword))
+            {
+                var k = q.Keyword.ToLower();
+                queryable = queryable.Where(a => a.Keywords != null && a.Keywords.Any(x => x.ToLower().Contains(k)));
+            }
+            if (!string.IsNullOrWhiteSpace(q.CountryName))
+            {
+                var cn = q.CountryName.ToLower();
+                queryable = queryable.Where(a => a.CountryName != null && a.CountryName.ToLower().Contains(cn));
+            }
+            if (!string.IsNullOrWhiteSpace(q.CountryCode))
+            {
+                var cc = q.CountryCode.ToLower();
+                queryable = queryable.Where(a => a.CountryCode != null && a.CountryCode.ToLower().Contains(cc));
+            }
+            if (q.Type.HasValue)
+            {
+                queryable = queryable.Where(a => a.ArticleType == q.Type.Value);
+            }
+            if (q.Category.HasValue)
+            {
+                queryable = queryable.Where(a => a.Category == q.Category.Value);
+            }
+            if (q.IsBreaking.HasValue)
+            {
+                queryable = queryable.Where(a => a.IsBreakingNews == q.IsBreaking.Value);
+            }
+            if (q.HasImages.HasValue)
+            {
+                if (q.HasImages.Value)
+                    queryable = queryable.Where(a => a.Images != null && a.Images.Count > 0);
+                else
+                    queryable = queryable.Where(a => a.Images == null || a.Images.Count == 0);
+            }
+
+            // Sorting
+            var sort = (q.Sort ?? "date_desc").ToLowerInvariant();
+            if (sort == "date_asc")
+            {
+                queryable = queryable.OrderBy(a => a.CreatedDate);
+            }
+            else if (sort == "relevance" && !string.IsNullOrWhiteSpace(q.Q))
+            {
+                var ql = q.Q!.ToLower();
+                queryable = queryable
+                    .OrderByDescending(a => (a.Title.ToLower().Contains(ql) ? 3 : 0)
+                                           + (a.Keywords != null && a.Keywords.Any(k => k.ToLower().Contains(ql)) ? 2 : 0)
+                                           + (a.Content.ToLower().Contains(ql) ? 1 : 0))
+                    .ThenByDescending(a => a.CreatedDate);
+            }
+            else
+            {
+                queryable = queryable.OrderByDescending(a => a.CreatedDate);
+            }
+
+            // Paging
+            var page = q.Page < 1 ? 1 : q.Page;
+            var size = q.PageSize <= 0 ? 20 : q.PageSize;
+
+            var total = await queryable.CountAsync();
+            var items = await queryable.Skip((page - 1) * size).Take(size).ToListAsync();
+
+            return new PagedResult<Article>
+            {
+                Page = page,
+                PageSize = size,
+                Total = total,
+                Items = items
+            };
         }
 
         public async Task<IEnumerable<Article>> Filter(Guid? id, string? title, string? content,

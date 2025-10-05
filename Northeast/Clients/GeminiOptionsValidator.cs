@@ -18,7 +18,13 @@ namespace Northeast.Clients
             "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
-            "gemini-1.5-pro-latest"
+            "gemini-1.5-pro-latest",
+            // 2.5 family (stable)
+            "gemini-2.5-flash",
+            "gemini-2.5-pro",
+            // accept potential aliases if present in config
+            "gemini-2.5-flash-latest",
+            "gemini-2.5-pro-latest"
         };
 
         public GeminiOptionsValidator(ILogger<GeminiOptionsValidator> logger)

@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 
 using Microsoft.IdentityModel.Tokens;
@@ -15,16 +16,23 @@ using Northeast.Repository;
 using Northeast.Services;
 using Northeast.Services.Similarity;
 using Northeast.Utilities;
-using Polly.Timeout;                        // ✅ Polly timeout
+using Microsoft.Extensions.Http.Resilience; // StandardResilienceOptions
+using Microsoft.Extensions.Options;
+using Polly.Timeout;                        // ? Polly timeout
 
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-                   // ✅ Timeout.InfiniteTimeSpan
+// ? Timeout.InfiniteTimeSpan
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.local.json", optional: true, reloadOnChange: true);
+
 var originsPolicy = "AuthorizedApps";
 
 // --- Add Services ---
@@ -38,6 +46,19 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// --- Request size limits (allow large JSON/multipart uploads) ---
+// Increase Kestrel's max request body size (e.g., 500 MB)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 524_288_000; // 500 MB
+});
+
+// If/when using multipart form uploads, raise multipart limit too
+builder.Services.Configure<FormOptions>(o =>
+{
+    o.MultipartBodyLengthLimit = 524_288_000; // 500 MB
+});
+
 // --- DbContext ---
 builder.Services.AddDbContext<AppDbContext>();
 
@@ -50,6 +71,7 @@ builder.Services.Configure<HostOptions>(options =>
 builder.Services.AddScoped<UserRegistration>();
 builder.Services.AddScoped<UserAuthentification>();
 builder.Services.AddScoped<ArticleServices>();
+builder.Services.AddScoped<AiArticleWriterService>();
 builder.Services.AddScoped<CocktailService>();
 builder.Services.AddScoped<GenerateJwt>();
 builder.Services.AddScoped<GetConnectedUser>();
@@ -62,6 +84,7 @@ builder.Services.Configure<IndexNowOptions>(builder.Configuration.GetSection("In
 builder.Services.AddHttpClient("IndexNow");
 builder.Services.AddSingleton<IIndexNowService, IndexNowService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<IAiTransientCache, AiTransientCache>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<ArticleRepository>();
@@ -77,12 +100,20 @@ builder.Services.AddScoped<CommentReportRepository>();
 builder.Services.AddScoped<ITokenizationService, TokenizationService>();
 builder.Services.AddScoped<ISimilarityService, SimilarityService>();
 builder.Services.AddScoped<IArticleRecommendationService, ArticleRecommendationService>();
+builder.Services.AddSingleton<IAiWriteQueue, AiWriteQueue>();
+builder.Services.AddHostedService<AiWriteWorker>();
+builder.Services.AddSingleton<ResearchAggregator>();
+builder.Services.AddHttpClient("research", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(20);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NortheastBot/1.0)");
+});
 
 // --- HTTP clients with resilience (named "default") ---
 builder.Services.AddHttpClient("default")
     .ConfigureHttpClient(c =>
     {
-        c.Timeout = Timeout.InfiniteTimeSpan; // ✅ Polly owns timeouts
+        c.Timeout = Timeout.InfiniteTimeSpan; // ? Polly owns timeouts
     })
     .AddStandardResilienceHandler(o =>
     {
@@ -90,8 +121,8 @@ builder.Services.AddHttpClient("default")
         o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);
         o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150);
 
-        // Circuit breaker rule: SamplingDuration >= 2 × AttemptTimeout
-        o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2); // ✅ >= 120s
+        // Circuit breaker rule: SamplingDuration >= 2 � AttemptTimeout
+        o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2); // ? >= 120s
         o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
         o.CircuitBreaker.FailureRatio = 0.2;
         o.CircuitBreaker.MinimumThroughput = 10;
@@ -107,23 +138,54 @@ builder.Services.AddHttpClient("default")
             );
     });
 
+// Ensure valid resilience options for the typed AI client (satisfy validation >= 1)
+builder.Services.PostConfigure<HttpStandardResilienceOptions>("IGenerativeTextClient-standard", o =>
+{
+    if (o.Retry.MaxRetryAttempts < 1)
+        o.Retry.MaxRetryAttempts = 1;
+});
+
 // --- AI News (Gemini + hosted services) ---
 builder.Services.AddAiNews(o =>
 {
     o.DefaultLang = "en-US";
     o.DefaultCountry = "US";
-    o.ApiKey = builder.Configuration["AiNews:ApiKey"]
+    // Prefer custom key from API:Key2 (env API__key2), then AiNews/other fallbacks
+    o.ApiKey = builder.Configuration["API:Key2"]
+               ?? Environment.GetEnvironmentVariable("API__key2")
+               ?? builder.Configuration["AiNews:ApiKey"]
                ?? Environment.GetEnvironmentVariable("AiNews__ApiKey")
                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 
     if (string.IsNullOrWhiteSpace(o.ApiKey))
         throw new InvalidOperationException("AiNews:ApiKey is missing. Set it in configuration or as an environment variable.");
 
+    // Allow overriding model/temperature via API section if provided
+    var model = builder.Configuration["API:Model"] ?? builder.Configuration["AiNews:Model"];
+    if (!string.IsNullOrWhiteSpace(model)) o.Model = model;
+    if (double.TryParse(builder.Configuration["API:Temperature"], out var temp))
+        o.Creativity = temp;
+
     o.MinWordCount = 180;            // still decent length
     o.PreInsertMinWordCount = 90;    // forgiving first gate
     o.FillMissingHtml = true;
     o.UseExternalImages = false;     // keep things simple/stable
 });
+
+// --- AI Global Rate Limiter Configuration ---
+{
+    int rpm = 10;
+    int minSpacing = 5;
+    int cooldownOn429 = 600; // default 10 minutes cooldown after 429
+    if (int.TryParse(builder.Configuration["AI:RequestsPerMinute"], out var cfgRpm) && cfgRpm > 0) rpm = cfgRpm;
+    if (int.TryParse(builder.Configuration["AI:MinSpacingSeconds"], out var cfgMs) && cfgMs > 0) minSpacing = cfgMs;
+    if (int.TryParse(builder.Configuration["AI:CooldownOn429Seconds"], out var cfgCd) && cfgCd > 0) cooldownOn429 = cfgCd;
+
+    Northeast.Services.AiGlobalRateLimiter.Configure(
+        requestsPerMinute: rpm,
+        minSpacing: TimeSpan.FromSeconds(minSpacing),
+        cooldownOn429: TimeSpan.FromSeconds(cooldownOn429));
+}
 
 // --- Authentication ---
 builder.Services.AddAuthentication(options =>

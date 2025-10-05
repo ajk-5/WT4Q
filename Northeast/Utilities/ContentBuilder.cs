@@ -14,7 +14,8 @@ Rules:
 - Use simple, natural language (human tone).
 - Output EXACTLY ONE HTML block: <div class=""article""> ... </div>
 - Include a short intro and at least two <h2> sub-headings.
-- Add a <h3>What's next?</h3> section with a clear, reasoned outlook.
+- End with a concise, story-specific conclusion under a varied subheading (avoid stock 'What's next?' or 'Why this matters').
+- Add a <h2>Sources</h2> section listing 1–3 cited links with publisher names; always include the provided link.
 - Minimum 170 words.
 - Do NOT invent facts. If details are unclear, add a brief 'What we know so far' note.
 - Add a line at the end: <meta data-keywords=""comma, separated, keywords""></meta>

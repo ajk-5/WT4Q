@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northeast — Search</title>
+  <style>
+    :root { --bg:#0b0f14; --fg:#e6eef7; --muted:#9fb3c8; --accent:#3da9fc; --card:#0f1620; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--fg); }
+    header { position:sticky; top:0; backdrop-filter: blur(8px); background:rgba(11,15,20,.85); border-bottom:1px solid #1b2633; z-index:10; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 12px 16px; }
+    .searchbar { display:flex; gap:8px; align-items:center; }
+    input[type="search"] { flex:1; padding:12px 14px; border-radius:10px; border:1px solid #1b2633; background:#0f1620; color:var(--fg); }
+    button, select { padding:12px 14px; border-radius:10px; border:1px solid #1b2633; background:#122031; color:var(--fg); cursor:pointer; }
+    .grid { display:grid; grid-template-columns: 280px 1fr; gap:16px; padding: 12px 16px; }
+    .card { background:var(--card); border:1px solid #1b2633; border-radius:12px; padding:12px; }
+    .filters label { display:block; font-size:13px; margin-top:10px; color:var(--muted); }
+    .filters input, .filters select { width:100%; margin-top:6px; }
+    .adv-toggle { display:none; }
+    .results .item { border-bottom:1px solid #1b2633; padding:12px 8px; }
+    .results .item:last-child { border-bottom:none; }
+    .title { font-weight:600; color:var(--fg); text-decoration:none; }
+    .meta { color:var(--muted); font-size:13px; margin-top:4px; display:flex; flex-wrap:wrap; gap:10px; }
+    .pager { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+    .muted { color:var(--muted); }
+    .hl { background: rgba(61,169,252,.18); border-radius:4px; padding:0 2px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .adv-toggle { display:block; margin: 8px 0; } .filters { display:none; } .filters.open { display:block; } }
+  </style>
+  <script>
+    let state = { page: 1, pageSize: 10, sort: 'date_desc' };
+    function qs(sel){ return document.querySelector(sel); }
+    function qv(sel){ const el=qs(sel); return el?el.value.trim():''; }
+    function setFiltersOpen(open){ const f=qs('#filters'); if(f){ f.classList.toggle('open', !!open); } }
+    function highlight(text, q){ if(!q) return text; try { const rx = new RegExp('('+q.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&') +')','ig'); return text.replace(rx,'<span class="hl">$1</span>'); } catch { return text; } }
+    async function run(page){
+      state.page = page || 1;
+      const params = new URLSearchParams({
+        page: state.page, pageSize: state.pageSize, sort: qv('#sort')||'date_desc',
+        q: qv('#q'), title: qv('#title'), keyword: qv('#keyword'), countryCode: qv('#countryCode'), countryName: qv('#countryName'),
+        from: qv('#from'), to: qv('#to'), type: qv('#type'), category: qv('#category'), isBreaking: qv('#isBreaking'), hasImages: qv('#hasImages')
+      });
+      const url = '/api/ArticleSearch/paged?' + params.toString();
+      qs('#status').textContent = 'Searching...';
+      try{
+        const res = await fetch(url);
+        const data = await res.json();
+        render(data);
+      }catch(e){ qs('#status').textContent = 'Failed to fetch results'; }
+    }
+    function render(data){
+      qs('#status').textContent = `${data.total} results`;
+      const q = qv('#q');
+      const out = (data.items||[]).map(a=>{
+        const created = (a.createdDate||'').substring(0,10);
+        const cat = a.category || '';
+        const cc = a.countryCode || '';
+        const snippet = (a.content||'').replace(/<[^>]+>/g,' ').slice(0,220);
+        return `<div class="item">
+          <a class="title" href="/articles/${a.slug||a.id}">${highlight(a.title||'', q)}</a>
+          <div class="meta">${created} · ${cat} ${cc?('· '+cc):''} ${a.isBreakingNews? '· BREAKING':''}</div>
+          <div class="muted">${highlight(snippet, q)}...</div>
+        </div>`;
+      }).join('');
+      qs('#results').innerHTML = out || '<div class="muted">No results</div>';
+      qs('#pager').innerHTML = pageButtons(data.page, data.totalPages);
+    }
+    function pageButtons(page,total){
+      if(!total||total<=1) return '';
+      const prev = `<button ${page<=1?'disabled':''} onclick="run(${page-1})">Prev</button>`;
+      const next = `<button ${page>=total?'disabled':''} onclick="run(${page+1})">Next</button>`;
+      return `<div class="pager"><span class="muted">Page ${page} / ${total}</span>${prev}${next}</div>`;
+    }
+    window.addEventListener('DOMContentLoaded',()=>{
+      qs('#go').addEventListener('click', ()=>run(1));
+      qs('#q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ run(1); }});
+      qs('#toggle').addEventListener('click', ()=>setFiltersOpen(!qs('#filters').classList.contains('open')));
+      run(1);
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="searchbar">
+        <input id="q" type="search" placeholder="Search articles, keywords, countries..." />
+        <select id="sort">
+          <option value="date_desc">Newest</option>
+          <option value="date_asc">Oldest</option>
+          <option value="relevance">Relevance</option>
+        </select>
+        <button id="go">Search</button>
+      </div>
+      <button id="toggle" class="adv-toggle">Advanced filters</button>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="grid">
+      <aside class="card filters" id="filters">
+        <div class="muted">Advanced filters</div>
+        <label>Title <input id="title" type="text" placeholder="Phrase in title" /></label>
+        <label>Keyword <input id="keyword" type="text" placeholder="Any keyword" /></label>
+        <label>Country code <input id="countryCode" type="text" placeholder="US, FR, BR..." /></label>
+        <label>Country name <input id="countryName" type="text" placeholder="United States" /></label>
+        <label>From <input id="from" type="date" /></label>
+        <label>To <input id="to" type="date" /></label>
+        <label>Type
+          <select id="type">
+            <option value="">Any</option>
+            <option>News</option>
+            <option>Article</option>
+            <option>QnA</option>
+          </select>
+        </label>
+        <label>Category
+          <select id="category">
+            <option value="">Any</option>
+            <option>Info</option>
+            <option>Politics</option>
+            <option>Business</option>
+            <option>Technology</option>
+            <option>Science</option>
+            <option>Health</option>
+            <option>Sports</option>
+            <option>Entertainment</option>
+            <option>Lifestyle</option>
+            <option>Crime</option>
+          </select>
+        </label>
+        <label>Breaking
+          <select id="isBreaking">
+            <option value="">Any</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </label>
+        <label>Has images
+          <select id="hasImages">
+            <option value="">Any</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </label>
+      </aside>
+      <section class="card results">
+        <div id="status" class="muted"></div>
+        <div id="results"></div>
+        <div id="pager"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
