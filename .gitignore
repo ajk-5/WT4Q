@@ -66,5 +66,6 @@ next-env.d.ts
 
 # application secrets
 Northeast/appsettings.Local.json
-Northeast/appsettings.*.local.json
+Northeast/appsettings.*.json
+Northeast/appsettings.json
 
