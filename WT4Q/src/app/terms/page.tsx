@@ -4,11 +4,11 @@ import styles from './page.module.css';
 export const metadata: Metadata = {
   title: 'Terms of Service & Cookie Policy | The Nineties Times',
   description:
-    'Review the latest Terms of Service, community guidelines, and cookie policy for The Nineties Times (90sTimes), your hub for breaking news and analysis.',
+    'Review the Terms of Service, community guidelines, and cookie policy for The Nineties Times (90sTimes), your 90s nostalgia hub.',
   keywords: [
     'terms of service 2025',
     'cookie policy update',
-    'user guidelines news site',
+    'user guidelines',
     'community standards',
     'The Nineties Times terms',
     '90sTimes legal',
@@ -35,7 +35,7 @@ export default function TermsPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Terms of Service &amp; Cookie Policy</h1>
       <p>
-        Editorial independence: Our reporting is produced free of outside influence. We strive for accuracy, balance, and respect, without favor toward any political party, race, or group.
+        Community spirit: The Nineties Times is a nostalgia-first destination. We aim to keep the space welcoming, respectful, and focused on celebrating the 90s.
       </p>
       <p>
         Welcome to the summary of The Nineties Times&rsquo; Terms of Service and Cookie Policy.
@@ -102,8 +102,8 @@ export default function TermsPage() {
       <h2 className={styles.heading}>Crypto Market Data &amp; Disclaimers</h2>
       <p>
         The Crypto section aggregates prices, charts and rankings from
-        third-party providers (including Binance and CoinGecko) and headlines
-        from Google News RSS. This information is provided &quot;as-is&quot; for
+        third-party providers (including Binance and CoinGecko) and market
+        links from official community sources. This information is provided &quot;as-is&quot; for
         educational and informational purposes only. It is not investment
         advice, a solicitation, or a recommendation to buy or sell any asset.
       </p>

@@ -33,9 +33,11 @@ namespace Northeast.Services
 
         public async Task<IEnumerable<Cocktail>> GetAll() => await _repository.GetAll();
 
-        public async Task<Cocktail> GetById(int id) => await _repository.GetById(id);
+        public async Task<Cocktail?> GetById(int id) => await _repository.GetById(id);
 
         public async Task<IEnumerable<Cocktail>> Search(string query) => await _repository.Search(query);
+
+        public async Task<IEnumerable<string>> SuggestIngredients(string term) => await _repository.SuggestIngredients(term);
 
         public async Task Update(int id, CocktailDto dto)
         {

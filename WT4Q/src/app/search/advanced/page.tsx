@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ArticleCard, { Article } from '@/components/ArticleCard';
 import { API_ROUTES } from '@/lib/api';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORY_DEFINITIONS } from '@/lib/categories';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
 import styles from '../search.module.css';
 
@@ -87,9 +87,9 @@ export default function AdvancedSearchPage() {
           className={styles.input}
         >
           <option value="">Any Category</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
+          {CATEGORY_DEFINITIONS.map((c) => (
+            <option key={c.key} value={c.key}>
+              {c.label}
             </option>
           ))}
         </select>

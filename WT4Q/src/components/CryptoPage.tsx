@@ -180,8 +180,8 @@ export default function CryptoPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Crypto Markets</h1>
-        <div className={styles.subtle}>Live quotes from Binance • Click any asset to view chart</div>
+        <h1 className={styles.title}>Crypto Control Room</h1>
+        <div className={styles.subtle}>Live quotes from Binance | Click any asset to view chart</div>
       </div>
 
       <CryptoTicker onSelect={(s) => setSymbol(s)} />
@@ -246,7 +246,7 @@ export default function CryptoPage() {
           <div className={styles.searchRow}>
             <input
               className={styles.searchInput}
-              placeholder="Search (e.g., BTC, ETHUSDT)"
+              placeholder="Search (BTC, ETHUSDT)"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -269,7 +269,7 @@ export default function CryptoPage() {
                       <span className={styles.sym}>{renderDisplayName(t, nameMap)}</span>
                       <span>{formatNumber(t.lastPrice)}</span>
                       <span className={t.priceChangePercent >= 0 ? styles.pos : styles.neg}>
-                        {t.priceChangePercent >= 0 ? '▲' : '▼'} {Math.abs(t.priceChangePercent).toFixed(2)}%
+                        {t.priceChangePercent >= 0 ? '^' : 'v'} {Math.abs(t.priceChangePercent).toFixed(2)}%
                       </span>
                       <span>
                         {renderMiniRange(t)}

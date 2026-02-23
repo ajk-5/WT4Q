@@ -8,6 +8,11 @@ namespace Northeast.DTOs
         [Required]
         public string Topic { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Optional template hint for the AI writer (e.g. "jokes", "blast_from_the_past", "on_this_day").
+        /// </summary>
+        public string? Template { get; set; }
+
         [Required]
         public Category Category { get; set; }
 
@@ -22,4 +27,3 @@ namespace Northeast.DTOs
         public string? CountryCode { get; set; }
     }
 }
-

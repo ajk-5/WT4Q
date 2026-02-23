@@ -6,13 +6,13 @@ export function GET() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
 
   // Only valid robots.txt directives below. Do NOT include non-standard lines
-  // like "Content-signal" here — those belong in HTTP headers if used.
+  // like "Content-signal" here -- those belong in HTTP headers if used.
   const lines = [
     'User-agent: *',
     'Allow: /',
     '',
     // Reflect "ai-train=no" intent by disallowing common AI training/user agents.
-    // These are safe, valid robots directives and won’t break search indexing.
+    // These are safe, valid robots directives and won't break search indexing.
     'User-agent: GPTBot',
     'Disallow: /',
     'User-agent: CCBot',
@@ -27,8 +27,6 @@ export function GET() {
     'Disallow: /',
     '',
     `Sitemap: ${siteUrl}/sitemap.xml`,
-    `Sitemap: ${siteUrl}/news-sitemap.xml`,
-    `Sitemap: ${siteUrl}/newssitemap.xml`,
     `Sitemap: ${siteUrl}/crypto/sitemap.xml`,
   ];
 

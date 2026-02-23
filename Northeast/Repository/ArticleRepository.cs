@@ -22,9 +22,27 @@ namespace Northeast.Repository
             _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Slug == slug);
 
         public Task<List<Article>> GetAllExceptAsync(Guid excludeId) =>
-            _context.Articles.AsNoTracking().Where(a => a.Id != excludeId).ToListAsync();
+            _context.Articles.AsNoTracking()
+                .Where(a => a.Id != excludeId && a.ArticleType != ArticleType.News)
+                .ToListAsync();
+
+        public Task<List<Article>> GetRecentByCategoryExceptAsync(Category category, Guid excludeId, int count) =>
+            _context.Articles.AsNoTracking()
+                .Where(a => a.Id != excludeId && a.Category == category && a.ArticleType != ArticleType.News)
+                .OrderByDescending(a => a.CreatedDate)
+                .Take(count < 1 ? 1 : count)
+                .ToListAsync();
+
+        public Task<List<Article>> GetRecentExceptAsync(Guid excludeId, int count) =>
+            _context.Articles.AsNoTracking()
+                .Where(a => a.Id != excludeId && a.ArticleType != ArticleType.News)
+                .OrderByDescending(a => a.CreatedDate)
+                .Take(count < 1 ? 1 : count)
+                .ToListAsync();
         public async Task<IEnumerable<Article>> GetAllByCategory(Category category) {
-            var articles= await _context.Articles.AsNoTracking().Where(a => a.Category == category).ToListAsync();
+            var articles = await _context.Articles.AsNoTracking()
+                .Where(a => a.Category == category && a.ArticleType != ArticleType.News)
+                .ToListAsync();
             return articles;
         }
 
@@ -38,6 +56,7 @@ namespace Northeast.Repository
             query = query.ToLower();
 
             return await _context.Articles.AsNoTracking()
+                .Where(a => a.ArticleType != ArticleType.News)
                 .Where(a =>
                     a.Title.ToLower().Contains(query) ||
                     a.Content.ToLower().Contains(query) ||
@@ -49,7 +68,9 @@ namespace Northeast.Repository
 
         public async Task<IEnumerable<Article>> Search(string? title, string? keyword, DateTime? date, ArticleType? type, Category? category)
         {
-            var queryable = _context.Articles.AsNoTracking().AsQueryable();
+            var queryable = _context.Articles.AsNoTracking()
+                .Where(a => a.ArticleType != ArticleType.News)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(title))
             {
@@ -71,6 +92,8 @@ namespace Northeast.Repository
 
             if (type.HasValue)
             {
+                if (type.Value == ArticleType.News)
+                    return new List<Article>();
                 queryable = queryable.Where(a => a.ArticleType == type.Value);
             }
 
@@ -84,6 +107,8 @@ namespace Northeast.Repository
 
         public async Task<IEnumerable<Article>> SearchByArticleType(ArticleType type)
         {
+            if (type == ArticleType.News)
+                return new List<Article>();
             return await _context.Articles.AsNoTracking()
                 .Where(a => a.ArticleType == type)
                 .ToListAsync();
@@ -92,13 +117,15 @@ namespace Northeast.Repository
         public async Task<IEnumerable<Article>> SearchByAuthor(Guid authorId)
         {
             return await _context.Articles.AsNoTracking()
-                .Where(a => a.AuthorId == authorId)
+                .Where(a => a.AuthorId == authorId && a.ArticleType != ArticleType.News)
                 .ToListAsync();
         }
 
         public async Task<PagedResult<Article>> SearchPagedAsync(SearchQueryDto q)
         {
-            var queryable = _context.Articles.AsNoTracking().AsQueryable();
+            var queryable = _context.Articles.AsNoTracking()
+                .Where(a => a.ArticleType != ArticleType.News)
+                .AsQueryable();
 
             // Time range
             if (q.From.HasValue)
@@ -147,6 +174,16 @@ namespace Northeast.Repository
             }
             if (q.Type.HasValue)
             {
+                if (q.Type.Value == ArticleType.News)
+                {
+                    return new PagedResult<Article>
+                    {
+                        Page = q.Page < 1 ? 1 : q.Page,
+                        PageSize = q.PageSize <= 0 ? 20 : q.PageSize,
+                        Total = 0,
+                        Items = new List<Article>()
+                    };
+                }
                 queryable = queryable.Where(a => a.ArticleType == q.Type.Value);
             }
             if (q.Category.HasValue)
@@ -205,7 +242,9 @@ namespace Northeast.Repository
             DateTime? date, ArticleType? type, Category? category, Guid? authorId,
             string? countryName, string? countryCode, string? keyword)
         {
-            var queryable = _context.Articles.AsNoTracking().AsQueryable();
+            var queryable = _context.Articles.AsNoTracking()
+                .Where(a => a.ArticleType != ArticleType.News)
+                .AsQueryable();
 
             if (id.HasValue)
             {
@@ -232,6 +271,8 @@ namespace Northeast.Repository
 
             if (type.HasValue)
             {
+                if (type.Value == ArticleType.News)
+                    return new List<Article>();
                 queryable = queryable.Where(a => a.ArticleType == type.Value);
             }
 
@@ -268,14 +309,15 @@ namespace Northeast.Repository
 
         public async Task<IEnumerable<Article>> GetRecommendedArticles(Guid articleId, int count = 5)
         {
-            var source = await _context.Articles.AsNoTracking().FirstOrDefaultAsync(a => a.Id == articleId);
+            var source = await _context.Articles.AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == articleId && a.ArticleType != ArticleType.News);
             if (source == null)
             {
                 return new List<Article>();
             }
 
             var candidates = await _context.Articles.AsNoTracking()
-                .Where(a => a.Id != articleId)
+                .Where(a => a.Id != articleId && a.ArticleType != ArticleType.News)
                 .ToListAsync();
 
             var scored = candidates
@@ -292,31 +334,10 @@ namespace Northeast.Repository
             return scored;
         }
 
-        public async Task<IEnumerable<Article>> GetBreakingNews()
+        public Task<IEnumerable<Article>> GetBreakingNews()
         {
-            var cutoff = DateTime.UtcNow.AddDays(-3);
-
-            // find any breaking news older than the cutoff and flip the flag
-            var expired = await _context.Articles
-                .Where(a => a.ArticleType == ArticleType.News && a.IsBreakingNews && a.CreatedDate < cutoff)
-                .ToListAsync();
-
-            if (expired.Count > 0)
-            {
-                foreach (var article in expired)
-                {
-                    article.IsBreakingNews = false;
-                }
-
-                await _context.SaveChangesAsync();
-            }
-
-            // return most recent breaking news, limited to 20 articles
-            return await _context.Articles.AsNoTracking()
-                .Where(a => a.ArticleType == ArticleType.News && a.IsBreakingNews && a.CreatedDate >= cutoff)
-                .OrderByDescending(a => a.CreatedDate)
-                .Take(20)
-                .ToListAsync();
+            // The 90s site does not surface or maintain legacy News articles.
+            return Task.FromResult<IEnumerable<Article>>(Array.Empty<Article>());
         }
 
         public async Task<IEnumerable<Article>> GetTrendingArticles(DateTime cutoff)
@@ -324,7 +345,7 @@ namespace Northeast.Repository
             return await _context.Articles.AsNoTracking()
                 .Include(a => a.Like)
                 .Include(a => a.Comments)
-                .Where(a => a.CreatedDate >= cutoff)
+                .Where(a => a.CreatedDate >= cutoff && a.ArticleType != ArticleType.News)
                 .ToListAsync();
         }
 

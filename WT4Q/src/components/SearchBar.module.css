@@ -3,10 +3,12 @@
   /* Reverse visual order: button on left, input on right */
   flex-direction: row-reverse;
   border-radius: 999px;
-  height: 2rem;
+  height: 2.1rem;
   overflow: hidden;
   padding: 0;
-  border: 1px solid var(--thin-rule, #b6b6b6);
+  border: 2px solid rgba(18, 11, 31, 0.35);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 236, 216, 0.9));
+  box-shadow: 3px 3px 0 rgba(18, 11, 31, 0.14);
 }
 
 .input {
@@ -16,25 +18,27 @@
   border: none;
   outline: none;
   background: transparent;
-  color: #000; /* input text color */
+  color: var(--ink);
   /* Ensure normal LTR typing and left alignment */
   direction: ltr;
   text-align: left;
 }
 
 .input::placeholder {
-  color: #000; /* placeholder color */
-  opacity: 0.6; /* keep slight differentiation */
+  color: var(--muted);
+  opacity: 0.75;
 }
 
 .button {
   all: unset; /* match header menu button look */
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  color: var(--ink, #111);
+  width: 34px;
+  height: 34px;
+  color: var(--ink);
   cursor: pointer;
+  border-left: 2px solid rgba(18, 11, 31, 0.22);
+  background: linear-gradient(135deg, rgba(255, 47, 178, 0.18), rgba(0, 231, 255, 0.18));
 }
 
 .button svg { display: block; }

@@ -57,7 +57,7 @@ export default function CategoryLazyDates({
           </h2>
           <HorizontalScroller
             className={horizontalCardsClassName}
-            ariaLabel={`${dateStr} news scroller`}
+            ariaLabel={`${dateStr} archive scroller`}
           >
             {(grouped[dateStr] || []).map((a) => (
               <CategoryArticleCard key={a.id} article={a} />

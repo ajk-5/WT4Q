@@ -14,7 +14,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
     <html>
       <body className={styles.container}>
         <div className={styles.paper}>
-          <span className={styles.heading}>Breaking News</span>
+        <span className={styles.heading}>System Alert</span>
           <h1 className={styles.headline}>Something went wrong</h1>
           <p className={styles.message}>Sorry, an unexpected error occurred.</p>
           <PrefetchLink href="/" className={styles.homeLink}>

@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using Polly.Timeout;                        // ? Polly timeout
 
 using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
@@ -71,7 +72,9 @@ builder.Services.Configure<HostOptions>(options =>
 builder.Services.AddScoped<UserRegistration>();
 builder.Services.AddScoped<UserAuthentification>();
 builder.Services.AddScoped<ArticleServices>();
+builder.Services.AddScoped<AuthorResolver>();
 builder.Services.AddScoped<AiArticleWriterService>();
+builder.Services.AddScoped<AiQuizGeneratorService>();
 builder.Services.AddScoped<CocktailService>();
 builder.Services.AddScoped<GenerateJwt>();
 builder.Services.AddScoped<GetConnectedUser>();
@@ -121,7 +124,7 @@ builder.Services.AddHttpClient("default")
         o.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);
         o.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(150);
 
-        // Circuit breaker rule: SamplingDuration >= 2 × AttemptTimeout
+        // Circuit breaker rule: SamplingDuration >= 2 Ã— AttemptTimeout
         o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2); // ? >= 120s
         o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
         o.CircuitBreaker.FailureRatio = 0.2;
@@ -145,8 +148,8 @@ builder.Services.PostConfigure<HttpStandardResilienceOptions>("IGenerativeTextCl
         o.Retry.MaxRetryAttempts = 1;
 });
 
-// --- AI News (Gemini + hosted services) ---
-builder.Services.AddAiNews(o =>
+// --- AI content (Gemini for 90s features; no news ingestion) ---
+builder.Services.Configure<AiNewsOptions>(o =>
 {
     o.DefaultLang = "en-US";
     o.DefaultCountry = "US";
@@ -171,6 +174,23 @@ builder.Services.AddAiNews(o =>
     o.FillMissingHtml = true;
     o.UseExternalImages = false;     // keep things simple/stable
 });
+
+builder.Services.AddHttpClient<IGenerativeTextClient, GeminiRestClient>(client =>
+{
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    client.Timeout = Timeout.InfiniteTimeSpan;
+});
+
+// Lightweight client kept for optional requests (not used for news ingestion)
+builder.Services.AddHttpClient("gn", client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; NortheastBot/1.0)");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+builder.Services.Configure<NinetiesContentOptions>(
+    builder.Configuration.GetSection("NinetiesContent"));
+builder.Services.AddHostedService<NinetiesContentScheduler>();
 
 // --- AI Global Rate Limiter Configuration ---
 {

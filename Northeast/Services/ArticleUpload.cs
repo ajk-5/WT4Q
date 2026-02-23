@@ -132,7 +132,9 @@ namespace Northeast.Services
         }
 
         public async Task<IEnumerable<Article>> getAllArticle() {
-            var articles = await _articleRepository.GetAll();
+            var articles = await _appDbContext.Articles.AsNoTracking()
+                .Where(a => a.ArticleType != ArticleType.News)
+                .ToListAsync();
             await SetViewsAsync(articles);
             return articles;
         }

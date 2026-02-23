@@ -26,6 +26,9 @@ export default function BreakingNewsBar() {
 
   return (
     <div className={styles.container} data-component="breaking-bar">
+      <div className={styles.label}>
+        <span>Hotline</span>
+      </div>
       <BreakingNewsSlider className={`${styles.bar} ${styles.grow}`} />
       <div className={styles.controls}>
         <button
@@ -40,8 +43,8 @@ export default function BreakingNewsBar() {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               aria-hidden="true"
               focusable="false"
               className={styles.searchIcon}
@@ -53,8 +56,8 @@ export default function BreakingNewsBar() {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               aria-hidden="true"
               focusable="false"
               className={styles.searchIcon}

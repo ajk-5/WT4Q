@@ -32,6 +32,10 @@ namespace Northeast.Data
         public DbSet<PageVisit> PageVisits { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<CommentReport> CommentReports { get; set; }
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<QuizQuestion> QuizQuestions { get; set; }
+        public DbSet<Show> Shows { get; set; }
+        public DbSet<ShowTrivia> ShowTrivias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,7 +62,9 @@ namespace Northeast.Data
                     .AutoInclude();
 
                 b.Property(a => a.Category)
-                    .HasConversion<string>()
+                    .HasConversion(
+                        v => v.ToString(),
+                        v => EnumCoercion.ParseCategory(v))
                     .HasMaxLength(32);
 
                 b.Property(a => a.ArticleType)
@@ -74,6 +80,67 @@ namespace Northeast.Data
             modelBuilder.Entity<LikeEntity>()
                 .HasIndex(l => new { l.UserId, l.ArticleId })
                 .IsUnique();
+
+            modelBuilder.Entity<Quiz>(b =>
+            {
+                b.HasIndex(q => q.Slug).IsUnique();
+                b.Property(q => q.Status).HasMaxLength(16);
+                b.Property(q => q.Type).HasMaxLength(32);
+                b.Property(q => q.Title).HasMaxLength(256);
+                b.HasMany(q => q.Questions)
+                    .WithOne(qq => qq.Quiz!)
+                    .HasForeignKey(qq => qq.QuizId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasOne(q => q.Show)
+                    .WithMany()
+                    .HasForeignKey(q => q.ShowId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<QuizQuestion>(b =>
+            {
+                b.Property(qq => qq.Points).HasDefaultValue(1);
+                b.Property(qq => qq.Difficulty).HasMaxLength(16);
+                b.HasIndex(qq => new { qq.QuizId, qq.Order });
+            });
+
+            modelBuilder.Entity<Show>(b =>
+            {
+                b.HasIndex(s => s.Slug).IsUnique();
+                b.HasIndex(s => s.Title);
+                b.Property(s => s.Kind).HasMaxLength(16);
+                b.HasMany(s => s.Trivias)
+                    .WithOne(t => t.Show!)
+                    .HasForeignKey(t => t.ShowId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ShowTrivia>(b =>
+            {
+                b.Property(t => t.Text).HasMaxLength(1024);
+                b.HasIndex(t => new { t.ShowId, t.CreatedAtUtc });
+            });
+        }
+    }
+
+    internal static class EnumCoercion
+    {
+        public static Category ParseCategory(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return Category.Info;
+
+            var trimmed = value.Trim();
+            if (trimmed.Equals("Crypto", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals("CryptoCurrency", StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = nameof(Category.Cryptocurrency);
+            }
+
+            if (Enum.TryParse<Category>(trimmed, ignoreCase: true, out var parsed))
+                return parsed;
+
+            return Category.Info;
         }
     }
 }

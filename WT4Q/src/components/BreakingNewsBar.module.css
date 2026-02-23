@@ -1,11 +1,32 @@
 .container {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   justify-content: space-between;
   width: 100%;
-  /* Allow children to shrink without overflow */
   min-width: 0;
+  padding: 0.32rem 0.55rem;
+  margin-top: 0.2rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 236, 216, 0.92));
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-sticker);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: #fff7ea;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-family: var(--font-display);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0 rgba(18, 11, 31, 0.22);
 }
 
 .grow {
@@ -15,38 +36,41 @@
 
 .bar {
   margin: 0;
-  border-radius: 0;
+  border-radius: 12px;
   min-width: 0;
 }
 
 .controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  /* Pin the toggle button to the far right; search expands to the left */
+  gap: 0.4rem;
   justify-content: flex-end;
   flex-direction: row-reverse;
   min-width: 0;
 }
 
 .searchToggle {
-  all: unset; /* match header menu button look */
+  all: unset;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  color: var(--ink, #111);
+  width: 26px;
+  height: 26px;
+  color: var(--ink);
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(18, 11, 31, 0.4);
+  background: rgba(255, 47, 178, 0.18);
+  box-shadow: 2px 2px 0 rgba(18, 11, 31, 0.2);
 }
 
-.searchIcon line, .searchIcon path {
+.searchIcon line,
+.searchIcon path {
   stroke: currentColor;
   stroke-width: 2.4;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
-/* Search expands left from the right edge when opened */
 .search {
   width: 0;
   overflow: hidden;
@@ -57,16 +81,15 @@
 }
 
 .search[aria-hidden="false"] {
-  /* Give a bit more room by default */
   width: clamp(200px, 40vw, 420px);
   opacity: 1;
   pointer-events: auto;
 }
 
-/* Mobile tweaks: prevent overflow and make search usable */
 @media (max-width: 768px) {
   .container {
     flex-wrap: wrap;
+    gap: 0.4rem;
   }
 
   .controls {
@@ -75,8 +98,6 @@
   }
 
   .search[aria-hidden="false"] {
-    /* Expand to a comfortable width on small screens */
     width: min(85vw, 100%);
   }
 }
-

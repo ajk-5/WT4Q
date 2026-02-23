@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Script from 'next/script';
-import { Inter } from 'next/font/google';
 import dynamic from 'next/dynamic';
 import type { Comment } from '@/components/CommentsSection';
 import { API_ROUTES } from '@/lib/api';
@@ -10,21 +9,12 @@ import type { Metadata } from 'next';
 import styles from '../article.module.css';
 import BackButton from '@/components/BackButton';
 export const revalidate = 300; // ISR article page revalidation
-
-// Preload Inter font only on article pages to scope font preloading
-const articleInter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  display: 'swap',
-  preload: true,
-});
 import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
 import ArticleTTS from '@/components/ArticleTTS';
 import ArticleViewCounter from '@/components/ArticleViewCounter';
 const ReactionButtons = dynamic(() => import('@/components/ReactionButtons'));
 const CommentsSection = dynamic(() => import('@/components/CommentsSection'));
-const LocalArticleSection = dynamic(() => import('@/components/LocalArticleSection'));
 import { reactionNameFromType } from '@/components/ReactionIcon';
 import { stripHtml, truncateWords } from '@/lib/text';
 
@@ -34,6 +24,7 @@ interface ArticleDetails {
   id: string;
 
   slug: string;
+  category?: string;
 
   title: string;
   summary?: string;
@@ -60,6 +51,18 @@ interface SimpleArticle {
   title: string;
   content?: string;
   createdDate?: string;
+}
+
+function normalizeSlug(value?: string): string {
+  return (value || '').trim().toLowerCase();
+}
+
+function readStringField(item: unknown, camel: string, pascal: string): string {
+  if (!item || typeof item !== 'object') return '';
+  const v =
+    (item as Record<string, unknown>)[camel] ??
+    (item as Record<string, unknown>)[pascal];
+  return typeof v === 'string' ? v : '';
 }
 
 /* ---------------------- image utils ---------------------- */
@@ -101,7 +104,79 @@ async function fetchRelated(slug: string): Promise<RelatedArticle[]> {
   try {
     const res = await fetch(API_ROUTES.ARTICLE.GET_RECOMMENDATIONS(slug), { next: { revalidate: 600 } });
     if (!res.ok) return [];
-    return (await res.json()) as RelatedArticle[];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((item) => ({
+        slug: readStringField(item, 'slug', 'Slug'),
+        title: readStringField(item, 'title', 'Title'),
+      }))
+      .filter((item) => item.slug.length > 0 && item.title.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchRelatedByCategory(
+  category: string | undefined,
+  currentSlug: string,
+  count = 5,
+): Promise<RelatedArticle[]> {
+  const categoryValue = (category || '').trim();
+  if (!categoryValue) return [];
+
+  try {
+    const url = new URL(API_ROUTES.ARTICLE.SEARCH_ADVANCED);
+    url.searchParams.set('category', categoryValue);
+    const res = await fetch(url.toString(), { next: { revalidate: 600 } });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((item) => ({
+        slug: readStringField(item, 'slug', 'Slug'),
+        title: readStringField(item, 'title', 'Title'),
+        createdDate: readStringField(item, 'createdDate', 'CreatedDate'),
+      }))
+      .filter((item) => item.slug.length > 0 && item.title.length > 0)
+      .filter((item) => normalizeSlug(item.slug) !== normalizeSlug(currentSlug))
+      .sort(
+        (a, b) =>
+          new Date(b.createdDate || 0).getTime() -
+          new Date(a.createdDate || 0).getTime(),
+      )
+      .slice(0, count)
+      .map(({ slug, title }) => ({ slug, title }));
+  } catch {
+    return [];
+  }
+}
+
+async function fetchRelatedFallback(currentSlug: string, count = 5): Promise<RelatedArticle[]> {
+  try {
+    const res = await fetch(API_ROUTES.ARTICLE.GET_ALL, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((item) => ({
+        slug: readStringField(item, 'slug', 'Slug'),
+        title: readStringField(item, 'title', 'Title'),
+        createdDate: readStringField(item, 'createdDate', 'CreatedDate'),
+      }))
+      .filter((item) => item.slug.length > 0 && item.title.length > 0)
+      .filter((item) => normalizeSlug(item.slug) !== normalizeSlug(currentSlug))
+      .sort(
+        (a, b) =>
+          new Date(b.createdDate || 0).getTime() -
+          new Date(a.createdDate || 0).getTime(),
+      )
+      .slice(0, count)
+      .map(({ slug, title }) => ({ slug, title }));
   } catch {
     return [];
   }
@@ -196,9 +271,29 @@ export default async function ArticlePage(
     !!article.isBreakingNews &&
     new Date(article.createdDate) >= new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
-  const related = await fetchRelated(title);
+  const canonicalSlug = article.slug || title;
+  const primaryRelated = await fetchRelated(canonicalSlug);
+  const filteredPrimary = primaryRelated.filter(
+    (item) => normalizeSlug(item.slug) !== normalizeSlug(canonicalSlug),
+  );
+
+  let related = filteredPrimary;
+  if (related.length === 0) {
+    related = await fetchRelatedByCategory(article.category, canonicalSlug);
+  }
+  if (related.length === 0) {
+    related = await fetchRelatedFallback(canonicalSlug);
+  }
+
   const trendingTop5 = await fetchTrending(5);
   const latest = await fetchLatest();
+
+  if (related.length === 0 && trendingTop5.length > 0) {
+    related = trendingTop5
+      .filter((item) => normalizeSlug(item.slug) !== normalizeSlug(canonicalSlug))
+      .slice(0, 5)
+      .map((item) => ({ slug: item.slug, title: item.title }));
+  }
 
   // For inline related section (with 80-word snippets), hydrate details
   const relatedDetails = (
@@ -219,11 +314,11 @@ export default async function ArticlePage(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
 
   return (
-    <div className={`${articleInter.variable} ${styles.newspaper}`}>
-      <Script id="ld-news-article" type="application/ld+json" strategy="afterInteractive">
+    <div className={styles.newspaper}>
+      <Script id="ld-article" type="application/ld+json" strategy="afterInteractive">
         {JSON.stringify({
           '@context': 'https://schema.org',
-          '@type': 'NewsArticle',
+          '@type': 'Article',
           mainEntityOfPage: {
             '@type': 'WebPage',
             '@id': new URL(`/articles/${article.slug}`, siteUrl).toString(),
@@ -250,7 +345,7 @@ export default async function ArticlePage(
           <BackButton className={styles.backButton} fallback="/" />
         </div>
         {isBreakingActive && (
-          <div className={styles.breaking}>Breaking News</div>
+          <div className={styles.breaking}>Fresh Drop</div>
         )}
         <h1 className={styles.title}>{article.title}</h1>
         {article.summary && (
@@ -322,10 +417,10 @@ export default async function ArticlePage(
           articleId={article.id}
           initialComments={article.comments ?? []}
         />
-        {/* Inline related news after comments/likes */}
+        {/* Inline related reads after comments/likes */}
         {relatedDetails.length > 0 && (
           <section className={styles.relatedInline}>
-            <h2 className={styles.relatedInlineHeading}>Related News</h2>
+            <h2 className={styles.relatedInlineHeading}>Related Reads</h2>
             <div className={styles.relatedInlineGrid}>
               {relatedDetails.map((r) => (
                 <div key={r.slug} className={styles.relatedItem}>
@@ -361,7 +456,7 @@ export default async function ArticlePage(
 
         {latest && (
           <section className={styles.sidebarSection}>
-            <h3 className={styles.sidebarHeading}>Latest Article</h3>
+            <h3 className={styles.sidebarHeading}>Latest Drop</h3>
             <div className={styles.latestCard}>
               <PrefetchLink href={`/articles/${latest.slug}`} className={styles.latestTitle}>
                 {latest.title}
@@ -377,7 +472,7 @@ export default async function ArticlePage(
 
         {trendingTop5 && trendingTop5.length > 0 && (
           <section className={styles.sidebarSection}>
-            <h3 className={styles.sidebarHeading}>Top 5 News Today</h3>
+            <h3 className={styles.sidebarHeading}>Top 5 Right Now</h3>
             <ol className={styles.sidebarList}>
               {trendingTop5.map((t, i) => (
                 <li key={t.id ?? `${t.slug}-${i}`} className={styles.sidebarItem}>
@@ -401,7 +496,6 @@ export default async function ArticlePage(
           </section>
         )}
 
-        <LocalArticleSection />
       </aside>
       
     </div>

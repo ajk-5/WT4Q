@@ -21,6 +21,7 @@ namespace Northeast.Controllers
         private readonly CommentRepository _commentRepository;
         private readonly AiArticleWriterService _aiWriter;
         private readonly IAiWriteQueue _aiQueue;
+        private readonly ArticleRepository _articleRepository;
 
         public ArticleController(
             ArticleServices _articleUpload,
@@ -29,7 +30,8 @@ namespace Northeast.Controllers
             IArticleRecommendationService recommendations,
             CommentRepository commentRepository,
             AiArticleWriterService aiWriter,
-            IAiWriteQueue aiQueue)
+            IAiWriteQueue aiQueue,
+            ArticleRepository articleRepository)
         {
             articleUpload = _articleUpload;
             _likeRepository = likeRepository;
@@ -38,6 +40,7 @@ namespace Northeast.Controllers
             _commentRepository = commentRepository;
             _aiWriter = aiWriter;
             _aiQueue = aiQueue;
+            _articleRepository = articleRepository;
         }
 
         [Authorize(Policy = "AdminOnly")]
@@ -81,6 +84,12 @@ namespace Northeast.Controllers
             if (req == null || string.IsNullOrWhiteSpace(req.Topic))
                 return BadRequest(new { message = "Topic is required" });
 
+            if (req.ArticleType == ArticleType.News)
+                return BadRequest(new { message = "News generation is disabled for the 90s site." });
+
+            if (req.UseRecentNews)
+                return BadRequest(new { message = "Recent-source generation is disabled." });
+
             var authorId = _connectedUser.Id;
             if (authorId == Guid.Empty)
                 return Unauthorized();
@@ -123,7 +132,7 @@ namespace Northeast.Controllers
             var articles = await articleUpload.GetBreakingNews();
             if (!articles.Any())
             {
-                return NotFound(new { message = "No breaking news available" });
+                return NotFound(new { message = "No spotlight stories available" });
             }
             return Ok(articles);
         }
@@ -134,7 +143,7 @@ namespace Northeast.Controllers
             var articles = await articleUpload.GetTrendingArticles(limit);
             if (!articles.Any())
             {
-                return NotFound(new { message = "No trending news available" });
+                return NotFound(new { message = "No trending stories available" });
             }
             return Ok(articles);
         }
@@ -151,6 +160,10 @@ namespace Northeast.Controllers
             if (article == null)
             {
                 return NotFound(new { message = "Sorry, no article found with this title" });
+            }
+            if (article.ArticleType == ArticleType.News)
+            {
+                return NotFound(new { message = "Legacy news articles are disabled for the 90s site." });
             }
 
             return Ok(article);
@@ -170,10 +183,40 @@ namespace Northeast.Controllers
                 return NotFound(new { message = "Sorry, no article found with this title" });
             }
 
-            var results = await _recommendations.GetRecommendationsAsync(article.Id, count);
+            var safeCount = Math.Clamp(count, 1, 12);
+            IEnumerable<Article> results = Enumerable.Empty<Article>();
+
+            try
+            {
+                results = await _recommendations.GetRecommendationsAsync(article.Id, safeCount);
+            }
+            catch
+            {
+                results = Enumerable.Empty<Article>();
+            }
+
             if (!results.Any())
             {
-                return NotFound(new { message = "No related articles found" });
+                try
+                {
+                    results = await _articleRepository.GetRecentByCategoryExceptAsync(article.Category, article.Id, safeCount);
+                }
+                catch
+                {
+                    results = Enumerable.Empty<Article>();
+                }
+            }
+
+            if (!results.Any())
+            {
+                try
+                {
+                    results = await _articleRepository.GetRecentExceptAsync(article.Id, safeCount);
+                }
+                catch
+                {
+                    results = Enumerable.Empty<Article>();
+                }
             }
 
             var dto = results.Select(a => new ArticleRecommendationDto
@@ -185,7 +228,7 @@ namespace Northeast.Controllers
 
                 Category = a.Category,
                 ArticleType = a.ArticleType
-            });
+            }).ToList();
 
             return Ok(dto);
         }
@@ -202,6 +245,10 @@ namespace Northeast.Controllers
             if (article == null)
             {
                 return NotFound(new { message = "Sorry, no article found with this ID" });
+            }
+            if (article.ArticleType == ArticleType.News)
+            {
+                return NotFound(new { message = "Legacy news articles are disabled for the 90s site." });
             }
 
             return Ok(article);

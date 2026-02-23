@@ -829,6 +829,8 @@ internal static class ArticleMapping
             "crime" => Category.Crime,              // not used here, but kept
             "entertainment" => Category.Entertainment,
             "business" => Category.Business,
+            "crypto" => Category.Cryptocurrency,
+            "cryptocurrency" => Category.Cryptocurrency,
             "health" => Category.Health,
             "lifestyle" => Category.Lifestyle,
             "technology" => Category.Technology,
@@ -1040,37 +1042,418 @@ internal static class RssIngest
         return admin.Id;
     }
 
-    internal static AiArticleDraftBatch DeserializeSafe(string json)
+    internal static AiArticleDraftBatch DeserializeSafe(string raw)
     {
-        try
+        if (string.IsNullOrWhiteSpace(raw))
+            return new AiArticleDraftBatch();
+
+        var cleaned = StripCodeFences(raw.Trim());
+        foreach (var candidate in EnumerateJsonCandidates(cleaned))
         {
-            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var batch = JsonSerializer.Deserialize<AiArticleDraftBatch>(json, opts);
-            return batch ?? new AiArticleDraftBatch();
+            if (TryParseBatch(candidate, out var batch))
+                return batch;
         }
-        catch
+
+        return new AiArticleDraftBatch();
+    }
+
+    private static IEnumerable<string> EnumerateJsonCandidates(string text)
+    {
+        yield return text;
+
+        var obj = SliceJson(text, '{', '}');
+        if (!string.IsNullOrWhiteSpace(obj) && !string.Equals(obj, text, StringComparison.Ordinal))
+            yield return obj!;
+
+        var arr = SliceJson(text, '[', ']');
+        if (!string.IsNullOrWhiteSpace(arr) && !string.Equals(arr, text, StringComparison.Ordinal))
+            yield return arr!;
+    }
+
+    private static bool TryParseBatch(string json, out AiArticleDraftBatch batch)
+    {
+        batch = new AiArticleDraftBatch();
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        static bool TryParse(string candidate, out AiArticleDraftBatch parsed)
         {
-            // Strip simple Markdown code fences if present
-            if (json.Contains("```"))
+            parsed = new AiArticleDraftBatch();
+            try
             {
-                json = json.Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase)
-                           .Replace("```", string.Empty);
+                using var doc = JsonDocument.Parse(candidate, new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip
+                });
+
+                parsed = NormalizeDraftBatch(doc.RootElement);
+                return parsed.Items.Count > 0;
             }
-            var start = json.IndexOf('{');
-            var end = json.LastIndexOf('}');
-            if (start >= 0 && end > start)
+            catch
             {
-                var slice = json[start..(end + 1)];
+                return false;
+            }
+        }
+
+        if (TryParse(json, out batch))
+            return true;
+
+        // LLMs frequently output multi-line JSON strings (invalid JSON) for fields like articleHtml.
+        // Repair the common case by escaping control characters *inside* JSON string literals.
+        var repaired = EscapeControlCharsInJsonStrings(json);
+        if (!string.Equals(repaired, json, StringComparison.Ordinal) && TryParse(repaired, out batch))
+            return true;
+
+        return false;
+    }
+
+    private static string EscapeControlCharsInJsonStrings(string json)
+    {
+        var sb = new StringBuilder(json.Length + 16);
+        var changed = false;
+        var inString = false;
+        var escape = false;
+
+        foreach (var ch in json)
+        {
+            if (!inString)
+            {
+                sb.Append(ch);
+                if (ch == '"') inString = true;
+                continue;
+            }
+
+            if (escape)
+            {
+                sb.Append(ch);
+                escape = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                sb.Append(ch);
+                escape = true;
+                continue;
+            }
+
+            if (ch == '"')
+            {
+                sb.Append(ch);
+                inString = false;
+                continue;
+            }
+
+            switch (ch)
+            {
+                case '\n':
+                    sb.Append("\\n");
+                    changed = true;
+                    break;
+                case '\r':
+                    sb.Append("\\r");
+                    changed = true;
+                    break;
+                case '\t':
+                    sb.Append("\\t");
+                    changed = true;
+                    break;
+                case '\b':
+                    sb.Append("\\b");
+                    changed = true;
+                    break;
+                case '\f':
+                    sb.Append("\\f");
+                    changed = true;
+                    break;
+                default:
+                    if (ch < 0x20)
+                    {
+                        sb.Append("\\u00");
+                        sb.Append(((int)ch).ToString("x2"));
+                        changed = true;
+                    }
+                    else
+                    {
+                        sb.Append(ch);
+                    }
+                    break;
+            }
+        }
+
+        return changed ? sb.ToString() : json;
+    }
+
+    private static AiArticleDraftBatch NormalizeDraftBatch(JsonElement root)
+    {
+        var items = new List<AiArticleDraft>();
+
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            if (TryGetPropertyIgnoreCase(root, out var itemsEl, "items", "item", "articles", "article"))
+            {
+                items.AddRange(ParseItemsElement(itemsEl));
+            }
+            else if (TryGetPropertyIgnoreCase(root, "data", out var dataEl) &&
+                     dataEl.ValueKind == JsonValueKind.Object &&
+                     TryGetPropertyIgnoreCase(dataEl, out var nestedItemsEl, "items", "item", "articles", "article"))
+            {
+                items.AddRange(ParseItemsElement(nestedItemsEl));
+            }
+
+            if (items.Count == 0)
+            {
+                var single = ParseDraftObject(root);
+                if (single != null) items.Add(single);
+            }
+        }
+        else if (root.ValueKind == JsonValueKind.Array)
+        {
+            items.AddRange(ParseItemsElement(root));
+        }
+
+        return new AiArticleDraftBatch { Items = items };
+    }
+
+    private static IEnumerable<AiArticleDraft> ParseItemsElement(JsonElement itemsEl)
+    {
+        if (itemsEl.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var el in itemsEl.EnumerateArray())
+            {
+                var d = ParseDraftObject(el);
+                if (d != null) yield return d;
+            }
+        }
+        else if (itemsEl.ValueKind == JsonValueKind.Object)
+        {
+            var d = ParseDraftObject(itemsEl);
+            if (d != null) yield return d;
+        }
+    }
+
+    private static AiArticleDraft? ParseDraftObject(JsonElement el)
+    {
+        if (el.ValueKind != JsonValueKind.Object) return null;
+
+        var title = GetString(el, "title", "headline") ?? string.Empty;
+        var category = GetString(el, "category") ?? "Info";
+        var html = GetString(el, "articleHtml", "articleHTML", "article_html", "contentHtml", "content_html", "html", "content") ?? string.Empty;
+
+        var countryName = GetNonEmptyString(el, "countryName", "country_name", "country");
+        var countryCode = GetNonEmptyString(el, "countryCode", "country_code");
+
+        var keywords = GetStringList(el, "keywords", "keyword", "tags");
+        var images = GetImages(el);
+        var eventDateUtc = GetDateTimeOffset(el, "eventDateUtc", "event_date_utc", "eventDate");
+        var isBreaking = GetBoolean(el, "isBreaking", "breaking");
+
+        if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(html))
+            return null;
+
+        return new AiArticleDraft
+        {
+            Title = title,
+            Category = category,
+            ArticleHtml = html,
+            CountryName = countryName,
+            CountryCode = countryCode,
+            Keywords = keywords,
+            Images = images,
+            EventDateUtc = eventDateUtc,
+            IsBreaking = isBreaking
+        };
+    }
+
+    private static string StripCodeFences(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+
+        if (text.StartsWith("```", StringComparison.Ordinal))
+        {
+            return text.Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase)
+                       .Replace("```", string.Empty, StringComparison.OrdinalIgnoreCase)
+                       .Trim();
+        }
+
+        return text;
+    }
+
+    private static string? SliceJson(string text, char open, char close)
+    {
+        var start = text.IndexOf(open);
+        var end = text.LastIndexOf(close);
+        if (start >= 0 && end > start)
+            return text[start..(end + 1)];
+        return null;
+    }
+
+    private static bool TryGetPropertyIgnoreCase(JsonElement obj, string name, out JsonElement value)
+    {
+        if (obj.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in obj.EnumerateObject())
+            {
+                if (prop.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = prop.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static bool TryGetPropertyIgnoreCase(JsonElement obj, out JsonElement value, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (TryGetPropertyIgnoreCase(obj, name, out value))
+                return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static string? GetString(JsonElement obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetPropertyIgnoreCase(obj, name, out var el)) continue;
+
+            if (el.ValueKind == JsonValueKind.String)
+                return (el.GetString() ?? string.Empty).Trim();
+
+            if (el.ValueKind == JsonValueKind.Number || el.ValueKind == JsonValueKind.True || el.ValueKind == JsonValueKind.False)
+                return el.ToString();
+        }
+
+        return null;
+    }
+
+    private static string? GetNonEmptyString(JsonElement obj, params string[] names)
+    {
+        var s = GetString(obj, names);
+        return string.IsNullOrWhiteSpace(s) ? null : s;
+    }
+
+    private static bool? GetBoolean(JsonElement obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetPropertyIgnoreCase(obj, name, out var el)) continue;
+
+            if (el.ValueKind == JsonValueKind.True) return true;
+            if (el.ValueKind == JsonValueKind.False) return false;
+            if (el.ValueKind == JsonValueKind.String)
+            {
+                var s = el.GetString();
+                if (bool.TryParse(s, out var b)) return b;
+            }
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset? GetDateTimeOffset(JsonElement obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetPropertyIgnoreCase(obj, name, out var el)) continue;
+
+            if (el.ValueKind == JsonValueKind.String)
+            {
+                var s = el.GetString();
+                if (DateTimeOffset.TryParse(s, out var dto)) return dto;
+            }
+            else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt64(out var unix))
+            {
                 try
                 {
-                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var batch = JsonSerializer.Deserialize<AiArticleDraftBatch>(slice, opts);
-                    return batch ?? new AiArticleDraftBatch();
+                    // Heuristic: treat very large values as milliseconds since epoch
+                    if (unix > 10_000_000_000)
+                        return DateTimeOffset.FromUnixTimeMilliseconds(unix);
+                    return DateTimeOffset.FromUnixTimeSeconds(unix);
                 }
                 catch { }
             }
-            return new AiArticleDraftBatch();
         }
+
+        return null;
+    }
+
+    private static List<string>? GetStringList(JsonElement obj, params string[] names)
+    {
+        var found = TryGetPropertyIgnoreCase(obj, out var el, names);
+        if (!found) return null;
+
+        var list = new List<string>();
+
+        void AddTokens(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return;
+            var parts = raw.Split(new[] { ',', ';', '|', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                var t = part.Trim();
+                if (!string.IsNullOrWhiteSpace(t))
+                    list.Add(t);
+            }
+        }
+
+        if (el.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in el.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                    AddTokens(item.GetString());
+            }
+        }
+        else if (el.ValueKind == JsonValueKind.String)
+        {
+            AddTokens(el.GetString());
+        }
+
+        if (list.Count == 0) return null;
+
+        return list
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => s.Trim().ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(16)
+            .ToList();
+    }
+
+    private static List<AiImage>? GetImages(JsonElement obj)
+    {
+        if (!TryGetPropertyIgnoreCase(obj, "images", out var el)) return null;
+        if (el.ValueKind != JsonValueKind.Array) return null;
+
+        var list = new List<AiImage>();
+        foreach (var item in el.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+
+            var photoLink = GetNonEmptyString(item, "photoLink", "photo_link", "url", "src");
+            var altText = GetNonEmptyString(item, "altText", "alt_text", "alt");
+            var caption = GetNonEmptyString(item, "caption");
+
+            if (photoLink == null && altText == null && caption == null)
+                continue;
+
+            list.Add(new AiImage
+            {
+                PhotoLink = photoLink,
+                AltText = altText,
+                Caption = caption
+            });
+        }
+
+        return list.Count == 0 ? null : list;
     }
 }
 #endregion

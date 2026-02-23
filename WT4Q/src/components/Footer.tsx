@@ -23,7 +23,7 @@ export default function Footer() {
           <PrefetchLink href="/contact">Contact Us</PrefetchLink>
         </div>
         <div className={styles.links}>
-          Independent, trustworthy coverage — impartial to parties or groups.
+          A 90s time capsule for stories, quizzes, and community nostalgia.
         </div>
       </div>
     </footer>

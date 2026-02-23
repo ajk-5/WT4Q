@@ -72,26 +72,36 @@ namespace Northeast.Services
                 AiWriteJob job;
                 try { job = await _queue.DequeueAsync(stoppingToken); }
                 catch (OperationCanceledException) { break; }
-                _ = Process(job, stoppingToken);
+                await Process(job, stoppingToken);
             }
             _log.LogInformation("AiWriteWorker stopping.");
         }
 
         private async Task Process(AiWriteJob job, CancellationToken ct)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var writer = scope.ServiceProvider.GetRequiredService<AiArticleWriterService>();
-            var svc = scope.ServiceProvider.GetRequiredService<ArticleServices>();
-            var aiCache = scope.ServiceProvider.GetService<IAiTransientCache>();
             try
             {
                 job.Status = AiWriteJobStatus.Running;
 
-                var dto = job.Request.ArticleType == ArticleType.News && job.Request.UseRecentNews
-                    ? await writer.WriteFromRecentNewsAsync(job.AuthorId, job.Request, ct)
-                    : await writer.WriteFromTopicAsync(job.AuthorId, job.Request, ct);
+                if (job.Request.ArticleType == ArticleType.News || job.Request.UseRecentNews)
+                {
+                    throw new InvalidOperationException("News generation is disabled for the 90s site.");
+                }
 
-                if (dto == null) throw new InvalidOperationException("AI returned no content");
+                using var scope = _scopeFactory.CreateScope();
+                var writer = scope.ServiceProvider.GetRequiredService<AiArticleWriterService>();
+                var svc = scope.ServiceProvider.GetRequiredService<ArticleServices>();
+                var aiCache = scope.ServiceProvider.GetService<IAiTransientCache>();
+
+                var dto = await writer.WriteFromTopicAsync(job.AuthorId, job.Request, ct);
+
+                if (dto == null)
+                {
+                    job.Status = AiWriteJobStatus.Failed;
+                    job.Error = "AI returned no content. Verify Gemini API key, quota/cooldown, and backend logs.";
+                    _log.LogWarning("AI job {Id} produced no content.", job.Id);
+                    return;
+                }
 
                 // Enforce type/category and publish under author
                 dto.ArticleType = job.Request.ArticleType;
@@ -109,7 +119,7 @@ namespace Northeast.Services
                 // Clear transient AI cache for this request to free memory
                 var key = job.Request.UseRecentNews
                     ? null
-                    : $"topic:{job.Request.Category}|{(job.Request.Topic ?? string.Empty).Trim().ToLowerInvariant()}";
+                    : $"topic:{job.Request.Category}|{(job.Request.Template ?? "default").Trim().ToLowerInvariant()}|{(job.Request.Topic ?? string.Empty).Trim().ToLowerInvariant()}";
                 if (key is not null)
                     aiCache?.Remove(key);
             }

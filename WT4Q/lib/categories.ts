@@ -1,182 +1,185 @@
-export const UPLOADCATEGORIES = [
-  "Politics",
-  "Crime",
-  "Entertainment",
-  "Business",
-  "Health",
-  "Lifestyle",
-  "Technology",
-  "Science",
-  "Sports",
-  "Info",
-];
+export type CategoryKey =
+  | 'Politics'
+  | 'Crime'
+  | 'Entertainment'
+  | 'Business'
+  | 'Health'
+  | 'Lifestyle'
+  | 'Technology'
+  | 'Science'
+  | 'Sports'
+  | 'Info';
 
-export const CATEGORIES = [
-  "Politics",
-  "Crime",
-  "Entertainment",
-  "Business",
-  "Health",
-  "Lifestyle",
-  "Technology",
-  "Science",
-  "Sports",
-  "Info",
-];
-
-/**
- * Rich descriptions and keyword sets for each category help us compose
- * consistent metadata that search engines can understand. These strings are
- * intentionally human readable so that they double as page copy when needed.
- */
-export const CATEGORY_DETAILS: Record<
-  string,
-  { description: string; keywords: string[] }
-> = {
-  Politics: {
-    description:
-      "Independent political reporting, election coverage, public policy analysis and accountability journalism focused on governments across the globe.",
-    keywords: [
-      "politics news",
-      "government",
-      "public policy",
-      "elections",
-      "geopolitics",
-    ],
-  },
-  Crime: {
-    description:
-      "Breaking crime reports, justice system updates, public safety investigations and law-enforcement accountability stories.",
-    keywords: [
-      "crime news",
-      "courts",
-      "justice system",
-      "law enforcement",
-      "public safety",
-    ],
-  },
-  Entertainment: {
-    description:
-      "Entertainment headlines covering film, television, streaming, celebrity interviews and culture analysis from the 90s and today.",
-    keywords: [
-      "entertainment news",
-      "movies",
-      "television",
-      "celebrity",
-      "culture",
-    ],
-  },
-  Business: {
-    description:
-      "Market-moving business news, company earnings, entrepreneurship features and deep dives on the global economy.",
-    keywords: [
-      "business news",
-      "economy",
-      "markets",
-      "finance",
-      "entrepreneurship",
-    ],
-  },
-  Health: {
-    description:
-      "Health reporting spanning medical research, public health guidance, mental wellness and healthcare policy updates.",
-    keywords: [
-      "health news",
-      "medical research",
-      "public health",
-      "wellness",
-      "health policy",
-    ],
-  },
-  Lifestyle: {
-    description:
-      "Lifestyle stories about travel, food, fashion, home, relationships and inspiration for living well.",
-    keywords: [
-      "lifestyle news",
-      "travel",
-      "food",
-      "fashion",
-      "home inspiration",
-    ],
-  },
-  Technology: {
-    description:
-      "Technology reporting on innovation, startups, consumer gadgets, cybersecurity and the companies shaping the digital era.",
-    keywords: [
-      "technology news",
-      "startups",
-      "innovation",
-      "gadgets",
-      "cybersecurity",
-    ],
-  },
-  Science: {
-    description:
-      "Scientific discoveries, space exploration, climate research and explainers that make complex breakthroughs accessible.",
-    keywords: [
-      "science news",
-      "space",
-      "climate",
-      "research",
-      "discoveries",
-    ],
-  },
-  Sports: {
-    description:
-      "Scores, analysis and features from global sports, leagues, athletes and major tournaments.",
-    keywords: [
-      "sports news",
-      "athletes",
-      "scores",
-      "tournaments",
-      "analysis",
-    ],
-  },
-  Info: {
-    description:
-      "In-depth explainers, guides, fact checks and service journalism that help readers stay informed and prepared.",
-    keywords: [
-      "explainer",
-      "guides",
-      "how to",
-      "service journalism",
-      "fact check",
-    ],
-  },
+export type CategoryDefinition = {
+  key: CategoryKey;
+  label: string;
+  description: string;
+  keywords: string[];
 };
 
-const CATEGORY_LOOKUP = new Map<string, string>(
+export const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
+  {
+    key: 'Entertainment',
+    label: 'TV, Movies & Music',
+    description:
+      'Sitcom marathons, blockbuster nights, boy bands, grunge, and the MTV moments that ruled the 90s.',
+    keywords: [
+      '90s TV',
+      '90s movies',
+      '90s music',
+      'MTV era',
+      'pop culture',
+    ],
+  },
+  {
+    key: 'Technology',
+    label: 'Gadgets & Internet',
+    description:
+      'Dial-up drama, early web adventures, console wars, and the tech that reshaped the decade.',
+    keywords: [
+      'dial-up',
+      'early internet',
+      '90s gadgets',
+      'retro tech',
+      'console wars',
+    ],
+  },
+  {
+    key: 'Lifestyle',
+    label: 'Style & Snacks',
+    description:
+      'From windbreakers to mall food courts, this is the 90s lifestyle starter pack.',
+    keywords: [
+      '90s fashion',
+      'mall culture',
+      'snacks',
+      'sleepovers',
+      'style',
+    ],
+  },
+  {
+    key: 'Sports',
+    label: 'Sports & Rivalries',
+    description:
+      'Legendary athletes, iconic rivalries, and sports moments that defined the 90s.',
+    keywords: [
+      '90s sports',
+      'athletes',
+      'rivalries',
+      'highlights',
+      'stadiums',
+    ],
+  },
+  {
+    key: 'Business',
+    label: 'Brands & Money',
+    description:
+      'Dot-com boom, iconic brands, and the money moves that shaped the 90s economy.',
+    keywords: [
+      '90s brands',
+      'dot-com',
+      'economy',
+      'mall brands',
+      'marketing',
+    ],
+  },
+  {
+    key: 'Science',
+    label: 'Space & Science',
+    description:
+      'Hubble fixes, space missions, and science breakthroughs with 90s swagger.',
+    keywords: [
+      'space missions',
+      'Hubble',
+      '90s science',
+      'NASA',
+      'discoveries',
+    ],
+  },
+  {
+    key: 'Politics',
+    label: 'History & Headlines',
+    description:
+      'Big moments that shaped the 90s: elections, world events, and cultural shifts.',
+    keywords: [
+      '90s history',
+      'world events',
+      'culture shifts',
+      'headlines',
+      'timeline',
+    ],
+  },
+  {
+    key: 'Crime',
+    label: 'Mysteries & True Crime',
+    description:
+      'High-profile cases, courtroom drama, and the true-crime stories that gripped the decade.',
+    keywords: [
+      '90s true crime',
+      'mysteries',
+      'courtroom',
+      'investigations',
+      'case files',
+    ],
+  },
+  {
+    key: 'Health',
+    label: 'Wellness & Fitness',
+    description:
+      'Fitness fads, health breakthroughs, and the 90s approach to self-care.',
+    keywords: [
+      '90s fitness',
+      'wellness',
+      'health trends',
+      'self care',
+      'workout',
+    ],
+  },
+  {
+    key: 'Info',
+    label: 'Time Capsule',
+    description:
+      'Deep dives, guides, and memory-lane stories that keep the 90s alive.',
+    keywords: [
+      'time capsule',
+      'nostalgia',
+      '90s memories',
+      'throwback',
+      'guide',
+    ],
+  },
+];
+
+export const CATEGORIES: CategoryKey[] = CATEGORY_DEFINITIONS.map((c) => c.key);
+export const UPLOADCATEGORIES: CategoryKey[] = [...CATEGORIES];
+
+const CATEGORY_LOOKUP = new Map<string, CategoryKey>(
   CATEGORIES.map((name) => [name.toLowerCase(), name] as const),
 );
 
-export function normalizeCategoryName(input: string): string | null {
+const CATEGORY_LABELS = new Map<CategoryKey, string>(
+  CATEGORY_DEFINITIONS.map((def) => [def.key, def.label] as const),
+);
+
+export function normalizeCategoryName(input: string): CategoryKey | null {
   const normalized = CATEGORY_LOOKUP.get(input.toLowerCase());
   return normalized ?? null;
 }
 
-export function getCategoryDetails(category: string) {
-  const name = normalizeCategoryName(category) ?? category;
-  const details = CATEGORY_DETAILS[name] ?? {
-    description: `Latest ${name} coverage from The Nineties Times.`,
-    keywords: [name, "The Nineties Times", "90sTimes"],
-  };
-  return { name, ...details };
+export function getCategoryLabel(category: string): string {
+  const normalized = normalizeCategoryName(category) ?? (category as CategoryKey);
+  return CATEGORY_LABELS.get(normalized) ?? category;
 }
 
-/*namespace Northeast.Models
-{
-    public enum Category
-    {
-        Politics,
-        Crime,
-        Entertainment,
-        Business,
-        Health,
-        Lifestyle,
-        Technology,
-        Science,
-        Sports,
-        Info
-    }
+export function getCategoryDetails(category: string) {
+  const name = normalizeCategoryName(category) ?? (category as CategoryKey);
+  const def = CATEGORY_DEFINITIONS.find((c) => c.key === name);
+  return {
+    name,
+    label: def?.label ?? name,
+    description:
+      def?.description ??
+      `Fresh 90s-inspired stories and throwbacks in ${name}.`,
+    keywords: def?.keywords ?? [name, '90s nostalgia', 'The Nineties Times'],
+  };
 }
-*/

@@ -8,7 +8,6 @@ import PrefetchLink from '@/components/PrefetchLink';
 import styles from './BreakingNewsSlider.module.css';
 import type { ArticleImage } from '@/lib/models';
 import { stripHtml, truncateWords } from '@/lib/text';
-import { API_ROUTES, apiFetch } from '@/lib/api';
 
 export interface BreakingArticle {
   id: string;
@@ -259,7 +258,7 @@ export default function BreakingNewsSlider({
 
     const ac = new AbortController();
     (async () => {
-      const res = await fetch('/api/bridge/article/breaking', {
+      const res = await fetch('/api/bridge/article/hot', {
         signal: ac.signal,
         headers: { Accept: 'application/json' },
         cache: 'no-store',

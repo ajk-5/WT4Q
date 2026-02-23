@@ -15,7 +15,7 @@ You agree to:
 
 3. Content Ownership
 
-All news articles, tools, graphics, branding, and design are property of The Nineties Times or licensed providers.
+All articles, quizzes, games, tools, graphics, branding, and design are property of The Nineties Times or licensed providers.
 
 You may share links and excerpts with proper attribution.
 
@@ -61,4 +61,3 @@ These Terms are governed by EU law and applicable international regulations.
 For questions about these Terms:
 
 Email: wt4q.com@gmail.com
-

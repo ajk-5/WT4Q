@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { IBM_Plex_Mono, IBM_Plex_Sans, VT323 } from "next/font/google";
 
 import GlobalStyles from "./global-styles";
 import Header from "@/components/Header";
@@ -8,10 +9,30 @@ import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import PageVisitReporter from "@/components/PageVisitReporter";
 import AdSenseLoader from "@/components/AdSenseLoader";
-import SwgLoader from "@/components/SwgLoader";
 import GoogleAnalyticsLoader from "@/components/GoogleAnalyticsLoader";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.90stimes.com";
+
+const bodyFont = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const displayFont = VT323({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+  display: "swap",
+});
+
+const monoFont = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   applicationName: "The Nineties Times (90sTimes)",
@@ -20,12 +41,12 @@ export const metadata: Metadata = {
     template: "%s | The Nineties Times",
   },
   description:
-    "The Nineties Times (90sTimes) delivers real-time breaking news, in-depth analysis, and trusted reporting across politics, business, tech, culture, sports, and more.",
+    "The Nineties Times (90sTimes) is a 90s time capsule of stories, quizzes, games, and culture throwbacks built for nostalgia lovers.",
   metadataBase: new URL(siteUrl),
   openGraph: {
     title: "The Nineties Times",
     description:
-      "Real-time breaking news, trends, and stories from The Nineties Times (90sTimes).",
+      "A 90s nostalgia hub with stories, quizzes, arcade throwbacks, and pop culture memories.",
     url: siteUrl,
     siteName: "The Nineties Times",
     type: "website",
@@ -35,15 +56,16 @@ export const metadata: Metadata = {
     "90sTimes",
     "90stimes",
     "90s Times",
-    "Nineties Times",
-    "independent media",
-    "news website",
+    "Nineties nostalgia",
+    "90s culture",
+    "retro games",
+    "90s quizzes",
   ],
   twitter: {
     card: "summary_large_image",
     title: "The Nineties Times",
     description:
-      "Real-time breaking news and trusted reporting - The Nineties Times (90sTimes).",
+      "A 90s nostalgia hub with stories, quizzes, arcade throwbacks, and pop culture memories.",
   },
   robots: {
     index: true,
@@ -55,27 +77,20 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable}`}
+    >
       <head>
         <GlobalStyles />
-        {/* Preload brand font for faster masthead and centerpiece overlays */}
-        {/* Preload WOFF2 with best compression; TTF remains as fallback */}
-        <link
-          rel="preload"
-          as="font"
-          href="/fonts/CloisterBlack.woff2"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        {/* Removed eager preload of decorative paper background to improve LCP */}
         {/* Structured data for brand synonyms */}
         <Script id="ld-org" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "NewsMediaOrganization",
+            "@type": "Organization",
             name: "The Nineties Times",
             alternateName: ["90sTimes", "90stimes", "90s Times", "Nineties Times"],
-            description: "Real-time global news coverage, analysis, and reporting from The Nineties Times.",
+            description: "A 90s nostalgia hub with stories, quizzes, arcade throwbacks, and pop culture memories.",
             url: siteUrl,
             logo: `${siteUrl}/favicon.ico`,
           })}
@@ -86,7 +101,7 @@ export default function RootLayout({
             "@type": "WebSite",
             name: "The Nineties Times",
             alternateName: ["90sTimes", "90stimes", "90s Times", "Nineties Times"],
-            description: "Real-time news destination for breaking updates, context, and archive search.",
+            description: "A 90s nostalgia destination for stories, quizzes, arcade throwbacks, and memory-lane archives.",
             url: siteUrl,
             potentialAction: {
               "@type": "SearchAction",
@@ -94,23 +109,6 @@ export default function RootLayout({
               "query-input": "required name=search_term_string",
             },
           })}
-        </Script>
-        {/* Lazy-apply decorative paper texture after page is interactive */}
-        <Script id="paper-bg" strategy="lazyOnload">
-          {`
-            try {
-              var docEl = document.documentElement;
-              // Avoid setting when user prefers reduced data
-              var reduce = false;
-              try { reduce = window.matchMedia('(prefers-reduced-data: reduce)').matches; } catch {}
-              if (!reduce) {
-                docEl.style.setProperty(
-                  '--paper-bg',
-                  "radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px), radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px)"
-                );
-              }
-            } catch (e) { /* no-op */ }
-          `}
         </Script>
         {/* Google Consent Mode v2: define gtag and default consent early */}
         <Script id="consent-default" strategy="beforeInteractive">
@@ -129,7 +127,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
-        <link rel="preconnect" href="https://news.google.com" />
         <link rel="preconnect" href="https://api.binance.com" />
         <link rel="preconnect" href="https://stream.binance.com" />
         {/* Preconnect to our API origin to reduce request latency (PSI suggestion) */}
@@ -140,7 +137,6 @@ export default function RootLayout({
         <PageVisitReporter />
         <AdSenseLoader />
         <GoogleAnalyticsLoader />
-        <SwgLoader />
         <Header />
         <BreakingNewsBarClient />
         <main>{children}</main>

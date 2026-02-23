@@ -10,10 +10,10 @@ export default function TrendingCenterpiece({
   articles: TrendingArticle[];
 }) {
   return (
-    <section className={styles.centerpiece} aria-label="Trending News">
+    <section className={styles.centerpiece} aria-label="Most Loved">
       <div className={styles.header}>
         <PrefetchLink href="/trending" className={styles.badge}>
-          Trending News
+          Most Loved
         </PrefetchLink>
       </div>
 

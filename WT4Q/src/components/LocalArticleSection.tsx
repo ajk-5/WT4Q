@@ -158,11 +158,11 @@ export default function LocalArticleSection() {
     <section
       ref={sectionRef}
       className={styles.container}
-      aria-label="Local news"
+      aria-label="Local spotlight"
       aria-live="polite"
       aria-busy={activated && status === 'loading'}
     >
-      <h2 className={styles.heading}>Local News based on your location</h2>
+      <h2 className={styles.heading}>Local Spotlight based on your location</h2>
       <div
         className={styles.viewport}
         onMouseEnter={() => setIsHovered(true)}
@@ -231,7 +231,7 @@ export default function LocalArticleSection() {
           </div>
         ) : (
           <div className={styles.emptyState} role="status">
-            Local headlines will appear here once we detect your region.
+            Local highlights will appear here once we detect your region.
           </div>
         )}
       </div>

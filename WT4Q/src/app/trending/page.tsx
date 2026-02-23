@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
-  title: 'Trending News',
+  title: 'Most Loved Right Now',
   alternates: { canonical: '/trending' },
 };
 
@@ -22,7 +22,10 @@ export default async function TrendingPage() {
   const articles = await fetchTrending();
   return (
     <div className={styles.container}>
-      <h1 className={styles.heading}>Top 10 Trending News</h1>
+      <h1 className={styles.heading}>Most Loved Right Now</h1>
+      <p className={styles.subheading}>
+        The community favorites lighting up the 90s time capsule today.
+      </p>
       <ol className={styles.list}>
         {articles.map((a, i) => (
           <li key={a.id} className={styles.item}>

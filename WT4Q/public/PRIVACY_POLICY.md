@@ -17,7 +17,7 @@ We may collect the following categories of personal data:
 - **Identity Data**: name, username, or details you provide when subscribing or commenting.
 - **Contact Data**: email address when you subscribe to newsletters or contact us.
 - **Technical Data**: IP address, browser type, operating system, device type.
-- **Usage Data**: pages visited, news categories you view, time spent, interactions with tools (clock, weather, memes, games).
+- **Usage Data**: pages visited, time capsule categories you view, time spent, interactions with tools (clock, weather, memes, games).
 - **Marketing & Communication Data**: your preferences for receiving newsletters, offers, or ads.
 
 3. How We Collect Data
@@ -30,7 +30,7 @@ We may collect the following categories of personal data:
 
 We use your data to:
 
-- Provide access to news, tools, and services on The Nineties Times.
+- Provide access to 90s nostalgia content, tools, and services on The Nineties Times.
 - Personalize your reading experience and recommend relevant articles.
 - Measure site performance and optimize user experience.
 - Deliver targeted advertising (via Google AdSense and other partners).
@@ -85,4 +85,3 @@ We use encryption, secure servers, and restricted access to safeguard your data.
 For questions or requests, contact us:
 
 Email: wt4q.com@gmail.com
-

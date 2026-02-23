@@ -38,7 +38,16 @@ namespace Northeast.Services.Similarity
             if (string.IsNullOrWhiteSpace(text))
                 yield break;
 
-            var normalized = RemoveDiacritics(text.ToLowerInvariant());
+            string normalized;
+            try
+            {
+                normalized = RemoveDiacritics(text.ToLowerInvariant());
+            }
+            catch
+            {
+                // Skip malformed payloads instead of failing the full recommendation request.
+                yield break;
+            }
 
             foreach (var raw in Regex.Split(normalized, @"[^a-z0-9']+"))
             {
@@ -89,7 +98,7 @@ namespace Northeast.Services.Similarity
 
         private static string RemoveDiacritics(string input)
         {
-            var normalized = input.Normalize(NormalizationForm.FormD);
+            var normalized = SanitizeInvalidUnicode(input).Normalize(NormalizationForm.FormD);
             var sb = new System.Text.StringBuilder();
             foreach (var ch in normalized)
             {
@@ -97,6 +106,42 @@ namespace Northeast.Services.Similarity
                     sb.Append(ch);
             }
             return sb.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        private static string SanitizeInvalidUnicode(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder(input.Length);
+            for (var i = 0; i < input.Length; i++)
+            {
+                var ch = input[i];
+                if (char.IsHighSurrogate(ch))
+                {
+                    if (i + 1 < input.Length && char.IsLowSurrogate(input[i + 1]))
+                    {
+                        sb.Append(ch);
+                        sb.Append(input[++i]);
+                        continue;
+                    }
+
+                    sb.Append(' ');
+                    continue;
+                }
+
+                if (char.IsLowSurrogate(ch))
+                {
+                    sb.Append(' ');
+                    continue;
+                }
+
+                sb.Append(ch);
+            }
+
+            return sb.ToString();
         }
     }
 }

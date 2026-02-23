@@ -130,3 +130,22 @@
   display: flex;
   gap: 0.5rem;
 }
+
+@media (max-width: 640px) {
+  .form,
+  .activitySection,
+  .accountSection {
+    max-width: 100%;
+    margin: 1rem 0;
+  }
+
+  .inputRow,
+  .deleteConfirm {
+    flex-wrap: wrap;
+  }
+
+  .clearButton,
+  .deleteButton {
+    width: 100%;
+  }
+}

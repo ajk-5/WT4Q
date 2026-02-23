@@ -1,13 +1,13 @@
-/* Horizontal crypto ticker bar styled to match BreakingNews aesthetics */
 .wrapper {
   --ticker-height: clamp(2.25rem, 5vw, 3rem);
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #120b1f;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(12, 7, 21, 0.2);
   overflow: hidden;
-  color: var(--ink, #111);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #120b1f;
+  font-family: var(--font-body);
+  padding: 0 0.35rem;
 }
 
 .viewport {
@@ -28,14 +28,12 @@
   background: transparent;
 }
 
-/* Pause marquee on hover */
 .wrapper:hover .track,
 .viewport:hover .track,
 .track:hover {
   animation-play-state: paused;
 }
 
-/* Duration is set via inline style to match content width */
 @keyframes scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -44,21 +42,29 @@
 .item {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.75rem;
+  gap: 0.45rem;
+  padding: 0 0.7rem;
   height: var(--ticker-height);
-  font-weight: 700;
+  font-weight: 800;
   font-size: clamp(0.66rem, 1.8vw, 0.9rem);
   white-space: nowrap;
-  color: var(--ink, #111);
+  color: #120b1f;
   text-decoration: none;
   cursor: pointer;
   background: transparent;
   border: 0;
 }
 
-.symbol { opacity: 0.9; font-family: Arial, Helvetica, sans-serif; color: var(--ink, #111); }
-.price { font-variation-settings: 'wght' 700; font-family: Arial, Helvetica, sans-serif; color: var(--ink, #111); }
+.symbol {
+  opacity: 0.95;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+.price {
+  font-weight: 800;
+  font-family: var(--font-body);
+}
 
 .changeUp { color: #0a7a26; }
 .changeDown { color: #b00020; }
@@ -68,30 +74,34 @@
   width: 90px;
   height: 6px;
   border-radius: 999px;
-  background: transparent; /* transparent interior */
+  background: rgba(18, 11, 31, 0.12);
   overflow: hidden;
 }
 
-.rangeFillUp { background: linear-gradient(90deg, #b8e5c7, #4caf50); }
-.rangeFillDown { background: linear-gradient(90deg, #f8c8cc, #e53935); }
+.rangeFillUp { background: linear-gradient(90deg, #b8e5c7, #2cf4a9); }
+.rangeFillDown { background: linear-gradient(90deg, #f8c8cc, #ff3d9a); }
 
 .rangeFill {
   position: absolute;
-  top: 0; bottom: 0; left: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
   border-radius: 999px;
 }
 
 .marker {
   position: absolute;
-  top: -3px; /* center over 6px bar */
-  width: 2px; height: 12px;
-  background: rgba(0,0,0,0.8);
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: rgba(18, 11, 31, 0.8);
 }
 
 .separator {
-  width: 4px; height: 4px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: transparent; /* no dot background */
+  background: rgba(18, 11, 31, 0.4);
 }
 
 @media (max-width: 768px) {

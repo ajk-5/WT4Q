@@ -10,9 +10,8 @@ import { useRouter } from 'next/navigation';
 import PrefetchLink from '@/components/PrefetchLink';
 import { API_ROUTES, apiFetch } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
-import { UPLOADCATEGORIES } from '@/lib/categories';
+import { UPLOADCATEGORIES, getCategoryLabel } from '@/lib/categories';
 import styles from './dashboard.module.css';
-import countries from '../../../../public/datas/Countries.json';
 import { useAdminGuard } from '@/hooks/useAdminGuard';
 
 export default function DashboardClient() {
@@ -27,9 +26,6 @@ export default function DashboardClient() {
     { link: '', altText: '', caption: '' }
   ]);
   const [embededCode, setEmbededCode] = useState('');
-  const [countryName, setCountryName] = useState('');
-  const [countryCode, setCountryCode] = useState('');
-  const [isBreakingNews, setIsBreakingNews] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -39,12 +35,9 @@ export default function DashboardClient() {
 
   // AI writer state
   const [aiTopic, setAiTopic] = useState('');
-  const [aiType, setAiType] = useState<'Article' | 'News'>('Article');
+  const [aiType, setAiType] = useState<'Article' | 'QnA'>('Article');
   const [aiCategory, setAiCategory] = useState('');
-  const [aiUseRecent, setAiUseRecent] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
-  const [aiJobId, setAiJobId] = useState<string | null>(null);
-  const [aiStatus, setAiStatus] = useState<string>('');
 
   useEffect(() => {
     async function load() {
@@ -85,7 +78,6 @@ export default function DashboardClient() {
     } catch {}
   }
 
-
   const handleLogout = async () => {
     await apiFetch(API_ROUTES.ADMIN_AUTH.LOGOUT, {
       method: 'POST',
@@ -106,7 +98,6 @@ export default function DashboardClient() {
         topic: aiTopic,
         category: aiCategory,
         articleType: aiType,
-        useRecentNews: aiType === 'News' ? aiUseRecent : false,
       } as Record<string, unknown>;
       const res = await apiFetch(API_ROUTES.ARTICLE.AI_WRITE, {
         method: 'POST',
@@ -114,14 +105,41 @@ export default function DashboardClient() {
         body: JSON.stringify(body),
       });
       if (res.status === 202) {
-        const data = (await res.json().catch(() => ({}))) as { jobId?: string };
-        if (data?.jobId) {
-          setAiJobId(data.jobId);
-          setAiStatus('queued');
+        const payload = (await res.json().catch(() => ({}))) as { jobId?: string };
+        const jobId = payload.jobId;
+        if (!jobId) {
           setSuccess('Queued. Generating in background...');
-        } else {
-          setSuccess('Queued.');
+          return;
         }
+
+        setSuccess('Queued. Generating in background...');
+        const startedAt = Date.now();
+        const timeoutMs = 180000;
+        while (Date.now() - startedAt < timeoutMs) {
+          await new Promise((r) => setTimeout(r, 3000));
+          const statusRes = await apiFetch(API_ROUTES.ARTICLE.AI_WRITE_JOB(jobId));
+          if (!statusRes.ok) continue;
+          const statusData = (await statusRes.json().catch(() => ({}))) as {
+            status?: string;
+            slug?: string;
+            error?: string;
+          };
+          const status = (statusData.status || '').toLowerCase();
+          if (status === 'succeeded') {
+            setSuccess(
+              statusData.slug
+                ? `AI article generated: /articles/${statusData.slug}`
+                : 'AI article generated and published',
+            );
+            await reloadMyArticles();
+            return;
+          }
+          if (status === 'failed') {
+            throw new Error(statusData.error || 'AI generation failed');
+          }
+        }
+
+        setSuccess('Generation is still running. Check your article list in a moment.');
       } else if (!res.ok) {
         const msg = await res.text();
         throw new Error(msg || 'Generation failed');
@@ -185,9 +203,6 @@ export default function DashboardClient() {
           content,
           images: imagesPayload,
           embededCode: embededCode || undefined,
-          isBreakingNews,
-          countryName: countryName || undefined,
-          countryCode: countryCode || undefined,
           keyword: keywords
             .split(',')
             .map((k) => k.trim())
@@ -209,9 +224,6 @@ export default function DashboardClient() {
         setKeywords('');
         setImages([{ link: '', altText: '', caption: '' }]);
         setEmbededCode('');
-        setCountryName('');
-        setCountryCode('');
-        setIsBreakingNews(false);
         setSuccess('Article published');
       } catch (err) {
         if (err instanceof Error) setError(err.message);
@@ -229,10 +241,10 @@ export default function DashboardClient() {
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
       <section className={styles.form}>
-        <h2 className={styles.subtitle}>AI Writer</h2>
+        <h2 className={styles.subtitle}>90s AI Writer</h2>
         <input
           type="text"
-          placeholder="Topic (e.g., AI in healthcare)"
+          placeholder="Topic (e.g., 90s sitcoms that defined the decade)"
           value={aiTopic}
           onChange={(e) => setAiTopic(e.target.value)}
           className={styles.input}
@@ -240,7 +252,7 @@ export default function DashboardClient() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <select
             value={aiType}
-            onChange={(e) => setAiType(e.target.value as 'Article' | 'News')}
+            onChange={(e) => setAiType(e.target.value as 'Article' | 'QnA')}
             className={styles.select}
           >
             {ARTICLE_TYPES.map((t) => (
@@ -254,22 +266,12 @@ export default function DashboardClient() {
           >
             <option value="" disabled>Select Category</option>
             {UPLOADCATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{getCategoryLabel(c)}</option>
             ))}
           </select>
         </div>
-        {aiType === 'News' && (
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              checked={aiUseRecent}
-              onChange={(e) => setAiUseRecent(e.target.checked)}
-            />
-            Use recent news sources (Google News)
-          </label>
-        )}
         <button type="button" onClick={handleAiWrite} disabled={aiBusy} className={styles.button}>
-          {aiBusy ? 'Generating…' : 'Generate & Publish'}
+          {aiBusy ? 'Generating...' : 'Generate & Publish'}
         </button>
       </section>
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -376,41 +378,6 @@ export default function DashboardClient() {
             </option>
           ))}
         </select>
-        {type === 'News' && (
-          <select
-            value={countryName}
-            onChange={(e) => {
-              const name = e.target.value;
-              setCountryName(name);
-              const match = (countries as { name: string; code: string }[]).find(
-                (c) => c.name === name
-              );
-              setCountryCode(match ? match.code : '');
-            }}
-            className={styles.select}
-          >
-            <option value="" disabled>
-              Select Country
-            </option>
-            {(
-              countries as { name: string; code: string }[]
-            ).map((c) => (
-              <option key={c.code} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        )}
-        {type === 'News' && (
-          <label className={styles.checkbox}>
-            <input
-              type="checkbox"
-              checked={isBreakingNews}
-              onChange={(e) => setIsBreakingNews(e.target.checked)}
-            />
-            Breaking news
-          </label>
-        )}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -422,7 +389,7 @@ export default function DashboardClient() {
           </option>
           {UPLOADCATEGORIES.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {getCategoryLabel(c)}
             </option>
           ))}
         </select>
@@ -437,7 +404,17 @@ export default function DashboardClient() {
           {isPending ? 'Publishing...' : 'Publish'}
         </button>
       </form>
-      <PrefetchLink href="/admin/cocktails" className={styles.button} style={{marginTop:'1rem'}}>Upload Cocktail</PrefetchLink>
+      <PrefetchLink href="/admin/cocktails" className={styles.button} style={{ marginTop: '1rem' }}>
+        Upload Cocktail
+      </PrefetchLink>
+      <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap', marginTop: '.5rem' }}>
+        <PrefetchLink href="/admin/quizzes" className={styles.button}>
+          Manage 90s Quizzes
+        </PrefetchLink>
+        <PrefetchLink href="/admin/shows" className={styles.button}>
+          Manage 90s Shows
+        </PrefetchLink>
+      </div>
       <h2 className={styles.subtitle}>Your Articles</h2>
       <ul className={styles.list}>
         {articles.map((a) => (

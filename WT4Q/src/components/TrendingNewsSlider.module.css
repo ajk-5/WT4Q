@@ -3,24 +3,23 @@
   --placeholder-base: rgba(17, 17, 17, 0.08);
   --placeholder-highlight: rgba(17, 17, 17, 0.18);
 
-  background: var(--paper, #fefcf7);
-  color: #111111;
-  padding: clamp(0.6rem, 1.2vw, 0.85rem) clamp(0.75rem, 2vw, 1.25rem);
+  background: transparent;
+  color: var(--ink);
+  padding: clamp(0.25rem, 0.9vw, 0.45rem) clamp(0.25rem, 1.4vw, 0.45rem);
   margin: 0.2rem 0;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   text-align: center;
   position: relative;
-  font-family: "Georgia", "Times New Roman", serif;
+  font-family: var(--font-body);
   overflow: hidden;
-  border: 1px solid rgba(17, 17, 17, 0.1);
-  box-shadow: 0 0.75rem 1.5rem rgba(17, 17, 17, 0.08);
-  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  border: none;
+  box-shadow: none;
+  transition: filter 200ms ease-in-out;
   min-width: 0;
 }
 
 .slider:hover {
-  box-shadow: 0 1rem 2rem rgba(17, 17, 17, 0.12);
-  border-color: rgba(17, 17, 17, 0.2);
+  filter: saturate(1.05);
 }
 
 .compactMode {
@@ -34,7 +33,7 @@
   height: 100%;
   display: flex;
   align-items: stretch;
-  padding: clamp(0.9rem, 1.8vw, 1.35rem) clamp(1rem, 2.4vw, 1.75rem);
+  padding: clamp(0.65rem, 1.6vw, 1.05rem) clamp(0.75rem, 2.1vw, 1.35rem);
 }
 
 .isLoading {
@@ -90,7 +89,7 @@
   width: 0.35rem;
   height: 0.35rem;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--accent);
   flex: 0 0 auto;
 }
 
@@ -259,8 +258,11 @@
   aspect-ratio: 16 / 9;
   position: relative;
   overflow: hidden;
-  border-radius: 0.75rem;
+  max-height: clamp(140px, 22vw, 220px);
+  border-radius: var(--radius);
   background: var(--placeholder-base);
+  border: 3px solid var(--border);
+  box-shadow: var(--shadow-sticker);
 }
 
 .detailFigurePlaceholder {
@@ -290,7 +292,7 @@
   place-items: center;
   padding: 0.5rem;
   text-align: center;
-  font-family: 'CloisterBlack', Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   /* Smaller + tighter tracking to keep one line across mobiles */
   font-size: clamp(0.95rem, 2.8vw, 1.85rem);
   line-height: 1;
@@ -316,25 +318,33 @@
 }
 
 .detailCaption {
-  font-size: 0.85rem;
-  color: rgba(17, 17, 17, 0.7);
-  text-align: center;
-  margin-top: 0.35rem;
-  min-height: 1.1rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: left;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.68) 100%);
 }
 
 .captionPlaceholder {
-  visibility: hidden;
+  display: none;
 }
 
 .detailTitle {
   margin: 0;
   font-size: clamp(1.4rem, 2.4vw, 1.9rem);
-  color: #060606;
+  color: var(--ink);
   line-height: 1.2;
   overflow-wrap: anywhere;
   /* Reserve at least 3 lines to keep layout stable, but allow full title */
   min-height: calc(1.2 * 3em);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .titlePlaceholder {
@@ -421,7 +431,7 @@
 }
 
 .readMore {
-  color: var(--ink);
+  color: var(--primary);
   font-size: medium;
   text-decoration: underline;
 }

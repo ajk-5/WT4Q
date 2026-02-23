@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { Article } from '@/components/ArticleCard';
 import CategoryArticleCard from '@/components/CategoryArticleCard';
-import baseStyles from '../../page.module.css';
 import styles from './categoryPage.module.css';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
 import TrendingCenterpiece from '@/components/TrendingCenterpiece';
@@ -44,14 +43,14 @@ export async function generateMetadata({
   const normalized = normalizeCategoryName(rawCategory);
   if (!normalized) {
     return {
-      title: 'Category - The Nineties Times',
+      title: 'Time Capsule - The Nineties Times',
     };
   }
-  const { description, keywords } = getCategoryDetails(normalized);
+  const { description, keywords, label } = getCategoryDetails(normalized);
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
   const url = `${siteUrl}/category/${encodeURIComponent(normalized)}`;
-  const title = `${normalized} News & Analysis - The Nineties Times`;
+  const title = `${label} Time Capsule - The Nineties Times`;
   return {
     title,
     description,
@@ -113,7 +112,7 @@ export default async function CategoryPage({
   if (!normalized) {
     notFound();
   }
-  const { description } = getCategoryDetails(normalized);
+  const { description, label } = getCategoryDetails(normalized);
   const articles = await fetchArticles(normalized);
 
   const today = new Date();
@@ -157,7 +156,7 @@ export default async function CategoryPage({
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: `${normalized} news from The Nineties Times`,
+      name: `${label} time capsule from The Nineties Times`,
       description,
       inLanguage: 'en-US',
       isPartOf: siteUrl,
@@ -168,7 +167,7 @@ export default async function CategoryPage({
     jsonLd.push({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: `${normalized} headlines`,
+      name: `${label} highlights`,
       itemListOrder: 'https://schema.org/ItemListOrderDescending',
       url: canonicalUrl,
       itemListElement,
@@ -176,7 +175,7 @@ export default async function CategoryPage({
   }
 
   return (
-    <div className={baseStyles.newspaper}>
+    <div className={styles.page}>
       <Script
         id={`ld-category-${normalized.toLowerCase().replace(/\s+/g, '-')}`}
         type="application/ld+json"
@@ -184,24 +183,27 @@ export default async function CategoryPage({
       >
         {JSON.stringify(jsonLd)}
       </Script>
-      <h1 className={baseStyles.brand}>
-        <span className={styles.categoryLabel}>{normalized}</span>
+      <h1 className={styles.title}>
+        <span className={styles.categoryLabel}>{label}</span>
       </h1>
       <p className={styles.categoryDescription}>{description}</p>
-      <div className={baseStyles.ruleThick} aria-hidden="true" />
-      <div className={baseStyles.ruleThin} aria-hidden="true" />
+      <div className={styles.ruleThick} aria-hidden="true" />
+      <div className={styles.ruleThin} aria-hidden="true" />
 
       {breakingInCategory.length > 0 && (
-        <div className={baseStyles.centerColumn}>
-          <BreakingCenterpiece articles={breakingInCategory} />
+        <div className={styles.centerColumn}>
+          <BreakingCenterpiece
+            articles={breakingInCategory}
+            label={`Spotlight: ${label}`}
+          />
         </div>
       )}
       {todayArticles.length > 0 && (
         <section>
-          <h2 className={styles.sectionHeading}>Today&apos;s News</h2>
+          <h2 className={styles.sectionHeading}>Fresh Drops</h2>
           <HorizontalScroller
             className={styles.horizontalCards}
-            ariaLabel="Today's news scroller"
+            ariaLabel="Fresh drops scroller"
           >
             {todayArticles.map((a) => (
               <CategoryArticleCard key={a.id} article={a} />
@@ -211,7 +213,7 @@ export default async function CategoryPage({
       )}
 
       {trendingInCategory.length > 0 && (
-        <div className={baseStyles.centerColumn}>
+        <div className={styles.centerColumn}>
           <TrendingCenterpiece articles={trendingInCategory} />
         </div>
       )}

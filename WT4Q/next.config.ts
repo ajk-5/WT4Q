@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   assetPrefix: process.env.CDN_URL || undefined,
+  // Optional override to avoid locked/readonly build directories in some environments.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
 
   images: {
     // Ideally list real hosts; wildcard ok during development
@@ -19,6 +21,16 @@ const nextConfig: NextConfig = {
       {
         source: "/:indexnowApi.txt",
         destination: "/api/indexnow/:indexnowApi",
+      },
+    ];
+  },
+
+  async redirects() {
+    return [
+      {
+        source: "/born-in-the-90s/:path*",
+        destination: "/90S-EXCLUSIVE/:path*",
+        permanent: true,
       },
     ];
   },

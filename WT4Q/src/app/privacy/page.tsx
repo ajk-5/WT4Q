@@ -7,10 +7,10 @@ export const metadata: Metadata = {
     "Understand how The Nineties Times (90sTimes) protects reader data, manages cookies, and stays compliant with GDPR, CCPA, and global privacy standards.",
   keywords: [
     'privacy policy 2025',
-    'GDPR compliance news site',
+    'GDPR compliance',
     'CCPA data rights',
     'cookie consent management',
-    'secure news platform',
+    'secure platform',
     'The Nineties Times privacy',
     '90sTimes data protection',
   ],
@@ -48,10 +48,10 @@ export default function PrivacyPage() {
       </ul>
       <h2 className={styles.heading}>Crypto Features &amp; Third-Party Sources</h2>
       <p>
-        Our Crypto section displays market data and news for educational and
+        Our Crypto section displays market data and headlines for educational and
         informational purposes. Prices, volumes and charts are sourced from
         third-party providers (e.g., Binance for USDT trading pairs, CoinGecko
-        for market-cap rankings, and Google News RSS for related headlines).
+        for market-cap rankings, and public RSS feeds for related headlines).
         We cache small portions of this data briefly to improve performance and
         reduce load on upstream APIs. We do not collect personal data from
         those providers about you.

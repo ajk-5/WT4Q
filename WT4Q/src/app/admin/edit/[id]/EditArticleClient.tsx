@@ -4,9 +4,8 @@ import { useState, useEffect, FormEvent, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_ROUTES, apiFetch } from '@/lib/api';
 import { ARTICLE_TYPES } from '@/lib/articleTypes';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, getCategoryLabel } from '@/lib/categories';
 import { slugify } from '@/lib/text';
-import countries from '../../../../../public/datas/Countries.json';
 import styles from '../../dashboard/dashboard.module.css';
 import type { ArticleImage } from '@/lib/models';
 import { useAdminGuard } from '@/hooks/useAdminGuard';
@@ -268,29 +267,6 @@ export default function EditArticleClient({ id }: { id: string }) {
             </option>
           ))}
         </select>
-        {type === 'News' && (
-          <select
-            value={countryName}
-            onChange={(e) => {
-              const name = e.target.value;
-              setCountryName(name);
-              const match = (countries as { name: string; code: string }[]).find(
-                (c) => c.name === name
-              );
-              setCountryCode(match ? match.code : '');
-            }}
-            className={styles.select}
-          >
-            <option value="" disabled>
-              Select Country
-            </option>
-            {(countries as { name: string; code: string }[]).map((c) => (
-              <option key={c.code} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        )}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -302,7 +278,7 @@ export default function EditArticleClient({ id }: { id: string }) {
           </option>
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {getCategoryLabel(c)}
             </option>
           ))}
         </select>

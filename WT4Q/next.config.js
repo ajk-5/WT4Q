@@ -4,6 +4,8 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // Optional override to avoid locked/readonly build directories in some environments.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
 
   // Optional CDN prefix if provided
   assetPrefix: process.env.CDN_URL || undefined,

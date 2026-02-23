@@ -1,76 +1,83 @@
-/* Layout for the crypto page to match the site's newspaper theme */
 .container {
   display: grid;
   gap: 1rem;
   background: transparent;
-  color: var(--ink, #111);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--foreground);
+  font-family: var(--font-body);
 }
 
 .header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 1rem;
+  border-radius: 18px;
+  border: 2px solid #120b1f;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 24px rgba(12, 7, 21, 0.2);
 }
 
 .title {
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: 600;
-  font-size: clamp(1rem, 2.6vw, 1.35rem);
-  letter-spacing: 0;
-  text-transform: none;
-  margin: 0.25rem 0;
-  color: var(--ink, #111);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  color: #120b1f;
 }
 
 .subtle {
-  color: rgba(0,0,0,0.6);
-  font-size: 0.92rem;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .card {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0.75rem;
-  color: var(--ink, #111);
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #120b1f;
+  border-radius: 18px;
+  box-shadow: 0 12px 24px rgba(12, 7, 21, 0.18);
+  padding: 1rem;
+  color: #120b1f;
 }
 
 .toolbar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   flex-wrap: wrap;
 }
 
 .btn {
-  background: transparent;
-  border: 1px solid rgba(0,0,0,0.5);
+  background: #fff;
+  border: 2px solid #120b1f;
   border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  font-weight: 800;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  color: var(--ink, #111);
+  color: #120b1f;
+  box-shadow: 4px 4px 0 rgba(18, 11, 31, 0.18);
 }
 
 .btnActive {
-  background: transparent;
-  color: var(--ink, #111);
-  border-color: var(--ink, #111);
-  border-width: 2px;
+  background: #120b1f;
+  color: #fff;
+  box-shadow: 4px 4px 0 rgba(18, 11, 31, 0.3);
 }
 
-.chart {
-  height: 520px;
-}
+.chart { height: 520px; }
 
 .tableWrap { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
 
@@ -82,13 +89,16 @@
 .thead th {
   text-align: left;
   font-weight: 800;
-  font-size: 0.9rem;
-  padding: 0.5rem 0.4rem;
-  border-bottom: 2px solid rgba(0,0,0,0.12);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.4rem;
+  border-bottom: 2px solid rgba(18, 11, 31, 0.2);
+  color: #120b1f;
 }
 
 .row {
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(18, 11, 31, 0.1);
 }
 
 .rowBtn {
@@ -96,58 +106,61 @@
   grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
   gap: 0.4rem;
   width: 100%;
-  padding: 0.5rem 0.4rem;
+  padding: 0.6rem 0.4rem;
   background: transparent;
   border: none;
   text-align: left;
   cursor: pointer;
-  color: var(--ink, #111) !important;
+  color: inherit;
 }
 
 .rowBtn span { color: inherit; }
 
 .rowBtn:hover {
-  background: rgba(0,0,0,0.035);
+  background: rgba(255, 61, 154, 0.12);
 }
 
 .sym { font-weight: 800; }
 .pos { color: #0a7a26; }
 .neg { color: #b00020; }
-.change { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; }
+.change { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 800; }
 .changeIcon { display: inline-block; vertical-align: middle; }
 
 .miniRange {
   position: relative;
   height: 6px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.08);
+  background: rgba(18, 11, 31, 0.12);
 }
-.miniFill { position: absolute; top:0; bottom:0; left:0; border-radius: 999px; }
-.miniFillUp { background: linear-gradient(90deg, #b8e5c7, #4caf50); }
-.miniFillDown { background: linear-gradient(90deg, #f8c8cc, #e53935); }
-.miniMarker { position:absolute; top:-3px; width:2px; height:12px; background: rgba(0,0,0,0.8); }
+
+.miniFill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; }
+.miniFillUp { background: linear-gradient(90deg, #b8e5c7, #2cf4a9); }
+.miniFillDown { background: linear-gradient(90deg, #f8c8cc, #ff3d9a); }
+.miniMarker { position: absolute; top: -3px; width: 2px; height: 12px; background: rgba(18, 11, 31, 0.8); }
 
 .searchRow {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .searchInput {
   flex: 1 1 auto;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(0,0,0,0.18);
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 2px solid rgba(18, 11, 31, 0.25);
+  font-family: var(--font-body);
 }
 
 .actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.muted { color: rgba(0,0,0,0.6); font-size: 0.9rem; }
+.muted { color: var(--muted); font-size: 0.9rem; }
 
 @media (max-width: 1024px) {
   .grid { grid-template-columns: 1fr; }
@@ -160,10 +173,9 @@
     grid-template-columns: 1.2fr 1fr;
     gap: 0.25rem;
   }
-  /* Hide range and volume on small screens */
   .rowBtn span:nth-child(4),
   .rowBtn span:nth-child(5) { display: none; }
-  .btn { padding: 0.3rem 0.55rem; font-size: 0.9rem; }
+  .btn { padding: 0.3rem 0.6rem; font-size: 0.6rem; }
 }
 
 @media (max-width: 480px) {

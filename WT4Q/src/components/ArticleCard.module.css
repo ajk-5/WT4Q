@@ -2,14 +2,14 @@
   position: relative; /* for overlay link */
   display: grid;
   grid-template-rows: auto minmax(5.6em, auto) auto auto;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 0.45rem;
+  padding: 0.65rem 0.7rem;
   margin: 0.25rem 0;
-  background: #ffffff00;
-  font-family: "Georgia", "Times New Roman", serif;
-  border: 1px solid var(--thin-rule, #2c1616);
-  box-shadow: inset 0 0 0 1px var(--thin-rule, #2c1616);
-  border-radius: 0.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 236, 216, 0.92));
+  font-family: var(--font-body);
+  border: 3px solid #120b1f;
+  box-shadow: var(--shadow-sticker);
+  border-radius: var(--radius-lg);
   height: 100%;
   box-sizing: border-box;
   cursor: pointer;
@@ -17,8 +17,12 @@
 
 .title {
   margin: 0 0 0.35rem;
-  font-size: clamp(1rem, 1.6vw, 1.15rem);
-  font-weight: 700;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-family: var(--font-display);
+  text-shadow: -1px 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .titleLink {
@@ -34,13 +38,13 @@
 
 .summary {
   margin: 0;
-  color: var(--muted, #555);
-  line-height: 1.4;
+  color: var(--muted, #4a3f63);
+  line-height: 1.45;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-clamp: 4;
+  line-clamp: 3;
   max-height: 5.6em;
 }
 
@@ -48,7 +52,7 @@
 .readMore {
   display: inline-block;
   font-size: 0.75rem;
-  color: #7b1e22; /* Bordeaux red */
+  color: var(--primary);
   text-decoration: none;
   align-self: start;
 }
@@ -60,7 +64,8 @@
 
 /* Inline READ MORE for snippet trail */
 .readMoreInline {
-  color: #7b1e22; /* Bordeaux red */
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .meta {
@@ -70,7 +75,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--muted, #666);
+  color: var(--muted, #4a3f63);
   align-self: end;
 }
 
@@ -102,6 +107,23 @@
 @media (max-width: 1000px) {
   .card {
     padding: 0.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .card {
+    border-radius: 14px;
+    grid-template-rows: auto minmax(4.8em, auto) auto auto;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .summary {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    max-height: 4.8em;
   }
 }
 

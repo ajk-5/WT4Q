@@ -1,0 +1,576 @@
+.retroTheme {
+  --retro-yellow: #ffe066;
+  --retro-pink: #ff5fd2;
+  --retro-cyan: #4be4ff;
+  --retro-purple: #b794f4;
+  --retro-ink: #070b1a;
+}
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  padding: clamp(1rem, 3vw, 3rem);
+  background: radial-gradient(circle at 10% 20%, #111d3a, #050912 65%);
+  color: #fff;
+  overflow: hidden;
+}
+
+.noise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%23ffffff' fill-opacity='0.55'%3E%3Ccircle cx='8' cy='8' r='1'/%3E%3Ccircle cx='72' cy='24' r='1'/%3E%3Ccircle cx='120' cy='56' r='1'/%3E%3Ccircle cx='24' cy='120' r='1'/%3E%3Ccircle cx='96' cy='140' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+}
+
+.hero {
+  position: relative;
+  border: 5px double #000;
+  box-shadow: inset 0 0 0 4px #000, 0 18px 0 #000;
+  background:
+    linear-gradient(135deg, rgba(4, 8, 32, 0.85), rgba(15, 23, 42, 0.8)),
+    radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.25), transparent 55%),
+    linear-gradient(135deg, #fb7185, #fcd34d 30%, #818cf8 80%);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  overflow: hidden;
+  color: #f8fafc;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+}
+
+.heroBadge {
+  font-family: var(--retro-font), monospace;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #000;
+  color: var(--retro-yellow);
+  padding: 0.35rem 0.85rem;
+  border: 3px solid #fff;
+  box-shadow: 4px 4px 0 #000;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+}
+
+.heroTitle {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.3rem, 5vw, 3.6rem);
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow: -4px 4px 0 #000, 0 0 25px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+}
+
+.heroSubtitle {
+  margin-top: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #dbeafe;
+}
+
+.heroButtons {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  text-decoration: none;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 0.65rem 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ctaPrimary {
+  background: #000;
+  color: var(--retro-yellow);
+}
+
+.ctaSecondary {
+  background: #fff;
+  color: #000;
+}
+
+.heroStats {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.statCard {
+  background: rgba(0, 6, 40, 0.65);
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: #dce0ff;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--retro-yellow);
+}
+
+.statMeta {
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
+
+.ticker {
+  margin: 1.5rem 0;
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  background: #000;
+  overflow: hidden;
+}
+
+.tickerTrack {
+  display: flex;
+  gap: 2rem;
+  animation: scroll 18s linear infinite;
+}
+
+.tickerItem {
+  padding: 0.75rem 0;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--retro-cyan);
+  white-space: nowrap;
+}
+
+@keyframes scroll {
+  to { transform: translateX(-50%); }
+}
+
+.section {
+  position: relative;
+  margin-top: 2.25rem;
+}
+
+.sectionHeading {
+  font-size: clamp(1.5rem, 2.7vw, 2.45rem);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.35rem;
+}
+
+.sectionSubhead {
+  color: #c7d2fe;
+  max-width: 640px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 1.35rem;
+  margin-top: 1.25rem;
+}
+
+.card {
+  position: relative;
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 100%;
+  color: #f8fafc;
+}
+
+.thumb {
+  position: relative;
+  padding-top: 55%;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  background: linear-gradient(135deg, rgba(14, 17, 38, 0.95), rgba(56, 10, 68, 0.9));
+  overflow: hidden;
+}
+
+.thumbImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.4), transparent 70%);
+  color: #fefce8;
+  padding: 1rem;
+}
+
+.thumbFallbackLine {
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #fde047;
+}
+
+.thumbFallbackTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.cardMeta {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border: 2px solid #000;
+  padding: 0.2rem 0.45rem;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--retro-yellow);
+}
+
+.cardBody {
+  flex: 1;
+  color: #f7fafc;
+}
+
+.cardFooter,
+.ctaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ctaLink {
+  text-decoration: none;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--retro-cyan);
+}
+
+.funBox {
+  border: 3px dashed var(--retro-pink);
+  padding: 1rem;
+  background: rgba(255, 95, 210, 0.08);
+}
+
+.funList {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.funItem {
+  border-left: 3px solid var(--retro-cyan);
+  padding-left: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.triviaSection {
+  margin: 2rem 0 1.5rem;
+}
+
+.triviaCard {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  gap: 1rem;
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.9));
+  padding: 0.9rem;
+}
+
+.triviaMedia {
+  position: relative;
+  border: 3px solid #000;
+  background: #020617;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.triviaImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.triviaFallback {
+  padding: 0.5rem 0.75rem;
+}
+
+.triviaBadge {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border: 2px solid #38bdf8;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.triviaBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.triviaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.triviaLabel {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #bfdbfe;
+}
+
+.triviaIndex {
+  font-size: 0.75rem;
+  color: #e5e7eb;
+}
+
+.triviaText {
+  font-size: 0.95rem;
+  color: #f9fafb;
+  overflow-wrap: break-word;
+}
+
+.emptyCard {
+  border: 3px dashed #fff;
+  color: #e0e7ff;
+  text-align: center;
+}
+
+.showHero {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.heroBackWrap {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heroImageFrame {
+  border: 6px double #000;
+  box-shadow: 8px 8px 0 #000;
+  background: #000;
+  padding: 0.3rem;
+  margin: 1rem auto;
+  max-width: min(720px, 100%);
+}
+
+.heroImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 4px solid #000;
+}
+
+.heroImageCaption {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  text-align: center;
+}
+
+.heroHomeLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 3px solid #000;
+  background: #0f172a;
+  color: #f9fafb;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.heroHomeIcon {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 1.25rem;
+}
+
+.detailCard {
+  border: 3px solid #000;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  padding: 0.25rem 0.6rem;
+  border: 2px solid #000;
+  background: var(--retro-cyan);
+  color: #000;
+}
+
+.miniMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.listDivider {
+  width: 100%;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #000, #000 8px, transparent 8px, transparent 16px);
+  margin: 2rem 0 1rem;
+}
+
+.quizCard {
+  background: linear-gradient(135deg, #020617, #0f172a);
+  color: #f9fafb;
+}
+
+.quizCard .cardTitle,
+.quizCard .cardMeta,
+.quizCard .cardBody {
+  color: #f9fafb;
+  word-break: break-word;
+}
+
+.quizCard .cardTitle {
+  white-space: normal;
+}
+
+.quizBestScore {
+  font-size: 0.9rem;
+  margin-top: 0.35rem;
+  color: #e5e7eb;
+}
+
+.quizType {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--retro-yellow);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.85rem;
+  border: 2px solid #000;
+  background: var(--retro-purple);
+  color: #000;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.pill {
+  padding: 0.3rem 0.9rem;
+  border: 2px solid #000;
+  background: var(--retro-cyan);
+  color: #000;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+@media (max-width: 640px) {
+  .triviaCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .triviaMedia {
+    min-height: 180px;
+  }
+
+  .triviaBody {
+    align-items: flex-start;
+  }
+
+  .triviaText {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

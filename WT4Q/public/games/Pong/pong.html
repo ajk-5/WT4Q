@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CRT Pong — WT4Q Arcade</title>
+    <style>
+      :root {
+        --bg: #070913;
+        --panel: #151a2e;
+        --text: #e6e8ee;
+        --muted: #9aa1b3;
+        --accent: #00e7ff;
+        --hot: #ff2fb2;
+        --coin: #ffe600;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(circle at 16% 18%, rgba(0, 231, 255, 0.15), transparent 52%),
+          radial-gradient(circle at 86% 16%, rgba(255, 47, 178, 0.14), transparent 56%),
+          linear-gradient(180deg, #080a15, #050611);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .wrap {
+        width: 1100px;
+        max-width: 96vw;
+      }
+      header {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .brand {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        min-width: 240px;
+      }
+      .brand h1 {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 18px;
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+      }
+      .stats {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(21, 26, 46, 0.8);
+        color: var(--text);
+        font-weight: 800;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        letter-spacing: 0.02em;
+        font-size: 12px;
+      }
+      .btn {
+        border: none;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: var(--hot);
+        color: #120317;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(255, 47, 178, 0.18);
+        transition: 0.15s transform, 0.15s filter;
+      }
+      .btn.secondary {
+        background: #232a4a;
+        color: #dce0ef;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:hover {
+        filter: brightness(1.06);
+      }
+      .layout {
+        display: flex;
+        justify-content: center;
+      }
+      .screen {
+        position: relative;
+        width: 820px;
+        max-width: 100%;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 44px rgba(0, 0, 0, 0.35);
+        background: #050611;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 820/560;
+        background: radial-gradient(circle at 30% 28%, rgba(0, 231, 255, 0.08), transparent 60%),
+          radial-gradient(circle at 70% 70%, rgba(255, 47, 178, 0.07), transparent 56%),
+          linear-gradient(180deg, #070913, #040510);
+        touch-action: none;
+      }
+      .scan {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        opacity: 0.14;
+        background-image: repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.06) 0 1px,
+          transparent 1px 3px
+        );
+        mix-blend-mode: overlay;
+      }
+      .scan::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.06;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(0, 231, 255, 0.16) 0 2px,
+          transparent 2px 14px
+        );
+        mix-blend-mode: screen;
+      }
+      .status {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        margin: 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255, 230, 0, 0.12);
+        color: rgba(230, 232, 238, 0.95);
+        box-shadow: inset 0 0 0 1px rgba(255, 230, 0, 0.22);
+        font-size: 12px;
+        backdrop-filter: blur(6px);
+        pointer-events: none;
+      }
+
+      @media (max-width: 980px) {
+        .screen {
+          width: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .scan {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 4h2v16H6V4Z" fill="rgba(0,231,255,.95)" />
+            <path d="M16 4h2v16h-2V4Z" fill="rgba(255,47,178,.9)" />
+          </svg>
+          <h1>CRT Pong</h1>
+        </div>
+        <div class="stats">
+          <div class="pill">You: <span id="youScore">0</span></div>
+          <div class="pill">CPU: <span id="cpuScore">0</span></div>
+          <div class="pill">Streak: <span id="streak">0</span></div>
+          <div class="pill">Best: <span id="best">0</span></div>
+          <button id="serve" class="btn">Serve</button>
+          <button id="pause" class="btn secondary">Pause</button>
+          <button id="restart" class="btn secondary">Restart</button>
+          <button id="sound" class="btn secondary" aria-pressed="true">Sound: ON</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <div class="screen" aria-label="CRT Pong game screen">
+          <canvas id="game" width="820" height="560"></canvas>
+          <div class="scan" aria-hidden="true"></div>
+          <div id="status" class="status">Tip: hit Serve (or press Enter).</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        const youScoreEl = document.getElementById('youScore');
+        const cpuScoreEl = document.getElementById('cpuScore');
+        const streakEl = document.getElementById('streak');
+        const bestEl = document.getElementById('best');
+        const statusEl = document.getElementById('status');
+
+        const serveBtn = document.getElementById('serve');
+        const pauseBtn = document.getElementById('pause');
+        const restartBtn = document.getElementById('restart');
+        const soundBtn = document.getElementById('sound');
+
+        const W = canvas.width;
+        const H = canvas.height;
+        const WIN_SCORE = 7;
+
+        const LS_STREAK = 'wt4q_arcade_pong_streak';
+        const LS_BEST = 'wt4q_arcade_pong_best';
+        const LS_SOUND = 'wt4q_arcade_pong_sound';
+
+        let soundOn = (localStorage.getItem(LS_SOUND) ?? 'on') !== 'off';
+        soundBtn.setAttribute('aria-pressed', String(soundOn));
+        soundBtn.textContent = 'Sound: ' + (soundOn ? 'ON' : 'OFF');
+
+        function loadNum(key) {
+          const v = Number(localStorage.getItem(key) || 0);
+          return Number.isFinite(v) ? v : 0;
+        }
+        function saveNum(key, v) {
+          try {
+            localStorage.setItem(key, String(v));
+          } catch {}
+        }
+
+        let streak = loadNum(LS_STREAK);
+        let best = loadNum(LS_BEST);
+        streakEl.textContent = String(streak);
+        bestEl.textContent = String(best);
+
+        let audioCtx = null;
+        function ensureAudio() {
+          if (!soundOn) return;
+          if (audioCtx) return;
+          try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          } catch {}
+        }
+        function beep(freq, dur, type, vol) {
+          if (!soundOn) return;
+          ensureAudio();
+          if (!audioCtx) return;
+          const t0 = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type || 'square';
+          osc.frequency.setValueAtTime(freq || 440, t0);
+          gain.gain.setValueAtTime(vol ?? 0.03, t0);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur || 0.06));
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(t0);
+          osc.stop(t0 + (dur || 0.06));
+        }
+
+        const paddle = { w: 14, h: 96 };
+        const player = { x: 26, y: H / 2 - paddle.h / 2, vy: 0 };
+        const cpu = { x: W - 26 - paddle.w, y: H / 2 - paddle.h / 2, vy: 0 };
+
+        const ball = { x: W / 2, y: H / 2, vx: 0, vy: 0, r: 8 };
+        let ballSpeed = 360;
+
+        let you = 0;
+        let cpuScore = 0;
+        let running = false;
+        let paused = false;
+        let inPlay = false;
+        let gameOver = false;
+
+        let keys = { up: false, down: false };
+
+        function setStatus(text) {
+          statusEl.textContent = text;
+        }
+
+        function clamp(v, min, max) {
+          return Math.max(min, Math.min(max, v));
+        }
+
+        function resetPositions() {
+          player.y = H / 2 - paddle.h / 2;
+          cpu.y = H / 2 - paddle.h / 2;
+          ball.x = W / 2;
+          ball.y = H / 2;
+          ball.vx = 0;
+          ball.vy = 0;
+          ballSpeed = 360;
+        }
+
+        function resetMatch() {
+          you = 0;
+          cpuScore = 0;
+          youScoreEl.textContent = '0';
+          cpuScoreEl.textContent = '0';
+          paused = false;
+          gameOver = false;
+          inPlay = false;
+          pauseBtn.textContent = 'Pause';
+          serveBtn.textContent = 'Serve';
+          setStatus('Tip: hit Serve (or press Enter).');
+          resetPositions();
+        }
+
+        function serve() {
+          ensureAudio();
+          if (!running) {
+            running = true;
+            last = performance.now();
+            raf = requestAnimationFrame(loop);
+          }
+          if (gameOver) {
+            resetMatch();
+          }
+          if (paused) togglePause();
+          if (inPlay) return;
+          inPlay = true;
+          serveBtn.textContent = 'In play';
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          const angle = (Math.random() * 0.6 - 0.3) * Math.PI;
+          ball.vx = dir * ballSpeed * Math.cos(angle);
+          ball.vy = ballSpeed * Math.sin(angle);
+          beep(680, 0.05, 'square', 0.03);
+        }
+
+        function togglePause() {
+          if (!running || gameOver) return;
+          paused = !paused;
+          pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+          setStatus(paused ? 'Paused — press Space to resume.' : 'Back in motion.');
+          beep(paused ? 220 : 440, 0.05, 'square', 0.02);
+        }
+
+        function restart() {
+          ensureAudio();
+          if (!running) {
+            running = true;
+            last = performance.now();
+            raf = requestAnimationFrame(loop);
+          }
+          resetMatch();
+          beep(520, 0.05, 'square', 0.03);
+        }
+
+        function reflectFromPaddle(p, dirSign) {
+          const rel = (ball.y - (p.y + paddle.h / 2)) / (paddle.h / 2);
+          const angle = clamp(rel, -1, 1) * 0.75;
+          ballSpeed = Math.min(ballSpeed * 1.04, 820);
+          ball.vx = dirSign * ballSpeed * Math.cos(angle);
+          ball.vy = ballSpeed * Math.sin(angle);
+          beep(520 + Math.abs(rel) * 320, 0.04, 'square', 0.03);
+        }
+
+        function pointTo(winner) {
+          inPlay = false;
+          serveBtn.textContent = 'Serve';
+          resetPositions();
+          beep(220, 0.08, 'sawtooth', 0.03);
+
+          if (winner === 'you') {
+            you += 1;
+            youScoreEl.textContent = String(you);
+            setStatus('Point! Hit Serve to continue.');
+          } else {
+            cpuScore += 1;
+            cpuScoreEl.textContent = String(cpuScore);
+            setStatus('CPU scored. Hit Serve to continue.');
+          }
+
+          if (you >= WIN_SCORE || cpuScore >= WIN_SCORE) {
+            gameOver = true;
+            inPlay = false;
+            const youWin = you > cpuScore;
+            if (youWin) {
+              streak += 1;
+              best = Math.max(best, streak);
+              saveNum(LS_STREAK, streak);
+              saveNum(LS_BEST, best);
+              streakEl.textContent = String(streak);
+              bestEl.textContent = String(best);
+              setStatus('You win! Streak saved. Hit Restart for a new match.');
+              beep(880, 0.08, 'square', 0.03);
+              beep(660, 0.08, 'square', 0.03);
+            } else {
+              streak = 0;
+              saveNum(LS_STREAK, streak);
+              streakEl.textContent = String(streak);
+              setStatus('CPU wins. Streak reset. Hit Restart to try again.');
+              beep(140, 0.12, 'sawtooth', 0.03);
+            }
+          }
+        }
+
+        function update(dt) {
+          // Player input
+          const paddleSpeed = 520;
+          player.vy = (keys.up ? -paddleSpeed : 0) + (keys.down ? paddleSpeed : 0);
+          player.y = clamp(player.y + player.vy * dt, 10, H - 10 - paddle.h);
+
+          // CPU AI
+          const cpuSpeed = 430;
+          const target = inPlay ? ball.y - paddle.h / 2 : H / 2 - paddle.h / 2;
+          const diff = target - cpu.y;
+          cpu.vy = clamp(diff * 6, -cpuSpeed, cpuSpeed);
+          cpu.y = clamp(cpu.y + cpu.vy * dt, 10, H - 10 - paddle.h);
+
+          if (!inPlay) return;
+
+          ball.x += ball.vx * dt;
+          ball.y += ball.vy * dt;
+
+          // Wall bounce
+          if (ball.y - ball.r <= 10) {
+            ball.y = 10 + ball.r;
+            ball.vy *= -1;
+            beep(320, 0.03, 'square', 0.02);
+          } else if (ball.y + ball.r >= H - 10) {
+            ball.y = H - 10 - ball.r;
+            ball.vy *= -1;
+            beep(320, 0.03, 'square', 0.02);
+          }
+
+          // Paddle collisions
+          if (
+            ball.x - ball.r <= player.x + paddle.w &&
+            ball.x > player.x &&
+            ball.y + ball.r >= player.y &&
+            ball.y - ball.r <= player.y + paddle.h &&
+            ball.vx < 0
+          ) {
+            ball.x = player.x + paddle.w + ball.r;
+            reflectFromPaddle(player, 1);
+          } else if (
+            ball.x + ball.r >= cpu.x &&
+            ball.x < cpu.x + paddle.w &&
+            ball.y + ball.r >= cpu.y &&
+            ball.y - ball.r <= cpu.y + paddle.h &&
+            ball.vx > 0
+          ) {
+            ball.x = cpu.x - ball.r;
+            reflectFromPaddle(cpu, -1);
+          }
+
+          // Scoring
+          if (ball.x + ball.r < 0) pointTo('cpu');
+          else if (ball.x - ball.r > W) pointTo('you');
+        }
+
+        function draw() {
+          ctx.fillStyle = '#070913';
+          ctx.fillRect(0, 0, W, H);
+
+          // Border
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(10.5, 10.5, W - 21, H - 21);
+          ctx.restore();
+
+          // Center dashed line
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([8, 10]);
+          ctx.beginPath();
+          ctx.moveTo(W / 2 + 0.5, 18);
+          ctx.lineTo(W / 2 + 0.5, H - 18);
+          ctx.stroke();
+          ctx.restore();
+
+          // Paddles
+          drawGlowRect(player.x, player.y, paddle.w, paddle.h, 'rgba(0,231,255,0.9)');
+          drawGlowRect(cpu.x, cpu.y, paddle.w, paddle.h, 'rgba(255,47,178,0.85)');
+
+          // Ball
+          ctx.save();
+          ctx.shadowColor = 'rgba(255,230,0,0.9)';
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = 'rgba(255,230,0,0.95)';
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Score text inside screen (retro)
+          ctx.save();
+          ctx.fillStyle = 'rgba(255,255,255,0.12)';
+          ctx.font = '900 96px ui-monospace, Menlo, Consolas, monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(String(you), W * 0.35, 120);
+          ctx.fillText(String(cpuScore), W * 0.65, 120);
+          ctx.restore();
+
+          if (!running) {
+            overlay('PRESS SERVE', 'Enter to launch the ball');
+          } else if (gameOver) {
+            const msg = you > cpuScore ? 'YOU WIN' : 'CPU WINS';
+            overlay(msg, 'Press Restart for a new match');
+          } else if (paused) {
+            overlay('PAUSED', 'Press Space to resume');
+          } else if (!inPlay) {
+            overlay('READY', 'Press Serve to continue');
+          }
+        }
+
+        function overlay(title, subtitle) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.textAlign = 'center';
+          ctx.font = '900 44px ui-monospace, Menlo, Consolas, monospace';
+          ctx.fillText(title, W / 2, H / 2 - 12);
+          ctx.fillStyle = 'rgba(255,255,255,0.75)';
+          ctx.font = '700 16px ui-monospace, Menlo, Consolas, monospace';
+          ctx.fillText(subtitle, W / 2, H / 2 + 18);
+          ctx.restore();
+        }
+
+        function drawGlowRect(x, y, w, h, color) {
+          ctx.save();
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 22;
+          ctx.fillStyle = color;
+          roundRect(ctx, x, y, w, h, 8);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function roundRect(c, x, y, w, h, r) {
+          const rr = Math.min(r, w / 2, h / 2);
+          c.beginPath();
+          c.moveTo(x + rr, y);
+          c.arcTo(x + w, y, x + w, y + h, rr);
+          c.arcTo(x + w, y + h, x, y + h, rr);
+          c.arcTo(x, y + h, x, y, rr);
+          c.arcTo(x, y, x + w, y, rr);
+          c.closePath();
+        }
+
+        let raf = 0;
+        let last = performance.now();
+        function loop(t) {
+          const dt = Math.min(0.05, (t - last) / 1000);
+          last = t;
+          if (running && !paused && !gameOver) update(dt);
+          draw();
+          raf = requestAnimationFrame(loop);
+        }
+
+        // Input: keyboard
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = true;
+          if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.down = true;
+          if (e.key === ' ') {
+            e.preventDefault();
+            togglePause();
+          }
+          if (e.key === 'Enter') serve();
+          if (e.key === 'r' || e.key === 'R') restart();
+        });
+        window.addEventListener('keyup', (e) => {
+          if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = false;
+          if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.down = false;
+        });
+
+        // Input: touch/mouse paddle drag
+        function canvasPos(ev) {
+          const rect = canvas.getBoundingClientRect();
+          const y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+          return { y };
+        }
+        let dragging = false;
+        canvas.addEventListener('pointerdown', (e) => {
+          ensureAudio();
+          dragging = true;
+          const p = canvasPos(e);
+          player.y = clamp(p.y - paddle.h / 2, 10, H - 10 - paddle.h);
+        });
+        canvas.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          const p = canvasPos(e);
+          player.y = clamp(p.y - paddle.h / 2, 10, H - 10 - paddle.h);
+        });
+        window.addEventListener('pointerup', () => {
+          dragging = false;
+        });
+
+        // Buttons
+        serveBtn.addEventListener('click', serve);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restart);
+        soundBtn.addEventListener('click', () => {
+          soundOn = !soundOn;
+          soundBtn.setAttribute('aria-pressed', String(soundOn));
+          soundBtn.textContent = 'Sound: ' + (soundOn ? 'ON' : 'OFF');
+          try {
+            localStorage.setItem(LS_SOUND, soundOn ? 'on' : 'off');
+          } catch {}
+          if (!soundOn && audioCtx) {
+            try {
+              audioCtx.close();
+            } catch {}
+            audioCtx = null;
+          } else {
+            ensureAudio();
+            beep(520, 0.05, 'square', 0.02);
+          }
+        });
+
+        // Boot
+        resetMatch();
+        draw();
+        setStatus('Press Serve (or Enter) to begin.');
+      })();
+    </script>
+  </body>
+</html>

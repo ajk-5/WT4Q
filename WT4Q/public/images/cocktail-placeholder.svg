@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540" role="img" aria-labelledby="title desc">
+  <title id="title">Cocktail placeholder</title>
+  <desc id="desc">Neon style cocktail illustration used when no cocktail photo is available.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10153d"/>
+      <stop offset="100%" stop-color="#1f0752"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffde59"/>
+      <stop offset="100%" stop-color="#ff5aa5"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="540" fill="url(#bg)"/>
+  <g opacity="0.2">
+    <circle cx="120" cy="120" r="70" fill="#58ecff"/>
+    <circle cx="640" cy="90" r="55" fill="#ff58b8"/>
+    <circle cx="610" cy="450" r="80" fill="#58ecff"/>
+  </g>
+  <g transform="translate(360 270)">
+    <path d="M-150 -120h300L40 20v120h70v40H-110v-40h70V20z" fill="none" stroke="#ffffff" stroke-width="18" stroke-linejoin="round"/>
+    <path d="M-130 -95h260L25 12v62h-50V12z" fill="url(#liquid)"/>
+    <path d="M70 -175l70 -70" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="145" cy="-245" r="18" fill="#ff5aa5" stroke="#ffffff" stroke-width="10"/>
+  </g>
+  <text x="360" y="490" fill="#ffffff" font-size="36" text-anchor="middle" font-family="Verdana, Tahoma, sans-serif" letter-spacing="1">
+    COCKTAIL IMAGE COMING SOON
+  </text>
+</svg>
+

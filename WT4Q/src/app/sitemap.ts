@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { unstable_cache } from 'next/cache';
 import { API_ROUTES } from '@/lib/api';
 import { CATEGORIES } from '@/lib/categories';
+import { VAULT_BASE } from '@/lib/vaultPaths';
 
 type ArticleRoute = { path: string; lastModified?: Date };
 
@@ -40,7 +41,7 @@ function getCategoryPaths(): string[] {
   return CATEGORIES.map((c) => `/category/${encodeURIComponent(c)}`);
 }
 
-// Removed tools/games discovery; no longer part of the site
+// Retro sections and arcade pages
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.90stimes.com';
@@ -65,12 +66,71 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
     },
     {
+      url: `${siteUrl}${VAULT_BASE}`,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/arcade`,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/arcade/mergefire`,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/arcade/snake`,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/arcade/pong`,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/arcade/breakout`,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/jokes`,
+      changeFrequency: 'daily',
+      priority: 0.6,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/on-this-day-in-the-90s`,
+      changeFrequency: 'daily',
+      priority: 0.6,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/forum`,
+      changeFrequency: 'daily',
+      priority: 0.6,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/category`,
+      changeFrequency: 'daily',
+      priority: 0.7,
+      lastModified: now,
+    },
+    {
       url: `${siteUrl}/contact`,
       changeFrequency: 'yearly',
       priority: 0.5,
       lastModified: now,
     },
-    // Games and Tools removed from sitemap
     {
       url: `${siteUrl}/search`,
       changeFrequency: 'monthly',
@@ -92,6 +152,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${siteUrl}/weather`,
       changeFrequency: 'daily',
+      priority: 0.4,
+      lastModified: now,
+    },
+    {
+      url: `${siteUrl}/bar`,
+      changeFrequency: 'monthly',
       priority: 0.4,
       lastModified: now,
     },

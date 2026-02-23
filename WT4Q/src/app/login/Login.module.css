@@ -271,5 +271,23 @@
   height: 18px;
 }
 
-/* (no short-screen overrides) */
+@media (max-width: 560px) {
+  .container {
+    padding: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .card {
+    padding: 0.9rem;
+    border-radius: 14px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .forgot {
+    text-align: left;
+  }
+}
 

@@ -46,6 +46,13 @@ namespace Northeast.Controllers
             return Ok(items);
         }
 
+        [HttpGet("suggest")]
+        public async Task<IActionResult> SuggestIngredients([FromQuery] string term)
+        {
+            var items = await _service.SuggestIngredients(term);
+            return Ok(items);
+        }
+
         [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CocktailDto dto)

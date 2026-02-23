@@ -5,7 +5,8 @@ using Northeast.Models;
 namespace Northeast.Services
 {
     /// <summary>
-    /// Resolves a SuperAdmin user to use as article author.
+    /// Resolves an admin-level user to use as article author.
+    /// Prefers SuperAdmin, falls back to Admin.
     /// </summary>
     public class AuthorResolver
     {
@@ -16,10 +17,12 @@ namespace Northeast.Services
         {
             var user = await _db.Set<User>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Role == Role.SuperAdmin || (int)u.Role == 2, ct);
+                .Where(u => u.Role == Role.SuperAdmin || u.Role == Role.Admin)
+                .OrderByDescending(u => u.Role == Role.SuperAdmin)
+                .FirstOrDefaultAsync(ct);
 
             if (user == null)
-                throw new InvalidOperationException("No SuperAdmin author found.");
+                throw new InvalidOperationException("No Admin or SuperAdmin author found.");
 
             return user.Id;
         }

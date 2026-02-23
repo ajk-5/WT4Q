@@ -18,7 +18,13 @@ type CoinInfo = {
   description: string | null;
   rank?: number | null;
   categories?: string[];
-  links?: { website?: string | null; twitter?: string | null; reddit?: string | null; github?: string[]; explorers?: string[] };
+  links?: {
+    website?: string | null;
+    twitter?: string | null;
+    reddit?: string | null;
+    github?: string[];
+    explorers?: string[];
+  };
   marketCap: number | null;
   fdv?: number | null;
   currentPrice: number | null;
@@ -42,7 +48,6 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
   const [tf, setTf] = useState<Timeframe>('1h');
   const [candles, setCandles] = useState<Candle[]>([]);
   const [coin, setCoin] = useState<CoinInfo | null>(null);
-  const [news, setNews] = useState<{ title: string; link: string; pubDate?: string; description?: string }[]>([]);
   const base = (symbol || '').toUpperCase().replace(/USDT$/, '');
 
   useEffect(() => {
@@ -56,7 +61,9 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
         }
       } catch {}
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [base]);
 
   // Realtime updates for current price and 24h percent using @ticker stream
@@ -73,18 +80,26 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
           const open = parseFloat(payload?.o ?? '');
           const pct = parseFloat(payload?.P ?? '');
           if (Number.isFinite(last)) {
-            setCoin((prev) => prev ? { ...prev, currentPrice: last } : prev);
+            setCoin((prev) => (prev ? { ...prev, currentPrice: last } : prev));
           }
           if (Number.isFinite(pct) || Number.isFinite(open)) {
-            const computedPct = Number.isFinite(pct) ? pct : (Number.isFinite(last) && Number.isFinite(open) && open ? ((last - open) / open) * 100 : undefined);
+            const computedPct = Number.isFinite(pct)
+              ? pct
+              : Number.isFinite(last) && Number.isFinite(open) && open
+                ? ((last - open) / open) * 100
+                : undefined;
             if (computedPct !== undefined) {
-              setCoin((prev) => prev ? { ...prev, priceChange24h: computedPct } : prev);
+              setCoin((prev) => (prev ? { ...prev, priceChange24h: computedPct } : prev));
             }
           }
         } catch {}
       };
     } catch {}
-    return () => { try { ws?.close(); } catch {} };
+    return () => {
+      try {
+        ws?.close();
+      } catch {}
+    };
   }, [symbol]);
 
   // Periodically refresh coin info to keep percent live
@@ -108,21 +123,6 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
 
   useEffect(() => {
     let active = true;
-    const q = coin?.name ? `${coin.name} OR ${base}` : base;
-    (async () => {
-      try {
-        const res = await fetch(`/api/crypto/news?q=${encodeURIComponent(q)}`);
-        if (res.ok) {
-          const items = (await res.json()) as { title: string; link: string; pubDate?: string; description?: string }[];
-          if (active) setNews(items);
-        }
-      } catch {}
-    })();
-    return () => { active = false; };
-  }, [base, coin?.name]);
-
-  useEffect(() => {
-    let active = true;
     (async () => {
       const limit = tf === '1m' ? 1200 : tf === '5m' ? 1200 : tf === '1h' ? 1000 : tf === '1d' ? 700 : tf === '1w' ? 800 : tf === '1M' ? 600 : 365;
       const res = await fetch(`/api/crypto/klines?symbol=${symbol}&interval=${tf}&limit=${limit}`);
@@ -131,7 +131,9 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
         if (active) setCandles(data);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [symbol, tf]);
 
   return (
@@ -155,40 +157,44 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
           aria-label="Go back"
           title="Go back"
         >
-          ← Back
+          {'<- Back'}
         </button>
       </div>
       <div className={styles.header}>
         {coin?.image ? (
           <Image src={coin.image} alt={`${coin?.name ?? base} logo`} width={36} height={36} />
         ) : null}
-        <h1 className={styles.title}>
-          {(coin?.name || base)} ({base})
-          {typeof coin?.priceChange24h === 'number' && isFinite(coin.priceChange24h) ? (
-            <span
-              className={`${coin.priceChange24h >= 0 ? styles.pos : styles.neg} ${styles.change}`.trim()}
-              aria-live="polite"
-            >
-              {coin.priceChange24h >= 0 ? (
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
-                  <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
-                  <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
-                </svg>
-              )}
-              {Math.abs(coin.priceChange24h).toFixed(2)}%
-            </span>
-          ) : null}
-        </h1>
-        {coin ? <span className={styles.meta}>Mkt cap: {coin.marketCap ? formatCurrency(coin.marketCap) : '—'}</span> : null}
+        <div className={styles.headerCopy}>
+          <h1 className={styles.title}>
+            {(coin?.name || base)} ({base})
+            {typeof coin?.priceChange24h === 'number' && isFinite(coin.priceChange24h) ? (
+              <span
+                className={`${coin.priceChange24h >= 0 ? styles.pos : styles.neg} ${styles.change}`.trim()}
+                aria-live="polite"
+              >
+                {coin.priceChange24h >= 0 ? (
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                    <path fill="currentColor" d="M12 4l6 6h-4v6h-4v-6H6z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" className={styles.changeIcon}>
+                    <path fill="currentColor" d="M12 20l-6-6h4V8h4v6h4z" />
+                  </svg>
+                )}
+                {Math.abs(coin.priceChange24h).toFixed(2)}%
+              </span>
+            ) : null}
+          </h1>
+          {coin ? <span className={styles.meta}>Market cap: {coin.marketCap ? formatCurrency(coin.marketCap) : '--'}</span> : null}
+        </div>
       </div>
       <div className={styles.grid}>
         <section className={styles.card}>
           <div className={styles.toolbar}>
             {TIMEFRAMES.map((k) => (
-              <button key={k} className={`${styles.btn} ${tf === k ? styles.btnActive : ''}`} onClick={() => setTf(k)}>{k}</button>
+              <button key={k} className={`${styles.btn} ${tf === k ? styles.btnActive : ''}`} onClick={() => setTf(k)}>
+                {k}
+              </button>
             ))}
           </div>
           <CryptoChart data={candles} symbol={symbol} interval={tf} className={styles.chart} />
@@ -196,46 +202,49 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
         <aside className={styles.card}>
           {coin ? (
             <div className={styles.list}>
-              {coin.description ? <p className={styles.meta}>{coin.description}</p> : null}
-              <div className={styles.meta}>
+              {coin.description ? <p className={styles.description}>{coin.description}</p> : null}
+              <div className={styles.metaGrid}>
                 {coin.rank ? <div>Rank: #{coin.rank}</div> : null}
                 {coin.categories && coin.categories.length ? <div>Categories: {coin.categories.join(', ')}</div> : null}
                 <div>Price: {formatCurrency(coin.currentPrice ?? undefined)}</div>
-                <div>24h: {fmtPct(coin.priceChange24h)} • 1h: {fmtPct(coin.priceChange1h)} • 7d: {fmtPct(coin.priceChange7d)}</div>
-                <div>30d: {fmtPct(coin.priceChange30d)} • 1y: {fmtPct(coin.priceChange1y)}</div>
-                <div>Market cap: {formatCurrency(coin.marketCap ?? undefined)} • FDV: {formatCurrency(coin.fdv ?? undefined)}</div>
+                <div>24h: {fmtPct(coin.priceChange24h)} | 1h: {fmtPct(coin.priceChange1h)} | 7d: {fmtPct(coin.priceChange7d)}</div>
+                <div>30d: {fmtPct(coin.priceChange30d)} | 1y: {fmtPct(coin.priceChange1y)}</div>
+                <div>Market cap: {formatCurrency(coin.marketCap ?? undefined)} | FDV: {formatCurrency(coin.fdv ?? undefined)}</div>
                 <div>24h High/Low: {formatCurrency(coin.high24h ?? undefined)} / {formatCurrency(coin.low24h ?? undefined)}</div>
                 <div>
-                  Supply: Circulating {formatNumber(coin.supply?.circulating)} • Total {formatNumber(coin.supply?.total)} • Max {formatNumber(coin.supply?.max)}
+                  Supply: Circulating {formatNumber(coin.supply?.circulating)} | Total {formatNumber(coin.supply?.total)} | Max {formatNumber(coin.supply?.max)}
                 </div>
                 <div>
-                  ATH: {formatCurrency(coin.ath ?? undefined)} {coin.athDate ? `(${new Date(coin.athDate).toLocaleDateString()})` : ''}
-                  {' '}• ATL: {formatCurrency(coin.atl ?? undefined)} {coin.atlDate ? `(${new Date(coin.atlDate).toLocaleDateString()})` : ''}
+                  ATH: {formatCurrency(coin.ath ?? undefined)} {coin.athDate ? `(${new Date(coin.athDate).toLocaleDateString()})` : ''} | ATL: {formatCurrency(coin.atl ?? undefined)} {coin.atlDate ? `(${new Date(coin.atlDate).toLocaleDateString()})` : ''}
                 </div>
-                {coin.links ? (
-                  <div>
-                    {coin.links.website ? <a className={styles.newsTitle} href={coin.links.website} target="_blank" rel="noopener noreferrer">Website</a> : null}
-                    {coin.links.twitter ? <> • <a className={styles.newsTitle} href={coin.links.twitter} target="_blank" rel="noopener noreferrer">Twitter</a></> : null}
-                    {coin.links.reddit ? <> • <a className={styles.newsTitle} href={coin.links.reddit} target="_blank" rel="noopener noreferrer">Reddit</a></> : null}
+              </div>
+              {coin.links ? (
+                <div className={styles.linkBlock}>
+                  <span className={styles.sectionLabel}>Community links</span>
+                  <div className={styles.linkRow}>
+                    {coin.links.website ? (
+                      <a className={styles.linkTitle} href={coin.links.website} target="_blank" rel="noopener noreferrer">Website</a>
+                    ) : null}
+                    {coin.links.twitter ? (
+                      <a className={styles.linkTitle} href={coin.links.twitter} target="_blank" rel="noopener noreferrer">Twitter</a>
+                    ) : null}
+                    {coin.links.reddit ? (
+                      <a className={styles.linkTitle} href={coin.links.reddit} target="_blank" rel="noopener noreferrer">Reddit</a>
+                    ) : null}
                     {coin.links.github && coin.links.github.length ? (
-                      <>
-                        {' '}• GitHub: {coin.links.github.map((g, i) => (
-                          <a key={g} className={styles.newsTitle} href={g} target="_blank" rel="noopener noreferrer">repo{i+1}</a>
+                      <span className={styles.linkCluster}>
+                        GitHub:{' '}
+                        {coin.links.github.map((g, i) => (
+                          <a key={g} className={styles.linkTitle} href={g} target="_blank" rel="noopener noreferrer">repo{i + 1}</a>
                         ))}
-                      </>
+                      </span>
                     ) : null}
                   </div>
-                ) : null}
-              </div>
-              <h3 className={styles.title} style={{ marginTop: '0.75rem' }}>Latest news</h3>
-              <div className={styles.list}>
-                {news.map((n, i) => (
-                  <div key={`${n.link || n.title || 'item'}-${n.pubDate || i}`} className={styles.newsItem}>
-                    <a className={styles.newsTitle} href={n.link} target="_blank" rel="noopener noreferrer">{n.title}</a>
-                    {n.description ? <span className={styles.newsMeta}>{stripHtml(n.description)}</span> : null}
-                    {n.pubDate ? <span className={styles.newsMeta}>{new Date(n.pubDate).toLocaleString()}</span> : null}
-                  </div>
-                ))}
+                </div>
+              ) : null}
+              <div className={styles.moodCard}>
+                <span className={styles.sectionLabel}>90s market mood</span>
+                <p className={styles.moodCopy}>Tape deck energy. Watch the swings, stack your mix, and keep it chill.</p>
               </div>
             </div>
           ) : null}
@@ -246,12 +255,12 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
 }
 
 function formatCurrency(n?: number | null) {
-  if (!n || !isFinite(n)) return '—';
+  if (n === null || n === undefined || !isFinite(n)) return '--';
   return n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 
 function formatNumber(n?: number | null) {
-  if (!n || !isFinite(n)) return '—';
+  if (n === null || n === undefined || !isFinite(n)) return '--';
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(2)}k`;
@@ -259,7 +268,7 @@ function formatNumber(n?: number | null) {
 }
 
 function fmtPct(n?: number | null): ReactNode {
-  if (n === null || n === undefined || !isFinite(n)) return '—';
+  if (n === null || n === undefined || !isFinite(n)) return '--';
   const up = n >= 0;
   const pct = `${Math.abs(n).toFixed(2)}%`;
   return (
@@ -276,9 +285,4 @@ function fmtPct(n?: number | null): ReactNode {
       {pct}
     </span>
   );
-}
-
-function stripHtml(html?: string) {
-  if (!html) return '';
-  return html.replace(/<[^>]+>/g, '').trim();
 }

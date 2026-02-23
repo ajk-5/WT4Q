@@ -13,7 +13,7 @@ export default function Error({ error }: { error: Error & { digest?: string }; r
   return (
     <div className={styles.container}>
       <div className={styles.paper}>
-        <span className={styles.heading}>Breaking News</span>
+        <span className={styles.heading}>System Alert</span>
         <h1 className={styles.headline}>Something went wrong</h1>
         <p className={styles.message}>Sorry, an unexpected error occurred.</p>
         <PrefetchLink href="/" className={styles.homeLink}>

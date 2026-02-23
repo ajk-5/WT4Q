@@ -6,6 +6,7 @@
         Crime,
         Entertainment,
         Business,
+        Cryptocurrency,
         Health,
         Lifestyle,
         Technology,

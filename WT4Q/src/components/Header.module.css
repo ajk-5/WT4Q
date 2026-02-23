@@ -1,47 +1,49 @@
-
 .header {
-  /* Fixed to always stay visible */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  color: #000000;
-   font-family: "Georgia", "Times New Roman", serif;
-  padding: 0.25rem 0.5rem;
-  
-  box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
+  color: var(--ink);
+  padding: 0.25rem 0.6rem 0.4rem;
+  min-height: 64px;
+  box-shadow:
+    0 10px 0 rgba(18, 11, 31, 1),
+    0 18px 28px rgba(12, 7, 21, 0.3);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 47, 178, 0.96) 0%,
+    rgba(0, 231, 255, 0.92) 55%,
+    rgba(255, 230, 0, 0.82) 115%
+  );
+  border-bottom: 5px double #120b1f;
+  z-index: 1100;
   animation: slideIn 0.6s ease-out;
-  background-color: #EEE9DA;
-  background-image:
-    radial-gradient(1px 1px at 30% 40%, rgba(0,0,0,.03), transparent 2px),
-    radial-gradient(1px 1px at 70% 60%, rgba(0,0,0,.02), transparent 2px);
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  z-index: 1100; /* keep header above mobile nav */
+  overflow: visible;
 }
 
 .header::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 128, 0);
+  background:
+    radial-gradient(circle at 18% 30%, rgba(255, 255, 255, 0.35), transparent 45%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0 10px, transparent 10px 20px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0 1px, transparent 1px 4px);
+  opacity: 0.32;
   z-index: 0;
 }
-
 
 .inner {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   position: relative;
-  z-index: 1101; /* ensure masthead sits above nav */
+  z-index: 1;
 }
 
-/* New row holding date (left) and weather (right) */
 .infoRow {
   display: flex;
   align-items: center;
@@ -53,58 +55,71 @@
 .logo {
   display: flex;
   align-items: center;
+  flex-direction: column;
   width: 100%;
   justify-content: center;
+  gap: 0.05rem;
   order: 0;
 }
 
-.logoImage {
-  width: clamp(4rem, 10vw, 6rem);
-  height: auto;
-  border-radius: 10%;
+.masthead {
+  font-size: clamp(1.3rem, 4vw, 2.4rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: #120b1f;
+  font-family: var(--font-display);
+  text-shadow:
+    -2px 2px 0 rgba(255, 255, 255, 0.75),
+    -4px 4px 0 rgba(18, 11, 31, 0.22);
+  transition: font-size 180ms ease, line-height 180ms ease, transform 180ms ease;
 }
 
-/* Text masthead replacing image logo */
-.masthead {
-  font-size: clamp(1.6rem, 6vw, 3.6rem);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  line-height: 1.1;
-  color: inherit;
-  font-family: 'CloisterBlack', Georgia, "Times New Roman", serif;
-  transition: font-size 180ms ease, line-height 180ms ease, transform 180ms ease;
+.tagline {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: rgba(18, 11, 31, 0.92);
+  color: #fff7ea;
+  border: 2px solid rgba(18, 11, 31, 1);
+  box-shadow: 4px 4px 0 rgba(18, 11, 31, 0.25);
 }
 
 .weather {
   display: flex;
   align-items: center;
   order: 1;
-  z-index: 0;
-  color: #000; /* ensure weather text/icons are black */
+  color: #120b1f;
 }
 
-/* Dateline under the masthead */
 .dateline {
-  font-size: 0.9rem;
-  color: #000; /* make date text black */
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  color: #120b1f;
+  gap: 0.2rem;
+  font-family: var(--font-body);
 }
+
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.55rem;
   order: 1;
-  z-index: 1102;
+  z-index: 2;
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.35rem;
+  right: 0.6rem;
 }
 
 .userMenu {
   display: flex;
   align-items: center;
-  ;
 }
 
 .search {
@@ -112,30 +127,16 @@
   display: flex;
   justify-content: center;
   order: 3;
-  z-index: 0;
 }
-
 
 .categories {
   width: 100%;
   position: relative;
-  z-index: 50; /* ensure dropdown bar sits over actions */
+  z-index: 50;
 }
-/* When the sidebar menu is open, ensure container stays mounted even while scrolled */
-.showSidebar { display: block !important; }
 
-/* Newspaper-like rules (thick + thin) at header bottom */
-.ruleThick {
-  width: 100%;
-  height: 6px;
-  background: var(--rule, #222);
-  margin: .5rem 0 0;
-}
-.ruleThin {
-  width: 100%;
-  height: 1px;
-  background: var(--thin-rule, #b6b6b6);
-  margin: .25rem 0 0;
+.showSidebar {
+  display: block !important;
 }
 
 .menuButton {
@@ -146,59 +147,59 @@
 }
 
 .menuIcon {
-  width: 1.25rem; /* slightly larger for visibility */
-  height: 1.25rem;
-  color: var(--ink, #111);
+  width: 1.3rem;
+  height: 1.3rem;
+  color: #120b1f;
   display: block;
 }
 
-/* Ensure lines inside the menu icon remain visible at small sizes */
-.menuIcon line, .menuIcon path {
+.menuIcon line,
+.menuIcon path {
   stroke: currentColor;
   stroke-width: 2.6;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
-/* Top-left menu button for small screens */
 .menuButtonLeft {
-  all: unset; /* neutralize global button rules */
+  all: unset;
   position: absolute;
   top: 0.35rem;
   left: 0.35rem;
-  color: var(--ink, #111);
+  color: #120b1f;
   cursor: pointer;
-  z-index: 1102;
-  width: 28px;
-  height: 28px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  border-radius: 6px;
-  appearance: none;
-  -webkit-appearance: none;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.68);
+  border: 2px solid rgba(18, 11, 31, 0.35);
+  box-shadow: 3px 3px 0 rgba(18, 11, 31, 0.2);
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0);
+  background: rgba(0, 0, 0, 0.05);
   z-index: 3;
 }
 
-/* When scrolled: hide weather and date across sizes */
 .scrolled .weather,
 .scrolled .dateline {
   display: none;
 }
-/* Collapse the info row when scrolled */
-.scrolled .infoRow { display: none; }
-/* When scrolled: keep only user menu inside actions */
+
+.scrolled .infoRow {
+  display: none;
+}
+
 .scrolled .actions > :not(.userMenu) {
   display: none;
 }
 
 @media (min-width: 1025px) {
-  /* Keep masthead centered on large screens too */
   .inner {
     flex-wrap: wrap;
   }
@@ -207,27 +208,29 @@
     justify-content: center;
     order: 0;
   }
-  .weather { order:4; z-index: 3; }
+  .weather {
+    order: 4;
+  }
   .search {
     width: auto;
     justify-content: flex-start;
     margin-left: auto;
-    order:2;
+    order: 2;
   }
-  .actions { order: 4; }
-  .menuButton, .menuButtonLeft { display: none; }
+  .actions {
+    order: 4;
+  }
+  .menuButton,
+  .menuButtonLeft {
+    display: none;
+  }
 
-  /* Shrink masthead when scrolled (desktop only) */
   .scrolled {
-    padding: 0.15rem 0.5rem;
+    padding: 0.25rem 0.6rem 0.4rem;
   }
-  .scrolled .masthead {
-    font-size: clamp(1.2rem, 3vw, 2.2rem);
-    line-height: 1.05;
+  .scrolled .menuButtonLeft {
+    display: grid;
   }
-  /* On desktop while scrolled, show the menu icon */
-  .scrolled .menuButtonLeft { display: grid; }
-  /* When scrolled on desktop: hide category navbar */
   .scrolled .categories {
     display: none;
   }
@@ -237,15 +240,10 @@
   .categories {
     z-index: 40;
   }
-
   .search {
     width: auto;
     justify-content: flex-start;
     margin-left: 20%;
-  }
-
-  .dateline {
-    font-size: 0.8rem;
   }
 }
 
@@ -253,11 +251,8 @@
   .dateline {
     font-size: 0.75rem;
   }
-}
-
-@media (max-width: 480px) {
-  .dateline {
-    font-size: 0.7rem;
+  .tagline {
+    font-size: 0.6rem;
   }
 }
 

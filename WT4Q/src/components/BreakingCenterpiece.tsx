@@ -5,7 +5,7 @@ import styles from './BreakingCenterpiece.module.css';
 
 export default function BreakingCenterpiece({
   articles,
-  label = 'Breaking News',
+  label = 'Time Capsule Spotlight',
 }: {
   articles: BreakingArticle[];
   label?: string;

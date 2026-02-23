@@ -1,0 +1,46 @@
+.container {
+  display: flex;
+  gap: 0.5rem;
+  row-gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap; /* prevent overflow on small screens */
+  margin: 0.5rem 0 1rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.7rem; /* match back button */
+  border: 1px solid rgba(0, 0, 0, 0.5); /* match back button */
+  background: transparent; /* match back button */
+  color: var(--ink, #111); /* match back button */
+  border-radius: 999px; /* pill like back button */
+  font-weight: 600; /* match back button */
+  cursor: pointer;
+  text-decoration: none; /* ensure anchors styled like buttons */
+}
+
+.button:hover {
+  background: #f7f7f7;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.label {
+  font-size: 0.85rem;
+}
+
+.copyToast {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--primary);
+}
+
+@media (max-width: 420px) {
+  /* Keep layout tidy on very small screens */
+  .label { font-size: 0.8rem; }
+}

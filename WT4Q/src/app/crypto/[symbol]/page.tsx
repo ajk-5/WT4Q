@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
   const sym = normalizeSymbol(resolved?.symbol);
 
   return {
-    title: `${sym} price, chart & news`,
-    description: `Live ${sym} price chart and latest news.`,
+    title: `${sym} price & charts`,
+    description: `Live ${sym} price chart and market stats.`,
     alternates: { canonical: `/crypto/${sym}` },
   };
 }

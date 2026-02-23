@@ -53,6 +53,28 @@ export const API_ROUTES = {
     AI_WRITE_JOB: (id: string) => `${API_BASE_URL}/api/Article/ai-write/jobs/${id}`,
   },
 
+  QUIZ: {
+    LIST: (includeDrafts = false) =>
+      `${API_BASE_URL}/api/Quiz${includeDrafts ? '?includeDrafts=true' : '?published=true'}`,
+    GET: (slug: string) => `${API_BASE_URL}/api/Quiz/${encodeURIComponent(slug)}`,
+    CREATE: `${API_BASE_URL}/api/Quiz`,
+    AI_GENERATE: `${API_BASE_URL}/api/Quiz/ai-generate`,
+    UPDATE: (slug: string) => `${API_BASE_URL}/api/Quiz/${encodeURIComponent(slug)}`,
+    DELETE: (slug: string) => `${API_BASE_URL}/api/Quiz/${encodeURIComponent(slug)}`,
+  },
+
+  SHOW: {
+    LIST: (query = '', kind = '', page = 1, pageSize = 50) =>
+      `${API_BASE_URL}/api/Show?${query ? `query=${encodeURIComponent(query)}&` : ''}${kind ? `kind=${encodeURIComponent(kind)}&` : ''}page=${page}&pageSize=${pageSize}`,
+    GET: (slug: string) => `${API_BASE_URL}/api/Show/${encodeURIComponent(slug)}`,
+    CREATE: `${API_BASE_URL}/api/Show`,
+    UPDATE: (slug: string) => `${API_BASE_URL}/api/Show/${encodeURIComponent(slug)}`,
+    DELETE: (slug: string) => `${API_BASE_URL}/api/Show/${encodeURIComponent(slug)}`,
+    ADD_TRIVIA: (slug: string) => `${API_BASE_URL}/api/Show/${encodeURIComponent(slug)}/trivia`,
+    DELETE_TRIVIA: (slug: string, id: string) =>
+      `${API_BASE_URL}/api/Show/${encodeURIComponent(slug)}/trivia/${encodeURIComponent(id)}`,
+  },
+
   COCKTAIL: {
     CREATE: `${API_BASE_URL}/api/Cocktail`,
     GET_ALL: `${API_BASE_URL}/api/Cocktail`,
@@ -61,6 +83,8 @@ export const API_ROUTES = {
     DELETE: (id: string) => `${API_BASE_URL}/api/Cocktail/${id}`,
     SEARCH: (query: string) =>
       `${API_BASE_URL}/api/Cocktail/search?query=${encodeURIComponent(query)}`,
+    SUGGEST_INGREDIENTS: (term: string) =>
+      `${API_BASE_URL}/api/Cocktail/suggest?term=${encodeURIComponent(term)}`,
   },
 
   GOOGLE_SIGN_IN: {

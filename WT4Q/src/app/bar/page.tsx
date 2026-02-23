@@ -1,66 +1,64 @@
-"use client";
-import { useEffect, useState } from 'react';
-import AgeGate from '@/components/AgeGate';
-import { API_ROUTES } from '@/lib/api';
-import styles from './bar.module.css';
+﻿import type { Metadata } from "next";
+import AgeGate from "@/components/AgeGate";
+import { API_ROUTES } from "@/lib/api";
+import BarClient, { Cocktail } from "./BarClient";
+import styles from "./bar.module.css";
+import {
+  DEFAULT_OG_IMAGE,
+  SITE_NAME,
+  canonicalFor,
+  defaultOpenGraph,
+  robotsDirectives,
+} from "@/lib/seo";
 
-interface Cocktail {
-  id: number;
-  name: string;
-  content: string;
+export const metadata: Metadata = {
+  title: `Bar & Cocktail Lounge - ${SITE_NAME}`,
+  description:
+    "Discover curated cocktail recipes, a wheel-of-fortune drink picker, and bar-night party games for cozy soirees and late-night gatherings.",
+  alternates: { canonical: canonicalFor("/bar") },
+  openGraph: {
+    ...defaultOpenGraph,
+    title: `Bar & Cocktail Lounge - ${SITE_NAME}`,
+    description:
+      "Explore signature cocktails, mini bar games, and a wheel to choose your next drink.",
+    url: canonicalFor("/bar"),
+    type: "website",
+    images: defaultOpenGraph.images ?? [{ url: DEFAULT_OG_IMAGE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Bar & Cocktail Lounge - ${SITE_NAME}`,
+    description:
+      "Explore signature cocktails, mini bar games, and a wheel to choose your next drink.",
+    images: [DEFAULT_OG_IMAGE],
+  },
+  robots: robotsDirectives,
+};
+
+// Keep cocktails fresh and avoid failing builds if the API is slow
+export const dynamic = "force-dynamic";
+
+async function fetchInitialCocktails(): Promise<Cocktail[]> {
+  try {
+    const res = await fetch(API_ROUTES.COCKTAIL.GET_ALL, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as Cocktail[] | null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
 
-export default function BarPage() {
-  const [query, setQuery] = useState('');
-  const [list, setList] = useState<Cocktail[]>([]);
+export default async function BarPage() {
+  const initialCocktails = await fetchInitialCocktails();
 
-  useEffect(() => {
-    async function load() {
-      const url = query
-        ? API_ROUTES.COCKTAIL.SEARCH(query)
-        : API_ROUTES.COCKTAIL.GET_ALL;
-      try {
-        const res = await fetch(url, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          setList(data);
-        } else {
-          setList([]);
-        }
-      } catch {
-        setList([]);
-      }
-    }
-    load();
-  }, [query]);
-
-  const content = (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Cocktail Recipes</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setQuery(query.trim());
-        }}
-        className={styles.form}
-      >
-        <input
-          type="text"
-          placeholder="Search cocktails..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className={styles.input}
-        />
-      </form>
-      <ul className={styles.list}>
-        {list.map((c) => (
-          <li key={c.id} className={styles.item}>
-            <h2>{c.name}</h2>
-            <p>{c.content}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
+  return (
+    <main className={styles.pageShell}>
+      <AgeGate storageKey="barVerified">
+        <BarClient initialCocktails={initialCocktails} />
+      </AgeGate>
+    </main>
   );
-  return <AgeGate storageKey="barVerified">{content}</AgeGate>;
 }

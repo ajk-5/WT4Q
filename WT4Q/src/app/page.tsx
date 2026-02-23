@@ -1,104 +1,193 @@
-// app/page.tsx
-import { Suspense } from 'react';
-import ArticleCard, { Article } from '@/components/ArticleCard';
+import type { Metadata } from 'next';
+import type { Article } from '@/components/ArticleCard';
 import BreakingCenterpiece from '@/components/BreakingCenterpiece';
 import TrendingCenterpiece from '@/components/TrendingCenterpiece';
-import type { BreakingArticle } from '@/components/BreakingNewsSlider';
-import type { TrendingArticle } from '@/components/TrendingNewsSlider';
 import PrefetchLink from '@/components/PrefetchLink';
 import type { ArticleImage } from '@/lib/models';
 import { API_ROUTES } from '@/lib/api';
-import { CATEGORIES } from '@/lib/categories';
-import { chunk } from '@/lib/chunk';
+import { CATEGORY_DEFINITIONS } from '@/lib/categories';
 import { getArticlesByCategory } from '@/lib/server/articles';
-import type { Metadata } from 'next';
 import styles from './page.module.css';
-import LocalArticleSection from '@/components/LocalArticleSection';
+import { VAULT_BASE } from '@/lib/vaultPaths';
 
-export const revalidate = 180; // ISR: cache homepage for 3 minutes
+export const revalidate = 180;
 
 export const metadata: Metadata = {
-  title: 'The Nineties Times: Independent, Reliable News (90sTimes)',
+  title: 'The Nineties Times: 90s Stories, Quizzes, and Time Capsule',
   description:
-    'Independent, trustworthy coverage from The Nineties Times (90sTimes). We report with accuracy and respect-without favoritism toward any party or group.',
+    'The Nineties Times is a 90s nostalgia hub with stories, quizzes, arcade throwbacks, and pop culture memories.',
   keywords: [
     'The Nineties Times',
     '90sTimes',
-    '90stimes',
-    '90s Times',
-    'The Nineties',
-    'independent media',
-    'reliable news',
+    '90s nostalgia',
+    '90s time capsule',
+    'retro games',
+    '90s quizzes',
   ],
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'The Nineties Times - independent, reliable news (90sTimes)',
+    title: 'The Nineties Times - 90s nostalgia hub',
     description:
-      'Impartial coverage across politics, culture, lifestyle and more. No favoritism toward any party or community.',
+      'Stories, quizzes, arcade throwbacks, and pop culture memories from the 90s.',
     url: '/',
     type: 'website',
   },
 };
 
-type CategorySummary = {
-  category: string;
-  articles: Article[];
-};
-
-type CategoriesPromise = Promise<CategorySummary[]>;
-
-function loadAllCategories(): CategoriesPromise {
-  return Promise.all(
-    CATEGORIES.map(async (category) => ({
-      category,
-      articles: await fetchArticlesByCategory(category),
-    })),
-  );
-}
-
 export default async function Home() {
-  const categoriesPromise = loadAllCategories();
-  const breakingPromise = fetchBreakingNews();
-  const trendingPromise = fetchTrendingNews();
-
-  const [breaking, trendingArticles] = await Promise.all([
-    breakingPromise,
-    trendingPromise,
+  const [infoArticles, trendingArticles] = await Promise.all([
+    fetchArticlesByCategory('Info'),
+    fetchTrending(),
   ]);
 
+  const spotlightSource = infoArticles.length > 0 ? infoArticles : trendingArticles;
+
+  const spotlightArticles = spotlightSource.slice(0, 8).map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    content: a.content,
+    images: a.images as ArticleImage[],
+    createdDate: a.createdDate,
+  }));
+
+  const issue = new Date().toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+
   return (
-    <div className={styles.newspaper}>
-      <div className={styles.frontPageGrid}>
-        <Suspense fallback={<CategorySectionSkeleton />}>
-          <RailSection categoriesPromise={categoriesPromise} nonEmptyIndex={0} />
-        </Suspense>
+    <div className={styles.landing}>
+      <section className={styles.topGrid}>
+        <div className={styles.coverWindow}>
+          <div className={styles.titleBar}>
+            <div className={styles.titleLeft}>
+              <span className={styles.titleText}>Dial-Up Desktop</span>
+              <span className={styles.titleMeta}>Issue {issue}</span>
+            </div>
+            <div className={styles.titleButtons} aria-hidden="true">
+              <span className={styles.titlePip} />
+              <span className={styles.titlePip} />
+              <span className={`${styles.titlePip} ${styles.titlePipClose}`} />
+            </div>
+          </div>
 
-        <div className={styles.centerColumn}>
-          <BreakingCenterpiece articles={breaking} />
+          <div className={styles.windowBody}>
+            <span className={styles.coverKicker}>90s hangout destination</span>
+            <h1 className={styles.coverTitle}>The Nineties Times</h1>
+            <p className={styles.coverSubtitle}>
+              A cozy corner for mixtapes, mall culture, dial-up nostalgia, and freshly generated 90s throwbacks.
+            </p>
+
+            <div className={styles.actionRow}>
+              <PrefetchLink href={VAULT_BASE} className={styles.primaryCta}>
+                90s Exclusive
+              </PrefetchLink>
+              <PrefetchLink href="/arcade" className={styles.secondaryCta}>
+                Arcade
+              </PrefetchLink>
+              <PrefetchLink href={`${VAULT_BASE}#quizzes`} className={styles.secondaryCta}>
+                Quizzes
+              </PrefetchLink>
+              <PrefetchLink href="/forum" className={styles.secondaryCta}>
+                Forum
+              </PrefetchLink>
+            </div>
+
+            <div className={styles.quickGrid} aria-label="Daily drops">
+              <PrefetchLink href="/on-this-day-in-the-90s" className={styles.quickLink}>
+                <span className={styles.quickTitle}>On This Day</span>
+                <span className={styles.quickDesc}>Twice daily timeline</span>
+              </PrefetchLink>
+              <PrefetchLink href="/category#blast-from-the-past" className={styles.quickLink}>
+                <span className={styles.quickTitle}>Blast From Past</span>
+                <span className={styles.quickDesc}>Twice daily throwback</span>
+              </PrefetchLink>
+              <PrefetchLink href="/jokes" className={styles.quickLink}>
+                <span className={styles.quickTitle}>Jokes</span>
+                <span className={styles.quickDesc}>Hourly one-liners</span>
+              </PrefetchLink>
+              <PrefetchLink href="/bar" className={styles.quickLink}>
+                <span className={styles.quickTitle}>Bar</span>
+                <span className={styles.quickDesc}>Party mini-games</span>
+              </PrefetchLink>
+            </div>
+          </div>
         </div>
 
-        <Suspense fallback={<CategorySectionSkeleton />}>
-          <RailSection categoriesPromise={categoriesPromise} nonEmptyIndex={2} />
-        </Suspense>
-
-        <Suspense fallback={<CategorySectionSkeleton />}>
-          <RailSection categoriesPromise={categoriesPromise} nonEmptyIndex={1} />
-        </Suspense>
-
-        <div className={styles.centerColumn}>
-          <TrendingCenterpiece articles={trendingArticles} />
+        <div className={styles.spotlight}>
+          <BreakingCenterpiece articles={spotlightArticles} label="Cover Story" />
         </div>
+      </section>
 
-        <Suspense fallback={<CategorySectionSkeleton />}>
-          <RailSection categoriesPromise={categoriesPromise} nonEmptyIndex={3} />
-        </Suspense>
-      </div>
+      <section className={styles.featureRow}>
+        <div className={styles.sectionHeader}>
+          <h2>Most Loved Right Now</h2>
+          <PrefetchLink href="/trending" className={styles.sectionAction}>
+            View all
+          </PrefetchLink>
+        </div>
+        <TrendingCenterpiece articles={trendingArticles} />
+      </section>
 
-      <Suspense fallback={<CategoryRowsSkeleton />}>
-        <RemainingCategoryRows categoriesPromise={categoriesPromise} />
-      </Suspense>
+      <section className={styles.channels}>
+        <div className={styles.sectionHeader}>
+          <h2>Time Capsule Channels</h2>
+          <PrefetchLink href="/category" className={styles.sectionAction}>
+            Browse categories
+          </PrefetchLink>
+        </div>
+        <div className={styles.channelGrid}>
+          {CATEGORY_DEFINITIONS.map((c) => (
+            <article key={c.key} className={styles.channelCard}>
+              <span className={styles.channelTag}>Channel</span>
+              <h3 className={styles.channelTitle}>{c.label}</h3>
+              <p className={styles.channelDesc}>{c.description}</p>
+              <PrefetchLink
+                href={`/category/${encodeURIComponent(c.key)}`}
+                className={styles.exploreButton}
+              >
+                Explore
+              </PrefetchLink>
+            </article>
+          ))}
+        </div>
+      </section>
 
-      <LocalArticleSection />
+      <section className={styles.hangout}>
+        <div className={styles.sectionHeader}>
+          <h2>Hangout Shortcuts</h2>
+          <PrefetchLink href="/about" className={styles.sectionAction}>
+            About
+          </PrefetchLink>
+        </div>
+        <div className={styles.hangoutGrid}>
+          <PrefetchLink href={VAULT_BASE} className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>90s Exclusive</span>
+            <span className={styles.hangoutCopy}>Vault quizzes, trivia, and deep cuts.</span>
+          </PrefetchLink>
+          <PrefetchLink href="/arcade" className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>Arcade</span>
+            <span className={styles.hangoutCopy}>Click-to-play retro web games.</span>
+          </PrefetchLink>
+          <PrefetchLink href="/jokes" className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>Jokes</span>
+            <span className={styles.hangoutCopy}>Fresh 90s one-liners, all day.</span>
+          </PrefetchLink>
+          <PrefetchLink href="/forum" className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>Forum</span>
+            <span className={styles.hangoutCopy}>Post memories and hot takes.</span>
+          </PrefetchLink>
+          <PrefetchLink href="/on-this-day-in-the-90s" className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>On This Day</span>
+            <span className={styles.hangoutCopy}>Timeline moments from 1990–1999.</span>
+          </PrefetchLink>
+          <PrefetchLink href="/category#blast-from-the-past" className={styles.hangoutCard}>
+            <span className={styles.hangoutTitle}>Blast From Past</span>
+            <span className={styles.hangoutCopy}>One iconic throwback at a time.</span>
+          </PrefetchLink>
+        </div>
+      </section>
     </div>
   );
 }
@@ -111,161 +200,14 @@ async function fetchArticlesByCategory(cat: string): Promise<Article[]> {
   }
 }
 
-async function fetchBreakingNews(): Promise<BreakingArticle[]> {
+async function fetchTrending(limit = 6): Promise<Article[]> {
   try {
-    const res = await fetch(API_ROUTES.ARTICLE.BREAKING, { next: { revalidate: 120 } });
+    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(limit), {
+      next: { revalidate: 120 },
+    });
     if (!res.ok) return [];
-    const data = (await res.json()) as BreakingArticle[];
-    return (data || [])
-      .sort(
-        (a, b) =>
-          new Date(b.createdDate ?? 0).getTime() -
-          new Date(a.createdDate ?? 0).getTime(),
-      )
-      .map((a) => ({
-        id: a.id,
-        slug: a.slug,
-        title: a.title,
-        content: a.content,
-        images: a.images as ArticleImage[],
-      }));
+    return (await res.json()) as Article[];
   } catch {
     return [];
   }
-}
-
-async function fetchTrendingNews(limit = 5): Promise<TrendingArticle[]> {
-  try {
-    const res = await fetch(API_ROUTES.ARTICLE.TRENDING(limit), { next: { revalidate: 120 } });
-    if (!res.ok) return [];
-    const data = (await res.json()) as Article[];
-    return data.map((a) => ({
-      id: a.id,
-      slug: a.slug,
-      title: a.title,
-      content: a.content,
-      images: a.images as ArticleImage[],
-    }));
-  } catch {
-    return [];
-  }
-}
-
-async function RailSection({
-  categoriesPromise,
-  nonEmptyIndex,
-}: {
-  categoriesPromise: CategoriesPromise;
-  nonEmptyIndex: number;
-}) {
-  const categories = await categoriesPromise;
-  const nonEmpty = categories.filter((c) => c.articles && c.articles.length > 0);
-  const entry = nonEmpty[nonEmptyIndex];
-
-  if (!entry) {
-    return <div className={styles.sectionPlaceholder} aria-hidden />;
-  }
-
-  return <CategorySection category={entry.category} articles={entry.articles} />;
-}
-
-async function RemainingCategoryRows({
-  categoriesPromise,
-}: {
-  categoriesPromise: CategoriesPromise;
-}) {
-  const categories = await categoriesPromise;
-  const nonEmpty = categories.filter((c) => c.articles && c.articles.length > 0);
-  const remaining = nonEmpty.slice(4);
-  if (remaining.length === 0) {
-    return null;
-  }
-
-  const remainingRows = chunk(remaining, 3);
-
-  return (
-    <>
-      {remainingRows.map((row, i) => (
-        <div key={`row-${i}`} className={styles.row}>
-          {row.map(({ category, articles }) => (
-            <CategorySection
-              key={category}
-              category={category}
-              articles={articles}
-              className={styles.column}
-            />
-          ))}
-        </div>
-      ))}
-    </>
-  );
-}
-
-function CategorySection({
-  category,
-  articles,
-  className,
-}: {
-  category: string;
-  articles: Article[];
-  className?: string;
-}) {
-  return (
-    <section className={`${styles.section}${className ? ` ${className}` : ''}`}>
-      <h2 className={styles.heading}>
-        <PrefetchLink
-          href={`/category/${encodeURIComponent(category)}`}
-          className={styles.kicker}
-        >
-          {category}
-        </PrefetchLink>
-      </h2>
-      <div className={styles.columnGrid}>
-        {articles.slice(0, 3).map((a) => (
-          <ArticleCard key={a.id} article={a} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CategorySectionSkeleton({ className }: { className?: string }) {
-  const classes = [styles.section, styles.sectionSkeleton];
-  if (className) classes.push(className);
-
-  return (
-    <section className={classes.join(' ')} aria-hidden="true">
-      <span className={styles.skeletonHeading} />
-      <div className={styles.skeletonCard}>
-        <span className={styles.skeletonTitle} />
-        <span className={styles.skeletonLine} />
-        <span className={styles.skeletonMeta} />
-      </div>
-      <div className={styles.skeletonCard}>
-        <span className={styles.skeletonTitle} />
-        <span className={styles.skeletonLine} />
-        <span className={styles.skeletonMeta} />
-      </div>
-      <div className={styles.skeletonCard}>
-        <span className={styles.skeletonTitleShort} />
-        <span className={styles.skeletonLineShort} />
-      </div>
-    </section>
-  );
-}
-
-function CategoryRowsSkeleton() {
-  const rowCount = Math.max(1, Math.ceil((CATEGORIES.length - 4) / 3));
-
-  return (
-    <>
-      {Array.from({ length: rowCount }).map((_, rowIndex) => (
-        <div key={`skeleton-row-${rowIndex}`} className={styles.row} aria-hidden="true">
-          {Array.from({ length: 3 }).map((_, colIndex) => (
-            <CategorySectionSkeleton key={`skeleton-${rowIndex}-${colIndex}`} className={styles.column} />
-          ))}
-        </div>
-      ))}
-    </>
-  );
 }

@@ -2,12 +2,11 @@ import CryptoAllPage from '@/components/CryptoAllPage';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'All Cryptocurrencies (Searchable)',
-  description: 'Browse and search all tradable USDT pairs. Click a symbol for details and charts.',
+  title: 'All Crypto Listings | The Nineties Times',
+  description: 'Browse the full list of tradable USDT pairs in the Crypto Control Room.',
   alternates: { canonical: '/crypto/all' },
 };
 
 export default function Page() {
   return <CryptoAllPage />;
 }
-
