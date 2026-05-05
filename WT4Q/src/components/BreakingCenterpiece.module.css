@@ -1,5 +1,5 @@
 .centerpiece {
-  --centerpiece-h: clamp(18rem, 50vw, 26rem);
+  --centerpiece-h: clamp(22rem, 40vw, 30rem);
   background: linear-gradient(
     180deg,
     rgba(255, 247, 234, 0.96) 0%,
@@ -14,13 +14,12 @@
   /* Stretch to fill the grid row height so it matches adjacent columns */
   align-self: stretch;
   height: auto;
-  /* Keep a controlled, consistent block height */
+  /* Give the feature card a strong minimum presence without squeezing the content */
   min-height: var(--centerpiece-h);
-  max-height: var(--centerpiece-h);
 
   display: grid;
   grid-template-rows: auto 1fr; /* header | content */
-  gap: .75rem;
+  gap: 0.9rem;
   border-radius: var(--radius-lg);
   position: relative;
   overflow: hidden;
@@ -37,7 +36,7 @@
 
 /* On very small screens we can slightly relax the fixed height bounds */
 @media (max-width: 520px) {
-  .centerpiece { --centerpiece-h: clamp(20rem, 150vw, 30rem); }
+  .centerpiece { --centerpiece-h: clamp(22rem, 150vw, 34rem); }
 }
 
 .header {

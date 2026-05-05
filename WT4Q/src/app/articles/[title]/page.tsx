@@ -13,6 +13,10 @@ import type { ArticleImage } from '@/lib/models';
 import PrefetchLink from '@/components/PrefetchLink';
 import ArticleTTS from '@/components/ArticleTTS';
 import ArticleViewCounter from '@/components/ArticleViewCounter';
+import AdSlot from '@/components/ads/AdSlot';
+import AfterRelatedAd from '@/components/ads/AfterRelatedAd';
+import InArticleAd from '@/components/ads/InArticleAd';
+import InlineCardAd from '@/components/ads/InlineCardAd';
 const ReactionButtons = dynamic(() => import('@/components/ReactionButtons'));
 const CommentsSection = dynamic(() => import('@/components/CommentsSection'));
 import { reactionNameFromType } from '@/components/ReactionIcon';
@@ -400,6 +404,7 @@ export default async function ArticlePage(
           className={styles.content}
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
+        <InArticleAd />
         {/* Move Text-to-Speech controls below the main content */}
         <ArticleTTS
           text={stripHtml(article.content || article.summary || '')}
@@ -417,6 +422,7 @@ export default async function ArticlePage(
           articleId={article.id}
           initialComments={article.comments ?? []}
         />
+        <InArticleAd />
         {/* Inline related reads after comments/likes */}
         {relatedDetails.length > 0 && (
           <section className={styles.relatedInline}>
@@ -436,11 +442,13 @@ export default async function ArticlePage(
                 </div>
               ))}
             </div>
+            <AfterRelatedAd />
           </section>
         )}
       </article>
 
       <aside className={styles.sidebar}>
+        <InlineCardAd />
         {related.length > 0 && (
           <>
             <h2 className={styles.relatedHeading}>Related Articles</h2>
@@ -451,6 +459,9 @@ export default async function ArticlePage(
                 </PrefetchLink>
               ))}
             </div>
+            <section className={styles.sidebarSection}>
+              <AdSlot slot="7994980056" format="fluid" layoutKey="-6t+ef+2h-1o-5b" />
+            </section>
           </>
         )}
 
@@ -471,31 +482,39 @@ export default async function ArticlePage(
         )}
 
         {trendingTop5 && trendingTop5.length > 0 && (
-          <section className={styles.sidebarSection}>
-            <h3 className={styles.sidebarHeading}>Top 5 Right Now</h3>
-            <ol className={styles.sidebarList}>
-              {trendingTop5.map((t, i) => (
-                <li key={t.id ?? `${t.slug}-${i}`} className={styles.sidebarItem}>
-                  <PrefetchLink href={`/articles/${t.slug}`}>{t.title}</PrefetchLink>
-                </li>
-              ))}
-            </ol>
-            <Script id="ld-top5-itemlist" type="application/ld+json" strategy="afterInteractive">
-              {JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'ItemList',
-                itemListOrder: 'https://schema.org/ItemListOrderDescending',
-                itemListElement: trendingTop5.map((t, idx) => ({
-                  '@type': 'ListItem',
-                  position: idx + 1,
-                  url: new URL(`/articles/${t.slug}`, siteUrl).toString(),
-                  name: t.title,
-                })),
-              })}
-            </Script>
-          </section>
+          <>
+            <section className={styles.sidebarSection}>
+              <h3 className={styles.sidebarHeading}>Top 5 Right Now</h3>
+              <ol className={styles.sidebarList}>
+                {trendingTop5.map((t, i) => (
+                  <li key={t.id ?? `${t.slug}-${i}`} className={styles.sidebarItem}>
+                    <PrefetchLink href={`/articles/${t.slug}`}>{t.title}</PrefetchLink>
+                  </li>
+                ))}
+              </ol>
+              <Script id="ld-top5-itemlist" type="application/ld+json" strategy="afterInteractive">
+                {JSON.stringify({
+                  '@context': 'https://schema.org',
+                  '@type': 'ItemList',
+                  itemListOrder: 'https://schema.org/ItemListOrderDescending',
+                  itemListElement: trendingTop5.map((t, idx) => ({
+                    '@type': 'ListItem',
+                    position: idx + 1,
+                    url: new URL(`/articles/${t.slug}`, siteUrl).toString(),
+                    name: t.title,
+                  })),
+                })}
+              </Script>
+            </section>
+            <section className={styles.sidebarSection}>
+              <AdSlot slot="7994980056" format="fluid" layoutKey="-6t+ef+2h-1o-5b" />
+            </section>
+          </>
         )}
 
+        <section className={styles.sidebarSection}>
+          <AdSlot slot="7199637663" format="auto" />
+        </section>
       </aside>
       
     </div>

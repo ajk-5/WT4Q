@@ -13,14 +13,22 @@ export default function BreakingNewsBar() {
     const compute = () => {
       const isDesktop = window.innerWidth > 1024;
       const headerScrolled = document.documentElement.classList.contains('header-scrolled');
-      setOpen(isDesktop && !headerScrolled);
+      const nextOpen = isDesktop && !headerScrolled;
+      setOpen((current) => (current === nextOpen ? current : nextOpen));
     };
+
     compute();
     window.addEventListener('resize', compute);
-    window.addEventListener('scroll', compute, { passive: true });
+
+    const observer = new MutationObserver(compute);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
     return () => {
       window.removeEventListener('resize', compute);
-      window.removeEventListener('scroll', compute);
+      observer.disconnect();
     };
   }, []);
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { Article } from "@/components/ArticleCard";
 import CategoryArticleCard from "@/components/CategoryArticleCard";
 import HorizontalScroller from "@/components/HorizontalScroller";
+import CategoryHorizontalAd from "@/components/ads/CategoryHorizontalAd";
 
 type Props = {
   pastDates: string[];
@@ -45,25 +46,28 @@ export default function CategoryLazyDates({
 
   return (
     <>
-      {visibleDates.map((dateStr) => (
-        <section key={dateStr} className={sectionClassName}>
-          <h2 className={dateHeadingClassName}>
-            {new Date(dateStr).toLocaleDateString('en-GB', {
-              weekday: 'long',
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </h2>
-          <HorizontalScroller
-            className={horizontalCardsClassName}
-            ariaLabel={`${dateStr} archive scroller`}
-          >
-            {(grouped[dateStr] || []).map((a) => (
-              <CategoryArticleCard key={a.id} article={a} />
-            ))}
-          </HorizontalScroller>
-        </section>
+      {visibleDates.map((dateStr, idx) => (
+        <Fragment key={dateStr}>
+          <section className={sectionClassName}>
+            <h2 className={dateHeadingClassName}>
+              {new Date(dateStr).toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </h2>
+            <HorizontalScroller
+              className={horizontalCardsClassName}
+              ariaLabel={`${dateStr} archive scroller`}
+            >
+              {(grouped[dateStr] || []).map((a) => (
+                <CategoryArticleCard key={a.id} article={a} />
+              ))}
+            </HorizontalScroller>
+          </section>
+          {idx % 2 === 1 ? <CategoryHorizontalAd /> : null}
+        </Fragment>
       ))}
 
       {visibleCount < pastDates.length && (

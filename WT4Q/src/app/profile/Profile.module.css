@@ -1,32 +1,94 @@
-.form {
-  max-width: 500px;
-  margin: 2rem auto;
+/* =====================================================================
+   PROFILE — pixel-art aesthetic (Stitch User Profile screen)
+   Halftone-dot dark backdrop + chunky window frames + retro forms.
+   ===================================================================== */
+
+.form,
+.accountSection,
+.activitySection {
+  max-width: 540px;
+  margin: 1.5rem auto;
+  padding: 1.1rem 1.2rem;
+  background: var(--r-pixel-bg);
+  color: #fff;
+  border: 4px solid var(--r-ink);
+  box-shadow:
+    0 0 0 4px var(--r-pixel-cyan),
+    0 0 0 8px var(--r-ink),
+    var(--r-shadow-3);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--secondary);
-  border-radius: 12px;
+  gap: 0.85rem;
+  position: relative;
+}
+
+/* halftone-dot overlay matching the Stitch screen backdrop */
+.form::before,
+.accountSection::before,
+.activitySection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 2px at 10% 18%, rgba(54, 228, 255, 0.35) 100%, transparent 100%),
+    radial-gradient(circle 2px at 80% 24%, rgba(255, 62, 165, 0.30) 100%, transparent 100%),
+    radial-gradient(circle 2px at 30% 70%, rgba(255, 214, 51, 0.30) 100%, transparent 100%),
+    radial-gradient(circle 2px at 75% 86%, rgba(108, 240, 74,  0.25) 100%, transparent 100%);
+  background-size: 28px 28px;
+  opacity: 0.7;
+}
+
+.form > *,
+.accountSection > *,
+.activitySection > * {
+  position: relative;
+  z-index: 1;
 }
 
 .title {
-  font-size: 1.5rem;
+  font-family: var(--font-pixel, var(--font-retro));
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
   text-align: center;
-  margin-bottom: 1rem;
-  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--r-pixel-cyan);
+  text-shadow: 2px 2px 0 var(--r-ink);
+  line-height: 1.5;
+}
+
+.subtitle {
+  font-family: var(--font-retro);
+  font-size: 1.4rem;
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
 }
 
 .label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-weight: 600;
+  gap: 0.3rem;
+  font-family: var(--font-retro);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--r-yellow);
 }
 
 .input {
-  padding: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--text-light);
+  padding: 0.55rem 0.7rem;
+  border: 3px solid var(--r-ink);
+  background: #fff;
+  color: var(--r-ink);
+  font-family: var(--font-body);
+  box-shadow: inset 2px 2px 0 rgba(14, 10, 31, 0.18);
+  border-radius: 0;
 }
 
 .inputRow {
@@ -36,53 +98,91 @@
 }
 
 .clearButton {
-  background: var(--error-red);
+  background: var(--r-pink);
   color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.25rem 0.5rem;
+  border: 3px solid var(--r-ink);
+  font-family: var(--font-retro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
   cursor: pointer;
+  box-shadow: var(--r-shadow-1);
+  border-radius: 0;
+}
+.clearButton:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--r-shadow-2);
 }
 
 .button {
-  padding: 0.75rem;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  background: var(--r-yellow);
+  color: var(--r-ink);
+  border: 3px solid var(--r-ink);
   cursor: pointer;
-  font-weight: 700;
+  font-family: var(--font-retro);
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: var(--r-shadow-2);
+  border-radius: 0;
+  align-self: flex-start;
+}
+.button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--r-shadow-3);
+}
+.button:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--r-shadow-1);
 }
 
-
 .deleteButton {
-  background: var(--error-red);
+  background: var(--r-pink);
   color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  border: 3px solid var(--r-ink);
   cursor: pointer;
+  font-family: var(--font-retro);
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  box-shadow: var(--r-shadow-1);
+  border-radius: 0;
+}
+.deleteButton:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--r-shadow-2);
 }
 
 .message {
   text-align: center;
   margin-top: 2rem;
-}
-
-.activitySection {
-  max-width: 500px;
-  margin: 2rem auto;
+  color: #fff;
+  font-family: var(--font-retro);
+  font-size: 1.2rem;
 }
 
 .activityList {
   margin-left: 1.25rem;
-  list-style: disc;
+  list-style: square;
+  color: #fff;
 }
 
+.activityList li { margin: 0.35rem 0; }
+
 .reactionItem {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  background: var(--r-cyan);
+  color: var(--r-ink);
+  border: 2px solid var(--r-ink);
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
 }
 
 .reactionIcon {
@@ -90,62 +190,38 @@
   height: 1rem;
 }
 
-.accountSection {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 1rem;
-  border: 1px solid var(--secondary);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .passwordForm {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .passwordTitle {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-family: var(--font-retro);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  color: var(--r-pixel-cyan);
 }
 
-.error {
-  color: var(--error-red);
-}
+.error   { color: #ffb4c4; font-weight: 600; }
+.success { color: var(--r-lime); font-weight: 600; }
 
-.success {
-  color: green;
-}
-
-.subtitle {
-  font-size: 1.25rem;
-  text-align: center;
-  font-weight: 700;
-}
-
-.deleteConfirm {
-  display: flex;
-  gap: 0.5rem;
-}
+.deleteConfirm { display: flex; gap: 0.5rem; }
 
 @media (max-width: 640px) {
   .form,
   .activitySection,
   .accountSection {
     max-width: 100%;
-    margin: 1rem 0;
+    margin: 1rem 0.4rem;
   }
 
   .inputRow,
-  .deleteConfirm {
-    flex-wrap: wrap;
-  }
+  .deleteConfirm { flex-wrap: wrap; }
 
   .clearButton,
-  .deleteButton {
-    width: 100%;
-  }
+  .deleteButton,
+  .button { width: 100%; }
 }

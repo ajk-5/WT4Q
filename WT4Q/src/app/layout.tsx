@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { IBM_Plex_Mono, IBM_Plex_Sans, VT323 } from "next/font/google";
+import { IBM_Plex_Mono, Space_Grotesk, VT323, Press_Start_2P } from "next/font/google";
 
 import GlobalStyles from "./global-styles";
 import Header from "@/components/Header";
@@ -10,12 +10,13 @@ import CookieBanner from "@/components/CookieBanner";
 import PageVisitReporter from "@/components/PageVisitReporter";
 import AdSenseLoader from "@/components/AdSenseLoader";
 import GoogleAnalyticsLoader from "@/components/GoogleAnalyticsLoader";
+import AutoRelaxedAd from "@/components/ads/AutoRelaxedAd";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.90stimes.com";
 
-const bodyFont = IBM_Plex_Sans({
+const bodyFont = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
@@ -24,6 +25,13 @@ const displayFont = VT323({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-display",
+  display: "swap",
+});
+
+const pixelFont = Press_Start_2P({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-pixel",
   display: "swap",
 });
 
@@ -79,7 +87,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable}`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${pixelFont.variable} ${monoFont.variable}`}
     >
       <head>
         <GlobalStyles />
@@ -140,6 +148,7 @@ export default function RootLayout({
         <Header />
         <BreakingNewsBarClient />
         <main>{children}</main>
+        <AutoRelaxedAd />
         <Footer />
         <CookieBanner />
       </body>

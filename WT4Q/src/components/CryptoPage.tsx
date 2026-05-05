@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import CryptoTicker, { TickerItem } from './CryptoTicker';
 import CryptoChart, { Candle } from './CryptoChart';
+import CryptoPageAd from './ads/CryptoPageAd';
 import styles from './CryptoPage.module.css';
 
 const DEFAULT_SYMBOL = 'BTCUSDT';
@@ -183,6 +184,10 @@ export default function CryptoPage() {
         <h1 className={styles.title}>Crypto Control Room</h1>
         <div className={styles.subtle}>Live quotes from Binance | Click any asset to view chart</div>
       </div>
+
+      <section className={styles.card}>
+        <CryptoPageAd />
+      </section>
 
       <CryptoTicker onSelect={(s) => setSymbol(s)} />
 

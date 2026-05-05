@@ -10,8 +10,7 @@
   position: relative;
   min-height: 100vh;
   padding: clamp(1rem, 3vw, 3rem);
-  background: radial-gradient(circle at 10% 20%, #111d3a, #050912 65%);
-  color: #fff;
+  color: var(--r-ink);
   overflow: hidden;
 }
 
@@ -26,18 +25,15 @@
 
 .hero {
   position: relative;
-  border: 5px double #000;
-  box-shadow: inset 0 0 0 4px #000, 0 18px 0 #000;
-  background:
-    linear-gradient(135deg, rgba(4, 8, 32, 0.85), rgba(15, 23, 42, 0.8)),
-    radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.25), transparent 55%),
-    linear-gradient(135deg, #fb7185, #fcd34d 30%, #818cf8 80%);
+  border: 4px solid var(--r-ink);
+  box-shadow: var(--r-shadow-3);
+  background: var(--r-yellow);
   padding: clamp(1.5rem, 5vw, 3rem);
   display: grid;
   gap: 1.25rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   overflow: hidden;
-  color: #f8fafc;
+  color: var(--r-ink);
 }
 
 .heroContent {
@@ -46,34 +42,36 @@
 }
 
 .heroBadge {
-  font-family: var(--retro-font), monospace;
+  font-family: var(--font-retro);
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #000;
-  color: var(--retro-yellow);
+  background: var(--r-ink);
+  color: var(--r-yellow);
   padding: 0.35rem 0.85rem;
-  border: 3px solid #fff;
-  box-shadow: 4px 4px 0 #000;
+  border: 2px solid var(--r-ink);
+  box-shadow: var(--r-shadow-1);
   letter-spacing: 0.2em;
-  font-size: 0.85rem;
+  font-size: 1rem;
 }
 
 .heroTitle {
   margin: 0.75rem 0 0;
+  font-family: var(--font-retro);
   font-size: clamp(2.3rem, 5vw, 3.6rem);
   text-transform: uppercase;
-  line-height: 1.1;
-  text-shadow: -4px 4px 0 #000, 0 0 25px rgba(0, 0, 0, 0.4);
-  color: #ffffff;
+  line-height: 1.05;
+  font-weight: 400;
+  color: var(--r-pink);
+  text-shadow: 3px 3px 0 var(--r-cyan), 6px 6px 0 var(--r-ink);
 }
 
 .heroSubtitle {
   margin-top: 0.75rem;
   font-size: 1.05rem;
-  font-weight: 600;
-  color: #dbeafe;
+  font-weight: 500;
+  color: var(--r-ink);
 }
 
 .heroButtons {
@@ -86,25 +84,31 @@
 .ctaPrimary,
 .ctaSecondary {
   text-decoration: none;
-  font-weight: 800;
+  font-family: var(--font-retro);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 3px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  padding: 0.65rem 1.4rem;
+  border: 3px solid var(--r-ink);
+  box-shadow: var(--r-shadow-2);
+  padding: 0.55rem 1.1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.ctaPrimary:hover, .ctaSecondary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--r-shadow-3);
 }
 
 .ctaPrimary {
-  background: #000;
-  color: var(--retro-yellow);
+  background: var(--r-pink);
+  color: #fff;
 }
 
 .ctaSecondary {
   background: #fff;
-  color: #000;
+  color: var(--r-ink);
 }
 
 .heroStats {
@@ -113,9 +117,9 @@
 }
 
 .statCard {
-  background: rgba(0, 6, 40, 0.65);
-  border: 3px solid #000;
-  box-shadow: 4px 4px 0 #000;
+  background: #fff;
+  border: 3px solid var(--r-ink);
+  box-shadow: var(--r-shadow-1);
   padding: 0.9rem 1rem;
   display: flex;
   flex-direction: column;
@@ -123,27 +127,29 @@
 }
 
 .statLabel {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  color: #dce0ff;
+  font-family: var(--font-retro);
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--r-pink);
 }
 
 .statValue {
+  font-family: var(--font-retro);
   font-size: 2rem;
-  font-weight: 900;
-  color: var(--retro-yellow);
+  color: var(--r-ink);
 }
 
 .statMeta {
   font-size: 0.85rem;
-  color: #cbd5f5;
+  color: #4a3f63;
 }
 
 .ticker {
   margin: 1.5rem 0;
-  border: 4px solid #000;
-  box-shadow: 6px 6px 0 #000;
-  background: #000;
+  border: 3px solid var(--r-ink);
+  box-shadow: var(--r-shadow-2);
+  background: var(--r-ink);
   overflow: hidden;
 }
 
@@ -154,11 +160,12 @@
 }
 
 .tickerItem {
-  padding: 0.75rem 0;
-  font-weight: 800;
+  padding: 0.7rem 0;
+  font-family: var(--font-retro);
+  font-size: 1.1rem;
   text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: var(--retro-cyan);
+  letter-spacing: 0.22em;
+  color: var(--r-yellow);
   white-space: nowrap;
 }
 
@@ -192,16 +199,27 @@
 
 .card {
   position: relative;
-  border: 3px solid #000;
-  box-shadow: 6px 6px 0 #000;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 3px solid var(--r-ink);
+  box-shadow: var(--r-shadow-2);
+  background: #fff;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   min-height: 100%;
-  color: #f8fafc;
+  color: var(--r-ink);
+  overflow: hidden;
 }
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: var(--r-pink);
+}
+.card:nth-child(4n+2)::before { background: var(--r-cyan);   }
+.card:nth-child(4n+3)::before { background: var(--r-yellow); }
+.card:nth-child(4n+4)::before { background: var(--r-purple); }
 
 .thumb {
   position: relative;
@@ -255,15 +273,16 @@
 }
 
 .cardTitle {
-  font-size: 1.2rem;
-  font-weight: 900;
+  font-family: var(--font-retro);
+  font-size: 1.3rem;
+  font-weight: 400;
   text-transform: uppercase;
-  color: #ffffff;
+  color: var(--r-ink);
 }
 
 .cardMeta {
-  font-size: 0.9rem;
-  color: #e2e8f0;
+  font-size: 0.88rem;
+  color: #4a3f63;
 }
 
 .tagList {
@@ -275,16 +294,17 @@
 .tag {
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  border: 2px solid #000;
-  padding: 0.2rem 0.45rem;
-  background: rgba(0, 0, 0, 0.75);
-  color: var(--retro-yellow);
+  letter-spacing: 0.18em;
+  border: 2px solid var(--r-ink);
+  padding: 0.2rem 0.5rem;
+  background: var(--r-paper);
+  color: var(--r-ink);
+  font-weight: 700;
 }
 
 .cardBody {
   flex: 1;
-  color: #f7fafc;
+  color: #4a3f63;
 }
 
 .cardFooter,
@@ -297,16 +317,19 @@
 
 .ctaLink {
   text-decoration: none;
-  font-weight: 800;
+  font-family: var(--font-retro);
+  font-size: 1rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--retro-cyan);
+  color: var(--r-pink);
 }
+.ctaLink:hover { color: var(--r-ink); }
 
 .funBox {
-  border: 3px dashed var(--retro-pink);
+  border: 3px dashed var(--r-pink);
   padding: 1rem;
-  background: rgba(255, 95, 210, 0.08);
+  background: var(--r-paper);
+  color: var(--r-ink);
 }
 
 .funList {
@@ -318,9 +341,10 @@
 }
 
 .funItem {
-  border-left: 3px solid var(--retro-cyan);
+  border-left: 3px solid var(--r-cyan);
   padding-left: 0.75rem;
   font-size: 0.95rem;
+  color: var(--r-ink);
 }
 
 .triviaSection {
@@ -331,16 +355,17 @@
   display: grid;
   grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
   gap: 1rem;
-  border: 3px solid #000;
-  box-shadow: 6px 6px 0 #000;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.9));
+  border: 3px solid var(--r-ink);
+  box-shadow: var(--r-shadow-2);
+  background: var(--r-ink);
+  color: #fff;
   padding: 0.9rem;
 }
 
 .triviaMedia {
   position: relative;
-  border: 3px solid #000;
-  background: #020617;
+  border: 3px solid var(--r-ink);
+  background: var(--r-paper);
   min-height: 140px;
   display: flex;
   align-items: center;
@@ -360,10 +385,11 @@
 .triviaBadge {
   display: inline-block;
   padding: 0.25rem 0.7rem;
-  border: 2px solid #38bdf8;
-  background: #020617;
-  color: #e5e7eb;
-  font-size: 0.75rem;
+  border: 2px solid var(--r-cyan);
+  background: var(--r-ink);
+  color: var(--r-yellow);
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -401,8 +427,9 @@
 }
 
 .emptyCard {
-  border: 3px dashed #fff;
-  color: #e0e7ff;
+  border: 3px dashed var(--r-ink);
+  background: var(--r-paper);
+  color: var(--r-ink);
   text-align: center;
 }
 
@@ -420,9 +447,9 @@
 }
 
 .heroImageFrame {
-  border: 6px double #000;
-  box-shadow: 8px 8px 0 #000;
-  background: #000;
+  border: 4px solid var(--r-ink);
+  box-shadow: var(--r-shadow-3);
+  background: var(--r-ink);
   padding: 0.3rem;
   margin: 1rem auto;
   max-width: min(720px, 100%);
@@ -432,13 +459,13 @@
   display: block;
   width: 100%;
   height: auto;
-  border: 4px solid #000;
+  border: 3px solid var(--r-ink);
 }
 
 .heroImageCaption {
   margin-top: 0.35rem;
   font-size: 0.9rem;
-  color: #e5e7eb;
+  color: var(--r-ink);
   text-align: center;
 }
 
@@ -448,10 +475,10 @@
   justify-content: center;
   width: 2.4rem;
   height: 2.4rem;
-  border: 3px solid #000;
-  background: #0f172a;
-  color: #f9fafb;
-  box-shadow: 3px 3px 0 #000;
+  border: 3px solid var(--r-ink);
+  background: var(--r-pink);
+  color: #fff;
+  box-shadow: var(--r-shadow-1);
 }
 
 .heroHomeIcon {
@@ -466,10 +493,11 @@
 }
 
 .detailCard {
-  border: 3px solid #000;
+  border: 3px solid var(--r-ink);
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.35);
-  box-shadow: 6px 6px 0 #000;
+  background: #fff;
+  color: var(--r-ink);
+  box-shadow: var(--r-shadow-2);
 }
 
 .chipRow {
@@ -479,12 +507,15 @@
 }
 
 .chip {
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  padding: 0.25rem 0.6rem;
-  border: 2px solid #000;
-  background: var(--retro-cyan);
-  color: #000;
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border: 2px solid var(--r-ink);
+  background: var(--r-cyan);
+  color: var(--r-ink);
+  box-shadow: var(--r-shadow-1);
 }
 
 .miniMeta {
@@ -492,25 +523,27 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   font-size: 0.9rem;
-  color: #e2e8f0;
+  color: #4a3f63;
 }
 
 .listDivider {
   width: 100%;
   height: 4px;
-  background: repeating-linear-gradient(90deg, #000, #000 8px, transparent 8px, transparent 16px);
+  background: repeating-linear-gradient(
+    90deg, var(--r-ink) 0 8px, transparent 8px 16px
+  );
   margin: 2rem 0 1rem;
 }
 
 .quizCard {
-  background: linear-gradient(135deg, #020617, #0f172a);
-  color: #f9fafb;
+  background: #fff;
+  color: var(--r-ink);
 }
 
 .quizCard .cardTitle,
 .quizCard .cardMeta,
 .quizCard .cardBody {
-  color: #f9fafb;
+  color: var(--r-ink);
   word-break: break-word;
 }
 
@@ -521,14 +554,15 @@
 .quizBestScore {
   font-size: 0.9rem;
   margin-top: 0.35rem;
-  color: #e5e7eb;
+  color: #4a3f63;
 }
 
 .quizType {
-  font-size: 0.75rem;
-  letter-spacing: 0.25em;
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--retro-yellow);
+  color: var(--r-pink);
 }
 
 .badge {
@@ -536,22 +570,24 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.25rem 0.85rem;
-  border: 2px solid #000;
-  background: var(--retro-purple);
-  color: #000;
-  font-weight: 800;
+  border: 2px solid var(--r-ink);
+  background: var(--r-purple);
+  color: #fff;
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
 }
 
 .pill {
   padding: 0.3rem 0.9rem;
-  border: 2px solid #000;
-  background: var(--retro-cyan);
-  color: #000;
-  font-size: 0.8rem;
+  border: 2px solid var(--r-ink);
+  background: var(--r-cyan);
+  color: var(--r-ink);
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.2em;
 }
 
 @media (max-width: 640px) {

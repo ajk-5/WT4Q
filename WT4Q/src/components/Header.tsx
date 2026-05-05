@@ -11,7 +11,10 @@ import styles from './Header.module.css';
 // Revert portal usage
 
 export default function Header() {
+  const SCROLL_ENTER_Y = 56;
+  const SCROLL_EXIT_Y = 16;
   const headerRef = useRef<HTMLElement>(null);
+  const reservedHeaderHeightRef = useRef(0);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   // Render an empty dateline on the server to avoid hydration mismatch,
@@ -39,7 +42,16 @@ export default function Header() {
   const updateHeaderOffset = useCallback(() => {
     if (typeof window === 'undefined') return;
     const height = headerRef.current?.offsetHeight ?? 0;
-    document.documentElement.style.setProperty('--header-offset', `${height}px`);
+    if (height <= reservedHeaderHeightRef.current) return;
+
+    // The header intentionally becomes compact while scrolling. The page
+    // reserve must only grow, never shrink during that transition, otherwise
+    // scroll anchoring can bounce around the threshold and visibly flicker.
+    reservedHeaderHeightRef.current = Math.ceil(height);
+    document.documentElement.style.setProperty(
+      '--header-offset',
+      `${reservedHeaderHeightRef.current}px`,
+    );
   }, []);
 
   useEffect(() => {
@@ -51,7 +63,10 @@ export default function Header() {
     const target = headerRef.current;
     if (observer && target) observer.observe(target);
 
-    const onResize = () => updateHeaderOffset();
+    const onResize = () => {
+      reservedHeaderHeightRef.current = 0;
+      updateHeaderOffset();
+    };
     window.addEventListener('resize', onResize);
 
     return () => {
@@ -61,20 +76,35 @@ export default function Header() {
   }, [updateHeaderOffset]);
 
   useEffect(() => {
+    let rafId = 0;
+
+    const readScrollState = () => {
+      const y = window.scrollY;
+      // Use hysteresis so header/layout changes don't bounce the page
+      // back and forth around a single threshold and cause flicker.
+      setScrolled((prev) => {
+        const next = prev ? y > SCROLL_EXIT_Y : y > SCROLL_ENTER_Y;
+        return prev !== next ? next : prev;
+      });
+    };
+
     const onScroll = () => {
-      const isScrolled = window.scrollY > 40;
-      // Update only when state actually changes to avoid re-renders
-      setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        readScrollState();
+      });
     };
 
     // Run once in case we mount mid-page
     if (typeof window !== 'undefined') {
-      onScroll();
+      readScrollState();
       window.addEventListener('scroll', onScroll, { passive: true });
     }
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('scroll', onScroll);
+        if (rafId) window.cancelAnimationFrame(rafId);
       }
     };
   }, []);
@@ -88,6 +118,10 @@ export default function Header() {
       root.classList.remove('header-scrolled');
     }
     updateHeaderOffset();
+
+    return () => {
+      root.classList.remove('header-scrolled');
+    };
   }, [scrolled, updateHeaderOffset]);
 
   // No portal: rely on CSS to show/hide the sidebar when scrolled/mobile

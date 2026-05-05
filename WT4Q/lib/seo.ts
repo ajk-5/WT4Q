@@ -6,7 +6,8 @@ export const SITE_URL = rawSiteUrl && /^https?:\/\//i.test(rawSiteUrl)
   : 'https://www.90stimes.com';
 
 export const SITE_NAME = 'The Nineties Times';
-export const SITE_DESCRIPTION = 'Independent, reliable, in-depth news, summarized.';
+export const SITE_DESCRIPTION =
+  'Daily 90s nostalgia stories, jokes, quizzes, arcade games, and time-capsule culture from The Nineties Times.';
 
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/images/90stimeslogo.png.jpg`;
 

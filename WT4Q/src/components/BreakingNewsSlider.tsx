@@ -494,24 +494,26 @@ export default function BreakingNewsSlider({
                   )}
                 </figure>
               ) : null}
-              <h3 className={styles.detailTitle} style={{ fontSize: `${titleFontRem}rem` }}>{title}</h3>
-              {snippet ? (
-                <p className={styles.snippet}>
-                  {snippet}
-                  <span className={styles.readMore}> READ MORE...</span>
-                </p>
-              ) : (
-                <div className={styles.snippetPlaceholder} aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
-              )}
+              <div className={styles.detailCopy}>
+                <h3 className={styles.detailTitle} style={{ fontSize: `${titleFontRem}rem` }}>{title}</h3>
+                {snippet ? (
+                  <p className={styles.snippet}>
+                    {snippet}
+                    <span className={styles.readMore}> Read more</span>
+                  </p>
+                ) : (
+                  <div className={styles.snippetPlaceholder} aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                )}
+              </div>
             </div>
           </PrefetchLink>
         ) : (
@@ -520,16 +522,18 @@ export default function BreakingNewsSlider({
               <div className={styles.mediaPlaceholder} />
               <figcaption className={`${styles.detailCaption} ${styles.captionPlaceholder}`} aria-hidden="true">&nbsp;</figcaption>
             </figure>
-            <div className={styles.titlePlaceholder} aria-hidden="true" />
-            <div className={styles.snippetPlaceholder} aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
+            <div className={styles.detailCopy} aria-hidden="true">
+              <div className={styles.titlePlaceholder} />
+              <div className={styles.snippetPlaceholder}>
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
             </div>
           </div>
         )

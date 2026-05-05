@@ -5,9 +5,9 @@ import SearchContent from './SearchContent';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Search the archives | The Nineties Times',
+  title: 'Search the 90s archive | The Nineties Times',
   description:
-    'Find articles across politics, business, sports, culture and more from The Nineties Times archive.',
+    'Search 90s jokes, nostalgia stories, pop-culture guides, time capsules, retro tech, music, movies and decade-defining archive features.',
   robots: {
     index: false,
     follow: true,
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function SearchPage() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <SearchContent />
     </Suspense>
   );

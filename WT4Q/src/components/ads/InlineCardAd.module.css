@@ -1,0 +1,28 @@
+.cardAd {
+  background: #fffef9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  margin-top: 0.5rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 120px;
+}
+
+.label {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.slot {
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .cardAd {
+    margin-top: 0.35rem;
+    padding: 0.4rem 0.5rem;
+  }
+}

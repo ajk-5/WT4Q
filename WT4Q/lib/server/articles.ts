@@ -36,6 +36,10 @@ type RawArticle = {
   reactionsCount?: number | null;
 };
 
+type PagedArticlePayload = {
+  items?: RawArticle[] | null;
+};
+
 function normalizeLimit(limit?: number): number {
   if (typeof limit !== 'number' || !Number.isFinite(limit)) {
     return DEFAULT_LIMIT;
@@ -154,13 +158,17 @@ const fetchCategoryArticles = unstable_cache(
       return [];
     }
 
-    const url = new URL(API_ROUTES.ARTICLE.SEARCH_ADVANCED);
-    url.searchParams.set('category', trimmedCategory);
+    const params = new URLSearchParams({
+      page: '1',
+      pageSize: String(limit),
+      sort: 'date_desc',
+      category: trimmedCategory,
+    });
 
     let response: Response;
     try {
-      response = await fetch(url.toString(), {
-        cache: 'no-store',
+      response = await fetch(API_ROUTES.ARTICLE.SEARCH_PAGED(params.toString()), {
+        next: { revalidate: 180 },
         headers: { Accept: 'application/json' },
       });
     } catch {
@@ -178,11 +186,17 @@ const fetchCategoryArticles = unstable_cache(
       return [];
     }
 
-    if (!Array.isArray(payload)) {
+    const rawItems = Array.isArray(payload)
+      ? payload
+      : Array.isArray((payload as PagedArticlePayload)?.items)
+        ? ((payload as PagedArticlePayload).items as RawArticle[])
+        : [];
+
+    if (rawItems.length === 0) {
       return [];
     }
 
-    const articles = (payload as RawArticle[])
+    const articles = rawItems
       .filter((item) => item && typeof item.id === 'string' && typeof item.slug === 'string')
       .sort((a, b) => {
         const aTime = new Date(a.createdDate ?? 0).getTime();

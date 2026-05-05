@@ -39,6 +39,8 @@ export const API_ROUTES = {
     SEARCH_ADVANCED: `${API_BASE_URL}/api/ArticleSearch/advanced`,
     SEARCH_PAGED: (queryString: string) =>
       `${API_BASE_URL}/api/ArticleSearch/paged${queryString.startsWith('?') ? '' : '?'}${queryString}`,
+    SEARCH_SMART: (queryString: string) =>
+      `/api/bridge/article/search${queryString.startsWith('?') ? '' : '?'}${queryString}`,
     FILTER: `${API_BASE_URL}/api/ArticleFilter`,
     UPDATE: (id: string) => `${API_BASE_URL}/api/Article/${id}`,
     DELETE: `${API_BASE_URL}/api/Article`,

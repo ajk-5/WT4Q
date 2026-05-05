@@ -590,5 +590,114 @@
   }
 }
 
+/* Final editorial detail layout overrides */
+.detail {
+  grid-template-columns: minmax(220px, 0.95fr) minmax(0, 1.08fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  align-content: start;
+  gap: clamp(0.8rem, 1.8vw, 1.15rem);
+}
+
+.detailNoImage {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto;
+  gap: 0;
+}
+
+.detailCopy {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(0.7rem, 1.5vw, 1rem);
+  padding: clamp(0.85rem, 1.8vw, 1.15rem);
+  border-radius: calc(var(--radius) + 2px);
+  border: 2px solid rgba(18, 11, 31, 0.14);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 247, 234, 0.36) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.detailNoImage .detailCopy {
+  min-height: clamp(220px, 28vw, 300px);
+}
+
+.detailFigure {
+  aspect-ratio: auto;
+  min-height: clamp(220px, 24vw, 300px);
+  height: 100%;
+  max-height: none;
+  isolation: isolate;
+}
+
+.detailTitle {
+  min-height: 0;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.titlePlaceholder {
+  width: min(100%, 18rem);
+  height: clamp(2.4rem, 5vw, 3.6rem);
+}
+
+.snippet {
+  font-size: clamp(0.98rem, 1.25vw, 1.08rem);
+  line-height: 1.7;
+  color: rgba(18, 11, 31, 0.82);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+  max-height: none;
+  padding-right: 0;
+  scrollbar-width: auto;
+}
+
+.detailNoImage .snippet {
+  min-height: 0;
+}
+
+.snippetPlaceholder {
+  align-content: start;
+  min-height: 0;
+}
+
+.readMore {
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detailLink {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .detail {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .detailCopy {
+    padding: 0.9rem;
+  }
+
+  .detailFigure,
+  .detailNoImage .detailCopy {
+    min-height: clamp(190px, 52vw, 260px);
+  }
+
+  .snippet {
+    -webkit-line-clamp: 5;
+  }
+}
+
 
 

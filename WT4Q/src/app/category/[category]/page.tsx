@@ -10,6 +10,7 @@ import type { BreakingArticle } from '@/components/BreakingNewsSlider';
 import type { TrendingArticle } from '@/components/TrendingNewsSlider';
 import HorizontalScroller from '@/components/HorizontalScroller';
 import CategoryLazyDates from '@/components/CategoryLazyDates';
+import CategoryHorizontalAd from '@/components/ads/CategoryHorizontalAd';
 import {
   CATEGORIES,
   getCategoryDetails,
@@ -198,6 +199,7 @@ export default async function CategoryPage({
           />
         </div>
       )}
+      <CategoryHorizontalAd />
       {todayArticles.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>Fresh Drops</h2>
@@ -217,6 +219,7 @@ export default async function CategoryPage({
           <TrendingCenterpiece articles={trendingInCategory} />
         </div>
       )}
+      <CategoryHorizontalAd />
 
       <CategoryLazyDates
         pastDates={pastDates}

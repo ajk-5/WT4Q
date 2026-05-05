@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CryptoChart, { Candle } from './CryptoChart';
+import CryptoPageAd from './ads/CryptoPageAd';
 import styles from './CryptoDetail.module.css';
 
 const TIMEFRAMES = ['1m', '5m', '1h', '1d', '1w', '1M', '1y'] as const;
@@ -250,6 +251,9 @@ export default function CryptoDetailPage({ symbol }: { symbol: string }) {
           ) : null}
         </aside>
       </div>
+      <section className={styles.card}>
+        <CryptoPageAd />
+      </section>
     </div>
   );
 }
